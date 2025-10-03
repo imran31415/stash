@@ -2212,6 +2212,34 @@ const generateMockChats = (count: number): ChatPreview[] => {
   return chats;
 };
 
+// Generate 1000+ messages for pagination demo
+const getLargeMessageHistory = (): Message[] => {
+  const messages: Message[] = [];
+  const startDate = subDays(new Date(), 60); // 60 days ago
+
+  for (let i = 0; i < 1200; i++) {
+    const isOwn = i % 3 === 0; // Every 3rd message is from user
+    const dayOffset = Math.floor(i / 20); // ~20 messages per day
+    const hourOffset = (i % 20) * 1.2; // Spread throughout the day
+
+    messages.push({
+      id: `msg-${i}`,
+      type: 'text',
+      content: isOwn
+        ? `User message ${i + 1}: This is a test message to demonstrate pagination with large message histories.`
+        : `AI response ${i + 1}: Acknowledged. The system is handling ${1200} total messages efficiently with proper pagination and windowing.`,
+      sender: isOwn
+        ? { id: 'user-1', name: 'You', avatar: '👤' }
+        : { id: 'ai-pagination', name: 'AI Assistant', avatar: '🤖' },
+      timestamp: addHours(addDays(startDate, dayOffset), hourOffset),
+      status: 'delivered',
+      isOwn,
+    });
+  }
+
+  return messages;
+};
+
 // Generate initial 100 chats
 const ALL_MOCK_CHATS = generateMockChats(100);
 
@@ -2233,6 +2261,32 @@ ALL_MOCK_CHATS.unshift({
   unreadCount: 0,
   updatedAt: new Date(),
   createdAt: new Date(),
+  isPinned: true,
+  isMuted: false,
+  isArchived: false,
+  metadata: {
+    lastReadAt: new Date(),
+  },
+});
+
+// Insert pagination demo conversation
+ALL_MOCK_CHATS.unshift({
+  id: 'chat-pagination',
+  title: '📄 Pagination Demo: 1,200 Messages',
+  type: 'ai',
+  participants: [
+    { id: 'user-1', name: 'You', avatar: '👤' },
+    { id: 'ai-pagination', name: 'AI Assistant', avatar: '🤖' },
+  ],
+  lastMessage: {
+    content: 'AI response 1200: Acknowledged. The system is handling 1200 total messages efficiently...',
+    timestamp: new Date(),
+    senderId: 'ai-pagination',
+    senderName: 'AI Assistant',
+  },
+  unreadCount: 0,
+  updatedAt: new Date(),
+  createdAt: subDays(new Date(), 60),
   isPinned: true,
   isMuted: false,
   isArchived: false,
@@ -2267,9 +2321,9 @@ ALL_MOCK_CHATS.unshift({
   },
 });
 
-// Update the third chat (originally first) to be the Project Management chat
-ALL_MOCK_CHATS[2] = {
-  ...ALL_MOCK_CHATS[2],
+// Update the fourth chat (originally first) to be the Project Management chat
+ALL_MOCK_CHATS[3] = {
+  ...ALL_MOCK_CHATS[3],
   id: 'chat-0',
   title: 'Q1 Website Redesign',
   type: 'group',
@@ -2298,11 +2352,13 @@ export default function ChatHistoryExample() {
   // Memoize initial messages to avoid regenerating large datasets
   const philosophyMessages = useMemo(() => getStashPhilosophyMessages(), []);
   const demoMessages = useMemo(() => getStashDemoMessages(), []);
+  const paginationMessages = useMemo(() => getLargeMessageHistory(), []);
   const initialMessages = useMemo(() => getAIIntegratedMessages(), []);
 
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>({
     'chat-philosophy': philosophyMessages,
     'chat-demo': demoMessages,
+    'chat-pagination': paginationMessages,
     'chat-0': initialMessages,
   });
 
