@@ -14,6 +14,8 @@ import {
   getCodeLines,
   formatLineNumber,
   copyToClipboard,
+  tokenizeCode,
+  getTokenColor,
 } from './CodeBlock.utils';
 
 const THEME = {
@@ -109,6 +111,9 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
     const lineNumber = startLineNumber + index;
     const isHighlighted = highlightLines.includes(lineNumber);
 
+    // Tokenize the line for syntax highlighting
+    const tokens = tokenizeCode(line, language);
+
     return (
       <View
         key={index}
@@ -123,8 +128,19 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
           </View>
         )}
         <View style={styles.codeContent}>
-          <Text style={styles.codeText} selectable>
-            {line || ' '}
+          <Text selectable>
+            {tokens.map((token, tokenIndex) => (
+              <Text
+                key={tokenIndex}
+                style={[
+                  styles.codeText,
+                  { color: getTokenColor(token.type) }
+                ]}
+              >
+                {token.value || ' '}
+              </Text>
+            ))}
+            {tokens.length === 0 && <Text style={styles.codeText}> </Text>}
           </Text>
         </View>
       </View>
@@ -151,7 +167,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
             accessibilityRole="button"
           >
             <Text style={styles.viewFullButtonText}>
-              {hasMore ? 'View Full File →' : 'Expand →'}
+              {hasMore ? '👁️ View Full File' : '👁️ Expand'}
             </Text>
           </TouchableOpacity>
         )}

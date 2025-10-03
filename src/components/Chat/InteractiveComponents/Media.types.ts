@@ -82,8 +82,10 @@ export interface MediaProps {
   maxWidth?: number; // Maximum width for the media
   onMediaPress?: (media: MediaItem, index?: number) => void;
   onExpandPress?: () => void; // Called when user wants to expand from mini to full
+  onExpand?: () => void; // Alias for onExpandPress
   onDownload?: (media: MediaItem) => void;
   onShare?: (media: MediaItem) => void;
+  onAction?: (action: string, data: any) => void; // Generic action handler
   showMetadata?: boolean; // Show metadata in full mode
   showCaption?: boolean; // Show caption/summary
   showControls?: boolean; // Show media controls (play/pause for video)

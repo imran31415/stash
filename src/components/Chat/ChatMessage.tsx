@@ -23,8 +23,11 @@ import {
   GraphVisualizationDetailView,
   CodeBlock,
   CodeBlockDetailView,
+  Media,
+  MediaDetailView,
 } from './InteractiveComponents';
-import type { Task, TimeSeriesSeries, GraphData, SupportedLanguage } from './InteractiveComponents';
+import type { Task, TimeSeriesSeries, GraphData, SupportedLanguage, MediaItem } from './InteractiveComponents';
+import { MarkdownText } from './MarkdownText';
 
 export interface ChatMessageProps {
   message: Message;
@@ -36,6 +39,7 @@ export interface ChatMessageProps {
   onPress?: (message: Message) => void;
   onAvatarPress?: (userId: string) => void;
   presentationMode?: boolean;
+  onEnterPresentation?: (message: Message) => void;
 }
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({
@@ -48,6 +52,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   onPress,
   onAvatarPress,
   presentationMode = false,
+  onEnterPresentation,
 }) => {
   const isOwn = message?.isOwn ?? false;
   const isSystem = message?.type === 'system';
@@ -56,7 +61,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   const shouldUseFullWidth = presentationMode && (
     message?.type === 'image' ||
     (message?.interactiveComponent &&
-      ['gantt-chart', 'task-list', 'time-series-chart', 'graph-visualization', 'code-block'].includes(
+      ['gantt-chart', 'task-list', 'time-series-chart', 'graph-visualization', 'code-block', 'media'].includes(
         message.interactiveComponent.type
       ))
   );
@@ -91,6 +96,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     fileName?: string;
     title?: string;
   } | null>(null);
+  const [showMediaDetail, setShowMediaDetail] = useState(false);
+  const [mediaData, setMediaData] = useState<MediaItem | MediaItem[] | null>(null);
 
   // Loading state for AI messages
   if (isLoading) {
@@ -159,6 +166,11 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   ) => {
     setCodeBlockData({ code, language, fileName, title });
     setShowCodeBlockDetail(true);
+  };
+
+  const handleMediaExpand = (media: MediaItem | MediaItem[]) => {
+    setMediaData(media);
+    setShowMediaDetail(true);
   };
 
   const renderInteractiveComponent = () => {
@@ -268,6 +280,15 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             onCopy={() => onAction?.('copy', data)}
           />
         );
+      case 'media':
+        return (
+          <Media
+            {...data}
+            mode={presentationMode ? 'full' : 'mini'}
+            onExpand={() => handleMediaExpand(data.media)}
+            onAction={(action, actionData) => onAction?.(action, actionData)}
+          />
+        );
       default:
         return null;
     }
@@ -286,14 +307,11 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
               />
             )}
             {message.content && (
-              <Text
-                style={[
-                  styles.messageText,
-                  { color: isOwn ? theme?.textColorOwn || '#FFFFFF' : theme?.textColorOther || '#000000' },
-                ]}
-              >
-                {message.content}
-              </Text>
+              <MarkdownText
+                content={message.content}
+                style={styles.messageText}
+                color={isOwn ? theme?.textColorOwn || '#FFFFFF' : theme?.textColorOther || '#000000'}
+              />
             )}
           </View>
         );
@@ -320,14 +338,11 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         );
       default:
         return (
-          <Text
-            style={[
-              styles.messageText,
-              { color: isOwn ? theme?.textColorOwn || '#FFFFFF' : theme?.textColorOther || '#000000' },
-            ]}
-          >
-            {message.content}
-          </Text>
+          <MarkdownText
+            content={message.content || ''}
+            style={styles.messageText}
+            color={isOwn ? theme?.textColorOwn || '#FFFFFF' : theme?.textColorOther || '#000000'}
+          />
         );
     }
   };
@@ -386,6 +401,16 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         {message.interactiveComponent && (
           <View style={styles.interactiveComponentContainer}>
             {renderInteractiveComponent()}
+            {/* Enter Presentation Mode Button */}
+            {!presentationMode && onEnterPresentation && shouldUseFullWidth && (
+              <TouchableOpacity
+                style={styles.enterPresentationButton}
+                onPress={() => onEnterPresentation(message)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.enterPresentationText}>👁️ Expand</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
@@ -484,6 +509,15 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           title={codeBlockData.title}
           onClose={() => setShowCodeBlockDetail(false)}
           onCopy={() => console.log('Code copied')}
+        />
+      )}
+
+      {/* Media Detail View */}
+      {mediaData && (
+        <MediaDetailView
+          visible={showMediaDetail}
+          media={mediaData}
+          onClose={() => setShowMediaDetail(false)}
         />
       )}
     </View>
@@ -627,5 +661,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
+  },
+  enterPresentationButton: {
+    marginTop: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#007AFF',
+    borderRadius: 8,
+    alignItems: 'center',
+    alignSelf: 'center',
+  },
+  enterPresentationText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

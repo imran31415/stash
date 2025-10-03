@@ -178,7 +178,7 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
           accessibilityLabel="Expand chart"
           accessibilityRole="button"
         >
-          <Text style={styles.expandButtonText}>⛶</Text>
+          <Text style={styles.expandButtonText}>👁️ Expand</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -499,13 +499,17 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.xs,
   },
   expandButton: {
-    padding: spacing[2],
+    paddingVertical: spacing[1],
+    paddingHorizontal: spacing[2],
     borderRadius: borderRadius.base,
     backgroundColor: colors.primary[500],
     marginLeft: spacing[2],
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   expandButtonText: {
-    fontSize: typography.fontSize.lg,
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
     color: colors.text.inverse,
   },
   legend: {

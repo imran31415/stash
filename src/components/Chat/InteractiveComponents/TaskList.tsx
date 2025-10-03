@@ -102,7 +102,7 @@ export const TaskList: React.FC<TaskListProps> = ({
             accessibilityLabel="Expand task list"
             accessibilityRole="button"
           >
-            <Text style={styles.expandButtonText}>⛶</Text>
+            <Text style={styles.expandButtonText}>👁️ Expand</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -235,13 +235,17 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   expandButton: {
-    padding: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
     borderRadius: 8,
     backgroundColor: '#3B82F6',
     marginLeft: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   expandButtonText: {
-    fontSize: 16,
+    fontSize: 14,
+    fontWeight: '600',
     color: '#FFFFFF',
   },
   list: {

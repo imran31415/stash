@@ -537,7 +537,7 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
       {/* Expand button for mini mode */}
       {mode === 'mini' && onExpandPress && (
         <TouchableOpacity style={styles.expandButton} onPress={onExpandPress}>
-          <Text style={styles.expandButtonText}>🔍 View Full Graph</Text>
+          <Text style={styles.expandButtonText}>👁️ Expand</Text>
         </TouchableOpacity>
       )}
 

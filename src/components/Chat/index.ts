@@ -16,6 +16,12 @@ export type { TypingIndicatorProps } from './TypingIndicator';
 export { ConnectionStatus } from './ConnectionStatus';
 export type { ConnectionStatusProps } from './ConnectionStatus';
 
+export { ChatControlBar } from './ChatControlBar';
+export type { ChatControlBarProps } from './ChatControlBar';
+
+export { PresentationCompletionDialog } from './PresentationCompletionDialog';
+export type { PresentationCompletionDialogProps } from './PresentationCompletionDialog';
+
 export { WebSocketChatService, ConnectionState } from './WebSocketChatService';
 export type { WSMessage, WSMessageType, WSEventAction } from './WebSocketChatService';
 

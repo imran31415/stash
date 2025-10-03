@@ -45,15 +45,16 @@ const SYNTAX_COLORS = {
 // Simple tokenizer for basic syntax highlighting
 export function tokenizeCode(code: string, language: SupportedLanguage): SyntaxToken[] {
   const tokens: SyntaxToken[] = [];
-  
+
   // Keywords by language family
   const keywords: Record<string, string[]> = {
-    javascript: ['const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'class', 'import', 'export', 'from', 'async', 'await', 'new', 'this', 'true', 'false', 'null', 'undefined', 'typeof', 'instanceof'],
-    typescript: ['const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'class', 'import', 'export', 'from', 'async', 'await', 'new', 'this', 'true', 'false', 'null', 'undefined', 'typeof', 'instanceof', 'interface', 'type', 'enum', 'public', 'private', 'protected'],
-    python: ['def', 'class', 'import', 'from', 'return', 'if', 'elif', 'else', 'for', 'while', 'try', 'except', 'finally', 'with', 'as', 'True', 'False', 'None', 'and', 'or', 'not', 'in', 'is', 'lambda', 'yield', 'async', 'await'],
-    java: ['public', 'private', 'protected', 'class', 'interface', 'extends', 'implements', 'import', 'return', 'if', 'else', 'for', 'while', 'new', 'this', 'super', 'static', 'final', 'void', 'int', 'String', 'boolean', 'true', 'false', 'null'],
-    go: ['package', 'import', 'func', 'return', 'if', 'else', 'for', 'range', 'type', 'struct', 'interface', 'var', 'const', 'go', 'defer', 'chan', 'select', 'case', 'default', 'true', 'false', 'nil'],
-    rust: ['fn', 'let', 'mut', 'const', 'struct', 'enum', 'impl', 'trait', 'use', 'mod', 'pub', 'return', 'if', 'else', 'match', 'for', 'while', 'loop', 'break', 'continue', 'true', 'false', 'Self', 'self'],
+    javascript: ['const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'class', 'import', 'export', 'from', 'async', 'await', 'new', 'this', 'true', 'false', 'null', 'undefined', 'typeof', 'instanceof', 'break', 'continue', 'switch', 'case', 'default', 'try', 'catch', 'finally', 'throw'],
+    typescript: ['const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'class', 'import', 'export', 'from', 'async', 'await', 'new', 'this', 'true', 'false', 'null', 'undefined', 'typeof', 'instanceof', 'interface', 'type', 'enum', 'public', 'private', 'protected', 'readonly', 'static', 'extends', 'implements', 'break', 'continue', 'switch', 'case', 'default', 'try', 'catch', 'finally', 'throw'],
+    python: ['def', 'class', 'import', 'from', 'return', 'if', 'elif', 'else', 'for', 'while', 'try', 'except', 'finally', 'with', 'as', 'True', 'False', 'None', 'and', 'or', 'not', 'in', 'is', 'lambda', 'yield', 'async', 'await', 'break', 'continue', 'pass', 'raise', 'assert', 'global', 'nonlocal'],
+    java: ['public', 'private', 'protected', 'class', 'interface', 'extends', 'implements', 'import', 'return', 'if', 'else', 'for', 'while', 'new', 'this', 'super', 'static', 'final', 'void', 'int', 'String', 'boolean', 'true', 'false', 'null', 'break', 'continue', 'switch', 'case', 'default', 'try', 'catch', 'finally', 'throw', 'throws'],
+    go: ['package', 'import', 'func', 'return', 'if', 'else', 'for', 'range', 'type', 'struct', 'interface', 'var', 'const', 'go', 'defer', 'chan', 'select', 'case', 'default', 'true', 'false', 'nil', 'break', 'continue', 'switch', 'fallthrough', 'goto', 'map'],
+    rust: ['fn', 'let', 'mut', 'const', 'struct', 'enum', 'impl', 'trait', 'use', 'mod', 'pub', 'return', 'if', 'else', 'match', 'for', 'while', 'loop', 'break', 'continue', 'true', 'false', 'Self', 'self', 'where', 'as', 'ref', 'move', 'static', 'unsafe', 'extern', 'crate'],
+    markdown: ['#', '##', '###', '####', '#####', '######', '-', '*', '+', '>', '```', '---', '***', '___'],
   };
 
   // Get keywords for the language
@@ -66,73 +67,152 @@ export function tokenizeCode(code: string, language: SupportedLanguage): SyntaxT
     langKeywords = keywords.java; // Similar syntax
   }
 
-  // Simple regex-based tokenization
+  // Handle markdown specially
+  if (language === 'markdown') {
+    return tokenizeMarkdown(code);
+  }
+
+  // Tokenize line by line
+  let position = 0;
+  while (position < code.length) {
+    // Match comments
+    if (code.substr(position).match(/^\/\/.*/)) {
+      const match = code.substr(position).match(/^\/\/.*/);
+      if (match) {
+        tokens.push({ type: 'comment', value: match[0] });
+        position += match[0].length;
+        continue;
+      }
+    }
+
+    if (code.substr(position).match(/^#.*/)) {
+      const match = code.substr(position).match(/^#.*/);
+      if (match && (language === 'python' || language === 'bash' || language === 'shell')) {
+        tokens.push({ type: 'comment', value: match[0] });
+        position += match[0].length;
+        continue;
+      }
+    }
+
+    // Match strings (including full strings with quotes)
+    if (code[position] === '"' || code[position] === "'" || code[position] === '`') {
+      const quote = code[position];
+      let str = quote;
+      let i = position + 1;
+      while (i < code.length && code[i] !== quote) {
+        if (code[i] === '\\') {
+          str += code[i] + (code[i + 1] || '');
+          i += 2;
+        } else {
+          str += code[i];
+          i++;
+        }
+      }
+      if (i < code.length) str += code[i]; // closing quote
+      tokens.push({ type: 'string', value: str });
+      position += str.length;
+      continue;
+    }
+
+    // Match numbers
+    const numberMatch = code.substr(position).match(/^(\d+\.?\d*)/);
+    if (numberMatch) {
+      tokens.push({ type: 'number', value: numberMatch[0] });
+      position += numberMatch[0].length;
+      continue;
+    }
+
+    // Match identifiers and keywords
+    const identMatch = code.substr(position).match(/^([a-zA-Z_]\w*)/);
+    if (identMatch) {
+      const word = identMatch[0];
+      if (langKeywords.includes(word)) {
+        tokens.push({ type: 'keyword', value: word });
+      } else {
+        // Check if it's followed by ( to identify functions
+        const remaining = code.substr(position + word.length).trimStart();
+        if (remaining[0] === '(') {
+          tokens.push({ type: 'function', value: word });
+        } else {
+          tokens.push({ type: 'plain', value: word });
+        }
+      }
+      position += word.length;
+      continue;
+    }
+
+    // Match operators
+    const opMatch = code.substr(position).match(/^([+\-*/<>=!&|%^]+)/);
+    if (opMatch) {
+      tokens.push({ type: 'operator', value: opMatch[0] });
+      position += opMatch[0].length;
+      continue;
+    }
+
+    // Everything else (whitespace, punctuation, etc.)
+    tokens.push({ type: 'plain', value: code[position] });
+    position++;
+  }
+
+  return tokens;
+}
+
+// Special tokenizer for markdown
+function tokenizeMarkdown(code: string): SyntaxToken[] {
+  const tokens: SyntaxToken[] = [];
   const lines = code.split('\n');
-  
+
   lines.forEach((line, lineIndex) => {
-    // Check for comments
-    if (line.trim().startsWith('//') || line.trim().startsWith('#')) {
-      tokens.push({ type: 'comment', value: line });
-      if (lineIndex < lines.length - 1) {
-        tokens.push({ type: 'plain', value: '\n' });
-      }
-      return;
+    // Headers
+    if (line.match(/^#{1,6}\s/)) {
+      tokens.push({ type: 'keyword', value: line });
     }
-
-    // Check for multi-line comments (simple detection)
-    if (line.trim().startsWith('/*') || line.trim().startsWith('*/') || line.trim().startsWith('*')) {
-      tokens.push({ type: 'comment', value: line });
-      if (lineIndex < lines.length - 1) {
-        tokens.push({ type: 'plain', value: '\n' });
-      }
-      return;
+    // Code blocks
+    else if (line.match(/^```/)) {
+      tokens.push({ type: 'operator', value: line });
     }
-
-    // Split line into tokens
-    const parts = line.split(/(\s+|[{}()\[\];,.])/);
-    
-    parts.forEach(part => {
-      if (!part) return;
-      
-      // Whitespace
-      if (/^\s+$/.test(part)) {
-        tokens.push({ type: 'plain', value: part });
-        return;
+    // Lists
+    else if (line.match(/^\s*[-*+]\s/)) {
+      const match = line.match(/^(\s*[-*+]\s)/);
+      if (match) {
+        tokens.push({ type: 'operator', value: match[0] });
+        tokens.push({ type: 'plain', value: line.slice(match[0].length) });
       }
-
-      // String literals
-      if (/^["'`]/.test(part)) {
-        tokens.push({ type: 'string', value: part });
-        return;
+    }
+    // Bold/italic
+    else if (line.match(/\*\*.*\*\*|\*.*\*|__.*__|_.*_/)) {
+      let remaining = line;
+      while (remaining) {
+        const boldMatch = remaining.match(/^(.*?)(\*\*|__)(.*?)\2/);
+        if (boldMatch) {
+          if (boldMatch[1]) tokens.push({ type: 'plain', value: boldMatch[1] });
+          tokens.push({ type: 'keyword', value: boldMatch[2] + boldMatch[3] + boldMatch[2] });
+          remaining = remaining.slice(boldMatch[0].length);
+        } else {
+          tokens.push({ type: 'plain', value: remaining });
+          break;
+        }
       }
-
-      // Numbers
-      if (/^\d+(\.\d+)?$/.test(part)) {
-        tokens.push({ type: 'number', value: part });
-        return;
+    }
+    // Links
+    else if (line.match(/\[.*?\]\(.*?\)/)) {
+      let remaining = line;
+      while (remaining) {
+        const linkMatch = remaining.match(/^(.*?)(\[.*?\]\(.*?\))/);
+        if (linkMatch) {
+          if (linkMatch[1]) tokens.push({ type: 'plain', value: linkMatch[1] });
+          tokens.push({ type: 'string', value: linkMatch[2] });
+          remaining = remaining.slice(linkMatch[0].length);
+        } else {
+          tokens.push({ type: 'plain', value: remaining });
+          break;
+        }
       }
-
-      // Keywords
-      if (langKeywords.includes(part)) {
-        tokens.push({ type: 'keyword', value: part });
-        return;
-      }
-
-      // Function calls (word followed by ()
-      if (/^[a-zA-Z_]\w*$/.test(part)) {
-        tokens.push({ type: 'function', value: part });
-        return;
-      }
-
-      // Operators
-      if (/^[+\-*/<>=!&|]+$/.test(part)) {
-        tokens.push({ type: 'operator', value: part });
-        return;
-      }
-
-      // Default to plain
-      tokens.push({ type: 'plain', value: part });
-    });
+    }
+    // Regular text
+    else {
+      tokens.push({ type: 'plain', value: line });
+    }
 
     // Add newline except for last line
     if (lineIndex < lines.length - 1) {
