@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
-import { ChatLayout, Chat } from '../../src/components/Chat';
+import { ChatLayout, Chat, ChatWithPagination } from '../../src/components/Chat';
 import type { ChatPreview, Message, GraphData } from '../../src/components/Chat';
 import { addDays, addWeeks, addHours, subDays } from 'date-fns';
 import {
@@ -2352,13 +2352,12 @@ export default function ChatHistoryExample() {
   // Memoize initial messages to avoid regenerating large datasets
   const philosophyMessages = useMemo(() => getStashPhilosophyMessages(), []);
   const demoMessages = useMemo(() => getStashDemoMessages(), []);
-  const paginationMessages = useMemo(() => getLargeMessageHistory(), []);
+  const allPaginationMessages = useMemo(() => getLargeMessageHistory(), []); // Store all 1200 messages
   const initialMessages = useMemo(() => getAIIntegratedMessages(), []);
 
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>({
     'chat-philosophy': philosophyMessages,
     'chat-demo': demoMessages,
-    'chat-pagination': paginationMessages,
     'chat-0': initialMessages,
   });
 
@@ -2447,6 +2446,41 @@ export default function ChatHistoryExample() {
     }, 1000);
   };
 
+  // Pagination handlers for large message demo
+  const loadInitialPaginationMessages = async (chatId: string, limit: number) => {
+    console.log(`Loading initial ${limit} messages for pagination demo`);
+    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
+
+    // Return the most recent messages (from the end of the array)
+    const messages = allPaginationMessages.slice(-limit);
+    return {
+      messages,
+      totalCount: allPaginationMessages.length,
+    };
+  };
+
+  const loadMessagesBefore = async (chatId: string, beforeMessageId: string, limit: number) => {
+    console.log(`Loading ${limit} messages before ${beforeMessageId}`);
+    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
+
+    const beforeIndex = allPaginationMessages.findIndex(m => m.id === beforeMessageId);
+    if (beforeIndex === -1) return [];
+
+    const startIndex = Math.max(0, beforeIndex - limit);
+    return allPaginationMessages.slice(startIndex, beforeIndex);
+  };
+
+  const loadMessagesAfter = async (chatId: string, afterMessageId: string, limit: number) => {
+    console.log(`Loading ${limit} messages after ${afterMessageId}`);
+    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
+
+    const afterIndex = allPaginationMessages.findIndex(m => m.id === afterMessageId);
+    if (afterIndex === -1) return [];
+
+    const endIndex = Math.min(allPaginationMessages.length, afterIndex + 1 + limit);
+    return allPaginationMessages.slice(afterIndex + 1, endIndex);
+  };
+
   const currentChat = allChats.find(c => c.id === currentChatId);
   const messages = currentChatId ? chatMessages[currentChatId] || [] : [];
 
@@ -2476,19 +2510,39 @@ export default function ChatHistoryExample() {
     >
       {/* Chat content area */}
       {currentChatId ? (
-        <Chat
-          userId="current-user"
-          chatType={currentChat?.type || 'group'}
-          chatId={currentChatId}
-          messages={messages}
-          onSendMessage={handleSendMessage}
-          placeholder="Type a message..."
-          enableWebSocket={false}
-          enableHTTP={false}
-          showConnectionStatus={false}
-          presentationMode={isPresentationMode}
-          onExitPresentation={() => setIsPresentationMode(false)}
-        />
+        currentChatId === 'chat-pagination' ? (
+          // Use ChatWithPagination for the large message demo
+          <ChatWithPagination
+            userId="current-user"
+            chatType="ai"
+            chatId={currentChatId}
+            windowSize={50}
+            loadMoreThreshold={10}
+            onLoadInitialMessages={loadInitialPaginationMessages}
+            onLoadMessagesBefore={loadMessagesBefore}
+            onLoadMessagesAfter={loadMessagesAfter}
+            onSendMessage={handleSendMessage}
+            placeholder="Type a message..."
+            enableWebSocket={false}
+            enableHTTP={false}
+            showConnectionStatus={false}
+          />
+        ) : (
+          // Use regular Chat for other chats
+          <Chat
+            userId="current-user"
+            chatType={currentChat?.type || 'group'}
+            chatId={currentChatId}
+            messages={messages}
+            onSendMessage={handleSendMessage}
+            placeholder="Type a message..."
+            enableWebSocket={false}
+            enableHTTP={false}
+            showConnectionStatus={false}
+            presentationMode={isPresentationMode}
+            onExitPresentation={() => setIsPresentationMode(false)}
+          />
+        )
       ) : (
         <View style={styles.emptyState}>
           <Text style={styles.emptyStateIcon}>💬</Text>
