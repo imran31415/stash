@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import type { Message } from '../types';
 
 export interface PaginationState {
@@ -95,21 +95,50 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
   // Track scroll position for optimization
   const scrollPositionRef = useRef({ isNearTop: false, isNearBottom: true });
 
+  // Track mounted state to prevent memory leaks
+  const isMountedRef = useRef(true);
+
+  // Use refs for pagination state to optimize callback dependencies
+  const paginationRef = useRef(pagination);
+  const messagesRef = useRef(messages);
+
+  // Keep refs in sync
+  useEffect(() => {
+    paginationRef.current = pagination;
+  }, [pagination]);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   /**
    * Load older messages (when scrolling up)
    */
   const loadOlderMessages = useCallback(async () => {
-    if (!pagination.hasMoreOlder || pagination.isLoadingOlder || !onLoadOlder) {
+    const currentPagination = paginationRef.current;
+    const currentMessages = messagesRef.current;
+
+    if (!currentPagination.hasMoreOlder || currentPagination.isLoadingOlder || !onLoadOlder) {
       return;
     }
 
-    const oldestId = pagination.oldestMessageId || messages[0]?.id;
+    const oldestId = currentPagination.oldestMessageId || currentMessages[0]?.id;
     if (!oldestId) return;
 
     setPagination(prev => ({ ...prev, isLoadingOlder: true }));
 
     try {
       const olderMessages = await onLoadOlder(oldestId, windowSize);
+
+      // Check if component is still mounted before updating state
+      if (!isMountedRef.current) return;
 
       if (olderMessages.length === 0) {
         setPagination(prev => ({
@@ -144,8 +173,11 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
         return trimmed;
       });
 
+      if (!isMountedRef.current) return;
+
       setPagination(prev => {
-        const combined = olderMessages.length + messages.length;
+        const currentMessagesLength = messagesRef.current.length;
+        const combined = olderMessages.length + currentMessagesLength;
         const hasMoreNewer = combined > windowSize || prev.hasMoreNewer;
 
         // Update newestMessageId to reflect the actual newest message in the window
@@ -172,25 +204,33 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
       });
     } catch (error) {
       console.error('[useMessageWindow] Error loading older messages:', error);
-      setPagination(prev => ({ ...prev, isLoadingOlder: false }));
+      if (isMountedRef.current) {
+        setPagination(prev => ({ ...prev, isLoadingOlder: false }));
+      }
     }
-  }, [pagination, messages, onLoadOlder, windowSize]);
+  }, [onLoadOlder, windowSize]); // Optimized: removed pagination and messages from deps
 
   /**
    * Load newer messages (when scrolling down)
    */
   const loadNewerMessages = useCallback(async () => {
-    if (!pagination.hasMoreNewer || pagination.isLoadingNewer || !onLoadNewer) {
+    const currentPagination = paginationRef.current;
+    const currentMessages = messagesRef.current;
+
+    if (!currentPagination.hasMoreNewer || currentPagination.isLoadingNewer || !onLoadNewer) {
       return;
     }
 
-    const newestId = pagination.newestMessageId || messages[messages.length - 1]?.id;
+    const newestId = currentPagination.newestMessageId || currentMessages[currentMessages.length - 1]?.id;
     if (!newestId) return;
 
     setPagination(prev => ({ ...prev, isLoadingNewer: true }));
 
     try {
       const newerMessages = await onLoadNewer(newestId, windowSize);
+
+      // Check if component is still mounted before updating state
+      if (!isMountedRef.current) return;
 
       if (newerMessages.length === 0) {
         setPagination(prev => ({
@@ -224,8 +264,11 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
         return trimmed;
       });
 
+      if (!isMountedRef.current) return;
+
       setPagination(prev => {
-        const combined = messages.length + newerMessages.length;
+        const currentMessagesLength = messagesRef.current.length;
+        const combined = currentMessagesLength + newerMessages.length;
         const hasMoreOlder = combined > windowSize || prev.hasMoreOlder;
 
         // Update oldestMessageId to reflect the actual oldest message in the window
@@ -252,14 +295,18 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
       });
     } catch (error) {
       console.error('[useMessageWindow] Error loading newer messages:', error);
-      setPagination(prev => ({ ...prev, isLoadingNewer: false }));
+      if (isMountedRef.current) {
+        setPagination(prev => ({ ...prev, isLoadingNewer: false }));
+      }
     }
-  }, [pagination, messages, onLoadNewer, windowSize]);
+  }, [onLoadNewer, windowSize]); // Optimized: removed pagination and messages from deps
 
   /**
    * Add a single message (typically from WebSocket)
    */
   const addMessage = useCallback((newMessage: Message) => {
+    if (!isMountedRef.current) return;
+
     setMessages(prev => {
       // Check for duplicate
       if (prev.some(msg => msg.id === newMessage.id)) {
@@ -272,20 +319,24 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
       if (updated.length > windowSize) {
         const trimmed = updated.slice(updated.length - windowSize);
 
-        setPagination(p => ({
-          ...p,
-          hasMoreOlder: true,
-          oldestMessageId: trimmed[0]?.id || p.oldestMessageId,
-          newestMessageId: newMessage.id,
-        }));
+        if (isMountedRef.current) {
+          setPagination(p => ({
+            ...p,
+            hasMoreOlder: true,
+            oldestMessageId: trimmed[0]?.id || p.oldestMessageId,
+            newestMessageId: newMessage.id,
+          }));
+        }
 
         return trimmed;
       }
 
-      setPagination(p => ({
-        ...p,
-        newestMessageId: newMessage.id,
-      }));
+      if (isMountedRef.current) {
+        setPagination(p => ({
+          ...p,
+          newestMessageId: newMessage.id,
+        }));
+      }
 
       return updated;
     });
@@ -296,6 +347,7 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
    */
   const addMessages = useCallback((newMessages: Message[]) => {
     if (newMessages.length === 0) return;
+    if (!isMountedRef.current) return;
 
     setMessages(prev => {
       // Filter out duplicates
@@ -311,20 +363,24 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
       if (updated.length > windowSize) {
         const trimmed = updated.slice(updated.length - windowSize);
 
-        setPagination(p => ({
-          ...p,
-          hasMoreOlder: true,
-          oldestMessageId: trimmed[0]?.id || p.oldestMessageId,
-          newestMessageId: trimmed[trimmed.length - 1]?.id || p.newestMessageId,
-        }));
+        if (isMountedRef.current) {
+          setPagination(p => ({
+            ...p,
+            hasMoreOlder: true,
+            oldestMessageId: trimmed[0]?.id || p.oldestMessageId,
+            newestMessageId: trimmed[trimmed.length - 1]?.id || p.newestMessageId,
+          }));
+        }
 
         return trimmed;
       }
 
-      setPagination(p => ({
-        ...p,
-        newestMessageId: updated[updated.length - 1]?.id || p.newestMessageId,
-      }));
+      if (isMountedRef.current) {
+        setPagination(p => ({
+          ...p,
+          newestMessageId: updated[updated.length - 1]?.id || p.newestMessageId,
+        }));
+      }
 
       return updated;
     });
@@ -334,6 +390,8 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
    * Update an existing message
    */
   const updateMessage = useCallback((messageId: string, updates: Partial<Message>) => {
+    if (!isMountedRef.current) return;
+
     setMessages(prev =>
       prev.map(msg =>
         msg.id === messageId ? { ...msg, ...updates } : msg
@@ -345,6 +403,8 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
    * Remove a message
    */
   const removeMessage = useCallback((messageId: string) => {
+    if (!isMountedRef.current) return;
+
     setMessages(prev => prev.filter(msg => msg.id !== messageId));
   }, []);
 
@@ -352,6 +412,8 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
    * Clear all messages
    */
   const clearMessages = useCallback(() => {
+    if (!isMountedRef.current) return;
+
     setMessages([]);
     setPagination(prev => ({
       ...prev,

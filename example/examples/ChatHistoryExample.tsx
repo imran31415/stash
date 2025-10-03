@@ -2361,62 +2361,89 @@ export default function ChatHistoryExample() {
     'chat-0': initialMessages,
   });
 
-  // Simulate loading initial chats
-  const loadInitialChats = async (limit: number) => {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 300));
+  // Simulate loading initial chats - memoized for performance
+  const loadInitialChats = useCallback(async (limit: number) => {
+    console.log(`[ChatHistoryExample] Loading initial ${limit} chats`);
 
-    const chats = allChats.slice(0, limit);
-    return {
-      chats,
-      totalCount: allChats.length,
-    };
-  };
+    try {
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 300));
 
-  // Simulate loading older chats (pagination)
-  const loadOlderChats = async (beforeId: string, limit: number) => {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 300));
+      const chats = allChats.slice(0, limit);
+      return {
+        chats,
+        totalCount: allChats.length,
+      };
+    } catch (error) {
+      console.error('[ChatHistoryExample] Error loading initial chats:', error);
+      return { chats: [], totalCount: 0 };
+    }
+  }, [allChats]);
 
-    const beforeIndex = allChats.findIndex(chat => chat.id === beforeId);
-    if (beforeIndex === -1) return [];
+  // Simulate loading older chats (pagination) - memoized for performance
+  const loadOlderChats = useCallback(async (beforeId: string, limit: number) => {
+    console.log(`[ChatHistoryExample] Loading ${limit} older chats before ${beforeId}`);
 
-    const startIndex = beforeIndex + 1;
-    return allChats.slice(startIndex, startIndex + limit);
-  };
+    try {
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 300));
 
-  // Simulate loading newer chats (pagination)
-  const loadNewerChats = async (afterId: string, limit: number) => {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 300));
+      const beforeIndex = allChats.findIndex(chat => chat.id === beforeId);
+      if (beforeIndex === -1) {
+        console.warn(`[ChatHistoryExample] Chat ${beforeId} not found`);
+        return [];
+      }
 
-    const afterIndex = allChats.findIndex(chat => chat.id === afterId);
-    if (afterIndex === -1) return [];
+      const startIndex = beforeIndex + 1;
+      return allChats.slice(startIndex, startIndex + limit);
+    } catch (error) {
+      console.error('[ChatHistoryExample] Error loading older chats:', error);
+      return [];
+    }
+  }, [allChats]);
 
-    const endIndex = afterIndex;
-    const startIndex = Math.max(0, endIndex - limit);
-    return allChats.slice(startIndex, endIndex);
-  };
+  // Simulate loading newer chats (pagination) - memoized for performance
+  const loadNewerChats = useCallback(async (afterId: string, limit: number) => {
+    console.log(`[ChatHistoryExample] Loading ${limit} newer chats after ${afterId}`);
 
-  const handleChatSelect = (chatId: string) => {
-    console.log('Selected chat:', chatId);
+    try {
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      const afterIndex = allChats.findIndex(chat => chat.id === afterId);
+      if (afterIndex === -1) {
+        console.warn(`[ChatHistoryExample] Chat ${afterId} not found`);
+        return [];
+      }
+
+      const endIndex = afterIndex;
+      const startIndex = Math.max(0, endIndex - limit);
+      return allChats.slice(startIndex, endIndex);
+    } catch (error) {
+      console.error('[ChatHistoryExample] Error loading newer chats:', error);
+      return [];
+    }
+  }, [allChats]);
+
+  const handleChatSelect = useCallback((chatId: string) => {
+    console.log('[ChatHistoryExample] Selected chat:', chatId);
     setCurrentChatId(chatId);
     // Enable presentation mode for philosophy chat
     setIsPresentationMode(chatId === 'chat-philosophy');
-  };
+  }, []);
 
-  const handleCreateNewChat = () => {
-    console.log('Create new chat clicked');
+  const handleCreateNewChat = useCallback(() => {
+    console.log('[ChatHistoryExample] Create new chat clicked');
     // In a real app, navigate to new chat creation screen
-  };
+  }, []);
 
-  const handleRefresh = async () => {
-    console.log('Refreshing chats...');
+  const handleRefresh = useCallback(async () => {
+    console.log('[ChatHistoryExample] Refreshing chats...');
     // In a real app, fetch latest chats from server
     await new Promise(resolve => setTimeout(resolve, 1000));
-  };
+  }, []);
 
-  const handleSendMessage = (newMessage: Message) => {
+  const handleSendMessage = useCallback((newMessage: Message) => {
     if (!currentChatId) return;
 
     setChatMessages((prev) => ({
@@ -2444,42 +2471,66 @@ export default function ChatHistoryExample() {
         [currentChatId]: [...(prev[currentChatId] || []), aiResponse],
       }));
     }, 1000);
-  };
+  }, [currentChatId]); // Include currentChatId in dependencies since it's used in the callback
 
-  // Pagination handlers for large message demo
-  const loadInitialPaginationMessages = async (chatId: string, limit: number) => {
-    console.log(`Loading initial ${limit} messages for pagination demo`);
-    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
+  // Pagination handlers for large message demo (memoized for performance)
+  const loadInitialPaginationMessages = useCallback(async (chatId: string, limit: number) => {
+    console.log(`[ChatHistoryExample] Loading initial ${limit} messages for pagination demo`);
 
-    // Return the most recent messages (from the end of the array)
-    const messages = allPaginationMessages.slice(-limit);
-    return {
-      messages,
-      totalCount: allPaginationMessages.length,
-    };
-  };
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
 
-  const loadMessagesBefore = async (chatId: string, beforeMessageId: string, limit: number) => {
-    console.log(`Loading ${limit} messages before ${beforeMessageId}`);
-    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
+      // Return the most recent messages (from the end of the array)
+      const messages = allPaginationMessages.slice(-limit);
+      return {
+        messages,
+        totalCount: allPaginationMessages.length,
+      };
+    } catch (error) {
+      console.error('[ChatHistoryExample] Error loading initial pagination messages:', error);
+      return { messages: [], totalCount: 0 };
+    }
+  }, [allPaginationMessages]);
 
-    const beforeIndex = allPaginationMessages.findIndex(m => m.id === beforeMessageId);
-    if (beforeIndex === -1) return [];
+  const loadMessagesBefore = useCallback(async (chatId: string, beforeMessageId: string, limit: number) => {
+    console.log(`[ChatHistoryExample] Loading ${limit} messages before ${beforeMessageId}`);
 
-    const startIndex = Math.max(0, beforeIndex - limit);
-    return allPaginationMessages.slice(startIndex, beforeIndex);
-  };
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
 
-  const loadMessagesAfter = async (chatId: string, afterMessageId: string, limit: number) => {
-    console.log(`Loading ${limit} messages after ${afterMessageId}`);
-    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
+      const beforeIndex = allPaginationMessages.findIndex(m => m.id === beforeMessageId);
+      if (beforeIndex === -1) {
+        console.warn(`[ChatHistoryExample] Message ${beforeMessageId} not found`);
+        return [];
+      }
 
-    const afterIndex = allPaginationMessages.findIndex(m => m.id === afterMessageId);
-    if (afterIndex === -1) return [];
+      const startIndex = Math.max(0, beforeIndex - limit);
+      return allPaginationMessages.slice(startIndex, beforeIndex);
+    } catch (error) {
+      console.error('[ChatHistoryExample] Error loading messages before:', error);
+      return [];
+    }
+  }, [allPaginationMessages]);
 
-    const endIndex = Math.min(allPaginationMessages.length, afterIndex + 1 + limit);
-    return allPaginationMessages.slice(afterIndex + 1, endIndex);
-  };
+  const loadMessagesAfter = useCallback(async (chatId: string, afterMessageId: string, limit: number) => {
+    console.log(`[ChatHistoryExample] Loading ${limit} messages after ${afterMessageId}`);
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
+
+      const afterIndex = allPaginationMessages.findIndex(m => m.id === afterMessageId);
+      if (afterIndex === -1) {
+        console.warn(`[ChatHistoryExample] Message ${afterMessageId} not found`);
+        return [];
+      }
+
+      const endIndex = Math.min(allPaginationMessages.length, afterIndex + 1 + limit);
+      return allPaginationMessages.slice(afterIndex + 1, endIndex);
+    } catch (error) {
+      console.error('[ChatHistoryExample] Error loading messages after:', error);
+      return [];
+    }
+  }, [allPaginationMessages]);
 
   const currentChat = allChats.find(c => c.id === currentChatId);
   const messages = currentChatId ? chatMessages[currentChatId] || [] : [];

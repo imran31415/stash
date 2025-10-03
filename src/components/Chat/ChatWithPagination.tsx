@@ -134,7 +134,7 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
           addMessages(initialMessages); // Use addMessages for batch addition
           hasLoadedInitialRef.current = true;
         } catch (error) {
-          console.error('Error loading initial messages:', error);
+          console.error('[ChatWithPagination] Error loading initial messages:', error);
         } finally {
           setIsLoading(false);
         }
@@ -142,40 +142,10 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
     };
 
     loadInitial();
-  }, [chatId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatId]); // addMessages and windowSize are stable from useMessageWindow
 
-  // Initialize services
-  useEffect(() => {
-    if (enableHTTP && httpConfig) {
-      httpServiceRef.current = new HTTPChatService(httpConfig);
-    }
-
-    if (enableWebSocket && wsConfig) {
-      wsServiceRef.current = new WebSocketChatService(
-        wsConfig.baseUrl,
-        wsConfig.getAuthToken,
-        userId,
-        wsConfig.tenantId,
-        wsConfig.projectId
-      );
-
-      // Set up event handlers
-      wsServiceRef.current.onMessage('chat.message.sent', handleWsIncomingMessage);
-      wsServiceRef.current.onMessage('typing.start', handleTypingStart);
-      wsServiceRef.current.onMessage('typing.stop', handleTypingStop);
-      wsServiceRef.current.onConnectionChange(setConnectionState);
-
-      // Connect
-      wsServiceRef.current.connect();
-    }
-
-    return () => {
-      if (wsServiceRef.current) {
-        wsServiceRef.current.disconnect();
-      }
-    };
-  }, [enableWebSocket, enableHTTP, userId]);
-
+  // WebSocket event handlers (defined before useEffect to avoid hoisting issues)
   const handleWsIncomingMessage = useCallback((wsMessage: any) => {
     if (!wsMessage.data) return;
 
@@ -226,7 +196,69 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
     setTypingUsers(prev => prev.filter(u => u.userId !== wsMessage.data.user_id));
   }, []);
 
-  const handleSend = async (messageText: string) => {
+  // Initialize services
+  useEffect(() => {
+    // Cleanup function for proper service lifecycle
+    return () => {
+      if (wsServiceRef.current) {
+        wsServiceRef.current.disconnect();
+        wsServiceRef.current = null;
+      }
+      if (httpServiceRef.current) {
+        httpServiceRef.current = null;
+      }
+    };
+  }, []); // Only run on mount/unmount
+
+  // Setup WebSocket connection
+  useEffect(() => {
+    if (enableWebSocket && wsConfig) {
+      // Disconnect existing connection if any
+      if (wsServiceRef.current) {
+        wsServiceRef.current.disconnect();
+      }
+
+      wsServiceRef.current = new WebSocketChatService(
+        wsConfig.baseUrl,
+        wsConfig.getAuthToken,
+        userId,
+        wsConfig.tenantId,
+        wsConfig.projectId
+      );
+
+      // Set up event handlers
+      wsServiceRef.current.onMessage('chat.message.sent', handleWsIncomingMessage);
+      wsServiceRef.current.onMessage('typing.start', handleTypingStart);
+      wsServiceRef.current.onMessage('typing.stop', handleTypingStop);
+      wsServiceRef.current.onConnectionChange(setConnectionState);
+
+      // Connect
+      wsServiceRef.current.connect();
+    }
+
+    return () => {
+      if (wsServiceRef.current) {
+        wsServiceRef.current.disconnect();
+      }
+    };
+  }, [enableWebSocket, wsConfig, userId, handleWsIncomingMessage, handleTypingStart, handleTypingStop]);
+
+  // Setup HTTP service
+  useEffect(() => {
+    if (enableHTTP && httpConfig) {
+      httpServiceRef.current = new HTTPChatService(httpConfig);
+    } else {
+      httpServiceRef.current = null;
+    }
+  }, [enableHTTP, httpConfig]);
+
+  const scrollToBottom = useCallback((animated: boolean = true) => {
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated });
+    }, 100);
+  }, []);
+
+  const handleSend = useCallback(async (messageText: string) => {
     if (!messageText.trim()) return;
 
     const newMessage: Message = {
@@ -241,6 +273,9 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
       status: 'sending',
       isOwn: true,
     };
+
+    // Clear input immediately for better UX
+    setInputText('');
 
     addMessage(newMessage);
     onSendMessage(newMessage);
@@ -261,24 +296,18 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
         }
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('[ChatWithPagination] Error sending message:', error);
       updateMessage(newMessage.id, { status: 'failed' });
     }
 
     scrollToBottom();
-  };
+  }, [userId, addMessage, updateMessage, onSendMessage, scrollToBottom]);
 
-  const handleTyping = (isTyping: boolean) => {
+  const handleTyping = useCallback((isTyping: boolean) => {
     if (wsServiceRef.current?.isConnected()) {
       wsServiceRef.current.sendTypingIndicator(isTyping);
     }
-  };
-
-  const scrollToBottom = (animated: boolean = true) => {
-    setTimeout(() => {
-      flatListRef.current?.scrollToEnd({ animated });
-    }, 100);
-  };
+  }, []);
 
   // Handle content size change - only auto-scroll on first load or when sending messages
   const handleContentSizeChange = useCallback(() => {
