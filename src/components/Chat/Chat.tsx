@@ -100,11 +100,34 @@ export const Chat: React.FC<ChatProps> = ({
   const flatListRef = useRef<FlatList>(null);
   const wsServiceRef = useRef<WebSocketChatService | null>(null);
   const httpServiceRef = useRef<HTTPChatService | null>(null);
+  const isNearBottomRef = useRef(true); // Track if user is scrolled to bottom
+  const previousMessageCountRef = useRef(externalMessages.length);
+  const wasPresentationModeRef = useRef(presentationMode);
 
   // Sync external messages
   useEffect(() => {
     setMessages(externalMessages);
   }, [externalMessages]);
+
+  // Track presentation mode changes
+  useEffect(() => {
+    wasPresentationModeRef.current = presentationMode;
+  }, [presentationMode]);
+
+  // Auto-scroll on new messages (only if user is near bottom)
+  useEffect(() => {
+    const currentCount = externalMessages.length;
+    const previousCount = previousMessageCountRef.current;
+
+    // Only auto-scroll if:
+    // 1. Message count increased (new message added)
+    // 2. Not just exiting presentation mode
+    if (currentCount > previousCount && !(!presentationMode && wasPresentationModeRef.current)) {
+      scrollToBottom(false); // Don't force, respect user's scroll position
+    }
+
+    previousMessageCountRef.current = currentCount;
+  }, [externalMessages.length, presentationMode]);
 
   // Initialize services
   useEffect(() => {
@@ -233,7 +256,8 @@ export const Chat: React.FC<ChatProps> = ({
       updateMessageStatus(newMessage.id, 'failed');
     }
 
-    scrollToBottom();
+    // Force scroll to bottom when user sends a message
+    scrollToBottom(true);
   };
 
   const updateMessageStatus = (messageId: string, status: Message['status']) => {
@@ -248,10 +272,20 @@ export const Chat: React.FC<ChatProps> = ({
     }
   };
 
-  const scrollToBottom = () => {
-    setTimeout(() => {
-      flatListRef.current?.scrollToEnd({ animated: true });
-    }, 100);
+  const scrollToBottom = (force = false) => {
+    // Only auto-scroll if forced or if user is near the bottom
+    if (force || isNearBottomRef.current) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  };
+
+  const handleScroll = (event: any) => {
+    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+    const distanceFromBottom = contentSize.height - layoutMeasurement.height - contentOffset.y;
+    // Consider "near bottom" if within 100 pixels of the bottom
+    isNearBottomRef.current = distanceFromBottom < 100;
   };
 
   const renderMessageItem = ({ item, index }: { item: Message; index: number }) => {
@@ -519,8 +553,8 @@ export const Chat: React.FC<ChatProps> = ({
           ListHeaderComponent={ListHeaderComponent}
           ListFooterComponent={ListFooterComponent}
           ListEmptyComponent={renderEmptyState || defaultEmptyState}
-          onContentSizeChange={scrollToBottom}
-          onLayout={scrollToBottom}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
           removeClippedSubviews={false}
         />
 
