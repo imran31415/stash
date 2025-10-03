@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Pressable,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { Message, ChatTheme } from './types';
 import {
@@ -50,6 +51,15 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
 }) => {
   const isOwn = message?.isOwn ?? false;
   const isSystem = message?.type === 'system';
+
+  // Check if message type should use full width in presentation mode
+  const shouldUseFullWidth = presentationMode && (
+    message?.type === 'image' ||
+    (message?.interactiveComponent &&
+      ['gantt-chart', 'task-list', 'time-series-chart', 'graph-visualization', 'code-block'].includes(
+        message.interactiveComponent.type
+      ))
+  );
 
   // State for interactive modals
   const [showGanttDetail, setShowGanttDetail] = useState(false);
@@ -190,6 +200,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
               {...data}
               mode={data.mode || 'mini'}
               height={presentationMode ? 500 : data.height}
+              width={presentationMode ? Dimensions.get('window').width - 32 : data.width}
               onTaskPress={(task) => {
                 handleTaskPress(task);
                 onAction?.('task-press', task);
@@ -218,6 +229,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
               {...data}
               mode={data.mode || 'mini'}
               height={presentationMode ? 450 : data.height}
+              width={presentationMode ? Dimensions.get('window').width - 32 : data.width}
               onDataPointPress={(dataPoint, series) => onAction?.('data-point-press', { dataPoint, series })}
               onExpandPress={() =>
                 handleTimeSeriesExpand(
@@ -239,6 +251,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             {...data}
             mode={data.mode || 'mini'}
             height={presentationMode ? 600 : data.height}
+            width={presentationMode ? Dimensions.get('window').width - 32 : data.width}
             onNodePress={(node) => onAction?.('node-press', node)}
             onEdgePress={(edge) => onAction?.('edge-press', edge)}
             onExpandPress={() => handleGraphExpand(data.data, data.title, data.subtitle)}
@@ -338,7 +351,11 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         </TouchableOpacity>
       )}
 
-      <View style={[styles.messageWrapper, isOwn && styles.ownMessageWrapper]}>
+      <View style={[
+        styles.messageWrapper,
+        isOwn && styles.ownMessageWrapper,
+        shouldUseFullWidth && styles.fullWidthWrapper,
+      ]}>
         {!isOwn && (
           <Text style={styles.senderName}>{message.sender.name}</Text>
         )}
@@ -512,6 +529,10 @@ const styles = StyleSheet.create({
   },
   ownMessageWrapper: {
     alignItems: 'flex-end',
+  },
+  fullWidthWrapper: {
+    maxWidth: '100%',
+    width: '100%',
   },
   senderName: {
     fontSize: 12,
