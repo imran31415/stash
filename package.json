@@ -1,0 +1,37 @@
+{
+  "name": "stash",
+  "version": "0.1.0",
+  "description": "A React Native Expo component library",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "yarn build"
+  },
+  "keywords": [
+    "react-native",
+    "expo",
+    "component-library",
+    "ui-components"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-native": "^0.70.0",
+    "react-native-svg": ">=13.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.17",
+    "@types/react-native": "^0.73.0",
+    "react-native-svg": "^15.13.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "date-fns": "^4.1.0"
+  }
+}
