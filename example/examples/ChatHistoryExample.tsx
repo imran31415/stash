@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { ChatLayout, Chat, ChatWithPagination } from '../../src/components/Chat';
 import type { ChatPreview, Message, GraphData } from '../../src/components/Chat';
