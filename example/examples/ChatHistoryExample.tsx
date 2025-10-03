@@ -11,8 +11,8 @@ import {
   generateLargeGraph,
 } from '../utils/mockDataGenerator';
 
-// Stash Demo - "What is Stash?" conversation
-const getStashDemoMessages = (): Message[] => {
+// Combined "What is Stash?" - Philosophy + Demo
+const getStashOverviewMessages = (): Message[] => {
   const mockTasks = generateMockTasks(50);
   const mockGanttTasks = generateMockGanttTasks(100);
   const mockTimeSeries = generateMockTimeSeriesData();
@@ -67,7 +67,7 @@ const getStashDemoMessages = (): Message[] => {
   return [
     {
       id: 'demo-1',
-      content: "What is Stash?",
+      content: "What is Stash and what problem does it solve?",
       sender: { id: 'user-demo', name: 'You', avatar: '👤' },
       timestamp: new Date(),
       status: 'delivered',
@@ -75,17 +75,33 @@ const getStashDemoMessages = (): Message[] => {
     },
     {
       id: 'demo-2',
-      content: "Great question! **Stash** is a React Native component library that solves a major problem in modern app development:\n\n**The Problem:** Modern interfaces aren't truly cross-platform. Building rich, interactive UIs that work seamlessly across web, iOS, and Android is complex and time-consuming. Most solutions require maintaining separate codebases or sacrifice user experience.\n\n**The Solution:** Stash provides battle-tested, high-performance React Native components that work everywhere - from simple task lists to complex data visualizations.\n\nLet me show you what makes Stash special...",
+      content: "Great question! Let me start with the problem space.\n\n## The Evolution of Chat Interfaces\n\nChat started simple: send text, receive text. But modern collaboration demands more:\n\n❌ **Traditional chat is too limited** - Text can't convey complex project data, timelines, or relationships\n\n❌ **Switching contexts kills productivity** - Users constantly jump between chat, project management tools, dashboards, and documentation\n\n❌ **AI agents need rich output** - AI assistants generate structured data (tasks, charts, code) that doesn't fit in plain text\n\n❌ **Mobile experiences lag behind** - Rich visualizations work on desktop but break on mobile",
       sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
       timestamp: addHours(new Date(), 0.01),
       status: 'delivered',
       isOwn: false,
     },
     {
-      id: 'demo-3',
-      content: "First, let's look at a **Task List** - one of our most popular components. It handles large datasets gracefully and includes built-in pagination.\n\nTry tapping the expand button (⛶) to see the full detail view with filtering, sorting, and search capabilities!",
+      id: 'demo-2a',
+      content: "## The Cross-Platform Challenge\n\nBuilding rich, interactive UIs that work seamlessly across web, iOS, and Android is notoriously complex:\n\n🔴 **Separate codebases** - Build the same component 3 times (React web, Swift, Kotlin)\n\n🔴 **Inconsistent UX** - Each platform feels different, users get confused\n\n🔴 **Performance issues** - WebViews are slow, native bridges are complex\n\n🔴 **Maintenance nightmare** - Bug fixes and features need 3x the work\n\nMost solutions make you choose: either maintain separate native apps OR use a lowest-common-denominator approach that sacrifices user experience.",
+      sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
+      timestamp: addHours(new Date(), 0.015),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'demo-2b',
+      content: "## Enter Stash\n\n**Stash** is a React Native component library that solves both problems:\n\n✅ **True Cross-Platform** - Write once, runs natively on iOS, Android, and Web\n\n✅ **Rich Interactive Components** - Task lists, Gantt charts, graphs, time series - all built for chat\n\n✅ **Built for Scale** - Handles thousands of items with smart pagination and virtualization\n\n✅ **AI-Native** - Components designed for AI-generated content (structured data, code, visualizations)\n\n✅ **Performance Obsessed** - Smooth 60fps interactions even with massive datasets\n\nLet me show you what this looks like in practice...",
       sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
       timestamp: addHours(new Date(), 0.02),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'demo-3',
+      content: "## Real-World Example: Task Lists\n\nFirst, let's look at a **Task List** component - one of our most popular. Instead of describing tasks in text:\n\n*\"We have 50 tasks: design homepage (high priority, 75% done), implement API (critical, in progress), write tests (pending)...\"*\n\nStash lets you send an actual interactive task list. It handles 1000+ tasks gracefully with built-in pagination, filtering, and sorting.\n\nTry tapping the expand button (⛶) to see the full detail view!",
+      sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
+      timestamp: addHours(new Date(), 0.025),
       status: 'delivered',
       isOwn: false,
       interactiveComponent: {
@@ -101,7 +117,7 @@ const getStashDemoMessages = (): Message[] => {
     },
     {
       id: 'demo-4',
-      content: "**Gantt Charts** are perfect for project timelines. This component handles 100+ tasks and includes **smart pagination** - no UI freezing, no matter how much data you have.\n\nNotice the smooth interactions and the pagination controls!",
+      content: "## Project Timelines: Gantt Charts\n\n**Gantt Charts** are perfect for discussing project timelines. Instead of:\n\n*\"Phase 1 runs Jan 1-15, Phase 2 is Jan 10-25 (depends on Phase 1), Phase 3...\"*\n\nYou get an interactive timeline showing all dependencies, milestones, and progress. This example has 100+ tasks with **smart pagination** - no UI freezing, no matter how much data.\n\nNotice the smooth interactions even on mobile!",
       sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
       timestamp: addHours(new Date(), 0.03),
       status: 'delivered',
@@ -120,9 +136,9 @@ const getStashDemoMessages = (): Message[] => {
     },
     {
       id: 'demo-5',
-      content: "**Real-time Data Visualization** with Time Series Charts. Perfect for analytics dashboards, IoT data, or financial tracking.\n\nStash components support **WebSocket connections** for live updates - your charts update in real-time as new data arrives!",
+      content: "## Analytics & Metrics: Time Series Charts\n\n**Time Series Charts** bring data conversations to life. Instead of:\n\n*\"Revenue was $45K on Monday, $52K Tuesday, $48K Wednesday...\"*\n\nYou see trends instantly. Perfect for analytics dashboards, IoT data, or financial tracking.\n\nStash components support **WebSocket connections** - charts update in real-time as new data arrives. This is crucial for AI agents that generate streaming data.",
       sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.04),
+      timestamp: addHours(new Date(), 0.035),
       status: 'delivered',
       isOwn: false,
       interactiveComponent: {
@@ -139,9 +155,9 @@ const getStashDemoMessages = (): Message[] => {
     },
     {
       id: 'demo-6',
-      content: "Here's something really powerful: **Graph Visualization** for complex relationships.\n\nThis shows how an AI might visualize its understanding of a codebase - files, functions, dependencies, and their relationships. With **1000+ nodes**, traditional libraries would freeze. Stash handles it smoothly with:\n\n• Smart edge limiting (prioritizes important connections)\n• Async layout computation (no UI blocking)\n• Interactive focus mode (click any node!)\n• Full search and filtering\n\nThis same component powers knowledge graphs, social networks, org charts, and more.",
+      content: "## Knowledge Graphs: Network Visualization\n\nHere's something really powerful: **Graph Visualization** for complex relationships.\n\nImagine an AI agent explaining how it understands your codebase - files, functions, dependencies, concepts, all interconnected. Or mapping a social network, org chart, or knowledge base.\n\nWith **1000+ nodes**, traditional libraries freeze the UI. Stash handles it smoothly with:\n\n• **Smart edge limiting** - Shows most important connections first\n• **Async layout computation** - No UI blocking, stays at 60fps\n• **Interactive focus mode** - Click any node to explore connections\n• **Full search and filtering** - Find what you need instantly\n\nThis graph shows an AI's mental model of the Stash architecture itself!",
       sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.05),
+      timestamp: addHours(new Date(), 0.04),
       status: 'delivered',
       isOwn: false,
       interactiveComponent: {
@@ -161,15 +177,36 @@ const getStashDemoMessages = (): Message[] => {
     },
     {
       id: 'demo-7',
-      content: "**Why Stash?**\n\n✅ **True Cross-Platform:** One codebase, works everywhere (iOS, Android, Web)\n\n✅ **Built for Scale:** Handles thousands of items with pagination, virtualization, and smart rendering\n\n✅ **Real-time Ready:** WebSocket support built-in for live updates\n\n✅ **Beautiful by Default:** Polished UI/UX out of the box, customizable to match your brand\n\n✅ **Developer Friendly:** TypeScript-first, comprehensive docs, easy integration\n\n✅ **Performance Obsessed:** Optimized rendering, async computations, no UI freezing\n\nEvery component you saw can be expanded for full-screen detail views with advanced features. Try clicking the ⛶ button on any of them!",
+      content: "## Why Stash?\n\nYou've seen the components in action. Here's what makes Stash different from other UI libraries:\n\n✅ **True Cross-Platform** - One codebase, truly native performance on iOS, Android, and Web. No compromises.\n\n✅ **Built for Scale** - Handles 1000+ items smoothly with pagination, virtualization, and smart rendering. Your app stays responsive.\n\n✅ **AI-Native Design** - Components designed for AI-generated content. Perfect for chatbots, assistants, and agentic workflows.\n\n✅ **Real-time Ready** - WebSocket support built-in. Live updates without custom integration work.\n\n✅ **Beautiful by Default** - Polished UI/UX out of the box. Fully customizable to match your brand.\n\n✅ **Developer Friendly** - TypeScript-first API, comprehensive docs, easy integration. Works with Expo.\n\n✅ **Performance Obsessed** - Optimized rendering, async computations, 60fps interactions. No UI freezing, ever.\n\nEvery component you saw can be expanded (⛶) for full-screen detail views with filtering, search, and advanced features!",
       sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.06),
+      timestamp: addHours(new Date(), 0.045),
       status: 'delivered',
       isOwn: false,
       interactiveComponent: {
         type: 'code-block',
         data: {
-          code: `# Why Stash?\n\n- ✅ **True Cross-Platform:** One codebase, works everywhere (iOS, Android, Web)\n- ✅ **Built for Scale:** Handles thousands of items with pagination, virtualization, and smart rendering\n- ✅ **Real-time Ready:** WebSocket support built-in for live updates\n- ✅ **Beautiful by Default:** Polished UI/UX out of the box, customizable to match your brand\n- ✅ **Developer Friendly:** TypeScript-first, comprehensive docs, easy integration\n- ✅ **Performance Obsessed:** Optimized rendering, async computations, no UI freezing`,
+          code: `# Why Stash?
+
+✅ **True Cross-Platform**
+   One codebase, truly native performance on iOS, Android, and Web
+
+✅ **Built for Scale**
+   Handles 1000+ items with pagination, virtualization, smart rendering
+
+✅ **AI-Native Design**
+   Components designed for AI-generated content and agentic workflows
+
+✅ **Real-time Ready**
+   WebSocket support built-in for live updates
+
+✅ **Beautiful by Default**
+   Polished UI/UX, fully customizable to match your brand
+
+✅ **Developer Friendly**
+   TypeScript-first, comprehensive docs, works with Expo
+
+✅ **Performance Obsessed**
+   Optimized rendering, async computations, 60fps interactions`,
           language: 'markdown',
           fileName: 'WHY_STASH.md',
           mode: 'preview',
@@ -178,817 +215,59 @@ const getStashDemoMessages = (): Message[] => {
     },
     {
       id: 'demo-8',
-      content: "**Getting Started is Easy:**\n\n```bash\nnpm install @stash/react-native\n```\n\nThen import and use any component:\n\n```tsx\nimport { TaskList, GanttChart, GraphVisualization } from '@stash/react-native';\n\n<TaskList tasks={myTasks} mode=\"full\" />\n```\n\nThat's it! You get a production-ready, performant component that works across all platforms.\n\nWant to see more? Check out the 📊 UI tab to explore individual components in depth! 🚀",
+      content: "## Getting Started is Easy\n\nReady to transform your chat interface? Here's all it takes:\n\n**1. Install**\n```bash\nnpm install @stash/react-native\n```\n\n**2. Import**\n```tsx\nimport { TaskList, GanttChart, GraphVisualization } from '@stash/react-native';\n```\n\n**3. Use**\n```tsx\n<TaskList tasks={myTasks} mode=\"full\" />\n```\n\nThat's it! You get a production-ready, performant component that works across iOS, Android, and Web.\n\n**Next Steps:**\n• Explore the **📄 Pagination Demo** chat to see 1,200 messages handled smoothly\n• Check out the **Q1 Website Redesign** chat for real-world usage examples\n• Visit the **📊 UI tab** to explore individual components in depth\n\nWelcome to the future of chat interfaces! 🚀",
       sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.07),
+      timestamp: addHours(new Date(), 0.05),
       status: 'delivered',
       isOwn: false,
       interactiveComponent: {
         type: 'code-block',
         data: {
-          code: `# Getting Started\n\n## Installation\n\n\`\`\`bash\nnpm install @stash/react-native\n\`\`\`\n\n## Usage\n\n\`\`\`tsx\nimport { TaskList, GanttChart, GraphVisualization } from '@stash/react-native';\n\n<TaskList tasks={myTasks} mode=\"full\" />\n\`\`\``,
+          code: `# Getting Started with Stash
+
+## Installation
+
+\`\`\`bash
+npm install @stash/react-native
+# or
+yarn add @stash/react-native
+\`\`\`
+
+## Basic Usage
+
+\`\`\`tsx
+import { TaskList, GanttChart, GraphVisualization } from '@stash/react-native';
+
+// Use any component
+function MyChat() {
+  return (
+    <TaskList
+      tasks={myTasks}
+      mode="full"
+      onTaskClick={handleTaskClick}
+    />
+  );
+}
+\`\`\`
+
+## Key Features
+
+✅ Works on iOS, Android, and Web
+✅ TypeScript support out of the box
+✅ Comprehensive component library
+✅ Production-ready performance
+✅ Easy customization
+
+## Next Steps
+
+📚 Read the docs
+🎨 Explore components
+🚀 Build amazing chat interfaces`,
           language: 'markdown',
           fileName: 'GETTING_STARTED.md',
           mode: 'preview',
         },
       },
-    },
-  ];
-};
-
-// Stash Philosophy - "Why Chat Needs to Evolve" conversation
-const getStashPhilosophyMessages = (): Message[] => {
-  // Create a massive 1000-node graph representing AI's complete memory
-  const aiMemoryGraph = generateLargeGraph(1000);
-
-  return [
-    {
-      id: 'phil-1',
-      content: "Why does Stash exist? What problem are you solving?",
-      sender: { id: 'user-phil', name: 'You', avatar: '👤' },
-      timestamp: new Date(),
-      status: 'delivered',
-      isOwn: true,
-    },
-    {
-      id: 'phil-2',
-      content: "Modern applications increasingly rely on chat interfaces to deliver complex information to users. However, text-only conversations have significant limitations when presenting structured data, visualizations, or interactive workflows.",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.01),
-      status: 'delivered',
-      isOwn: false,
-    },
-    {
-      id: 'phil-3',
-      content: "**Stash empowers developers to build rich, interactive chat experiences** that improve how users interact with data.\n\nInstead of describing a project timeline in text, your application can display an interactive Gantt chart. Instead of listing tasks, you can provide a filterable, searchable task management interface.",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.02),
-      status: 'delivered',
-      isOwn: false,
-    },
-    {
-      id: 'phil-4',
-      content: "**Cross-platform React Native components**\n\nStash provides production-ready components that work across Web, iOS, and Android from a single codebase. Each component is optimized for performance and includes built-in interactions like filtering, searching, and zooming.",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.03),
-      status: 'delivered',
-      isOwn: false,
-    },
-    {
-      id: 'phil-5',
-      content: "**What's included:**",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.04),
-      status: 'delivered',
-      isOwn: false,
-    },
-    {
-      id: 'phil-6',
-      content: "**Task Lists** - Interactive task management with filtering, search, and progress tracking:",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.05),
-      status: 'delivered',
-      isOwn: false,
-      interactiveComponent: {
-        type: 'task-list',
-        data: {
-          tasks: generateMockTasks(25),
-          title: 'Interactive Task Management',
-          subtitle: '25 tasks • Filter, search, track progress',
-          mode: 'mini',
-          showProgress: true,
-        },
-      },
-    },
-    {
-      id: 'phil-8',
-      content: "**Gantt Charts** - Project timelines with dependencies, milestones, and team assignments:",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.06),
-      status: 'delivered',
-      isOwn: false,
-      interactiveComponent: {
-        type: 'gantt-chart',
-        data: {
-          tasks: generateMockGanttTasks(80).slice(0, 6),
-          allTasks: generateMockGanttTasks(80),
-          title: 'Multi-Team Project Timeline',
-          subtitle: '80 tasks with dependencies • Interactive view',
-          mode: 'mini',
-        },
-      },
-    },
-    {
-      id: 'phil-9',
-      content: "**Time Series Charts** - Analytics and metrics with zoom, pan, and comparison tools:",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.07),
-      status: 'delivered',
-      isOwn: false,
-      interactiveComponent: {
-        type: 'time-series-chart',
-        data: {
-          series: generateMockTimeSeriesData(4, 100, 60),
-          title: 'Real-Time Analytics',
-          subtitle: '4 metrics • Zoom, pan, compare',
-          mode: 'mini',
-        },
-      },
-    },
-    {
-      id: 'phil-10',
-      content: "**Graph Visualizations** - Complex relationships and knowledge graphs with search and navigation:",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.08),
-      status: 'delivered',
-      isOwn: false,
-      interactiveComponent: {
-        type: 'graph-visualization',
-        data: {
-          data: generateLargeGraph(50),
-          title: 'Knowledge Graph - 50 Nodes',
-          subtitle: '50 nodes • Click to explore',
-          mode: 'mini',
-        },
-      },
-    },
-    {
-      id: 'phil-11',
-      content: "Each component scales to handle large datasets (1000+ items) while maintaining smooth performance. Users can click, expand, and interact with data directly within the conversation.",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.09),
-      status: 'delivered',
-      isOwn: false,
-    },
-    {
-      id: 'phil-13',
-      content: "Example: A graph with 1,000 nodes remains fully interactive:",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.1),
-      status: 'delivered',
-      isOwn: false,
-      interactiveComponent: {
-        type: 'graph-visualization',
-        data: {
-          data: aiMemoryGraph,
-          title: 'Large Knowledge Graph',
-          subtitle: '1,000 nodes • Search, filter, and explore',
-          mode: 'mini',
-          maxVisibleEdges: 150,
-        },
-      },
-    },
-    {
-      id: 'phil-14',
-      content: "**Getting Started**\n\nHere's how to integrate Stash into your application:",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.11),
-      status: 'delivered',
-      isOwn: false,
-    },
-    {
-      id: 'phil-15',
-      content: "**Step 1: Installation**",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.12),
-      status: 'delivered',
-      isOwn: false,
-      interactiveComponent: {
-        type: 'code-block',
-        data: {
-          code: `npm install @stash/react-native`,
-          language: 'bash',
-          fileName: 'install.sh',
-        },
-      },
-    },
-    {
-      id: 'phil-15b',
-      content: "**Step 2: Define your message types and data**",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.13),
-      status: 'delivered',
-      isOwn: false,
-      interactiveComponent: {
-        type: 'code-block',
-        data: {
-          code: `import { Message } from '@stash/react-native';
-
-// Define your task data
-interface Task {
-  id: string;
-  name: string;
-  startDate: Date;
-  endDate: Date;
-  progress: number;
-  dependencies?: string[];
-  assignee?: string;
-  status?: 'todo' | 'in-progress' | 'completed';
-}
-
-// Example project tasks
-const projectTasks: Task[] = [
-  {
-    id: '1',
-    name: 'Design Phase',
-    startDate: new Date('2024-01-01'),
-    endDate: new Date('2024-01-15'),
-    progress: 100,
-    status: 'completed',
-    assignee: 'Design Team',
-  },
-  {
-    id: '2',
-    name: 'Development',
-    startDate: new Date('2024-01-10'),
-    endDate: new Date('2024-02-20'),
-    progress: 60,
-    status: 'in-progress',
-    dependencies: ['1'],
-    assignee: 'Dev Team',
-  },
-  {
-    id: '3',
-    name: 'Testing & QA',
-    startDate: new Date('2024-02-15'),
-    endDate: new Date('2024-03-01'),
-    progress: 30,
-    status: 'in-progress',
-    dependencies: ['2'],
-    assignee: 'QA Team',
-  },
-];`,
-          language: 'tsx',
-          fileName: 'types.ts',
-        },
-      },
-    },
-    {
-      id: 'phil-15c',
-      content: "**Step 3: Create messages with interactive components**",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.14),
-      status: 'delivered',
-      isOwn: false,
-      interactiveComponent: {
-        type: 'code-block',
-        data: {
-          code: `// Build your messages array with interactive components
-const messages: Message[] = [
-  {
-    id: '1',
-    type: 'text',
-    content: 'Can you show me the Q1 project timeline?',
-    sender: { id: 'user-1', name: 'User' },
-    timestamp: new Date(),
-    isOwn: true,
-  },
-  {
-    id: '2',
-    type: 'text',
-    content: "Here's your Q1 project timeline with all tasks and dependencies:",
-    sender: { id: 'ai-1', name: 'AI Assistant' },
-    timestamp: new Date(),
-    isOwn: false,
-    // Add interactive component
-    interactiveComponent: {
-      type: 'gantt-chart',
-      data: {
-        tasks: projectTasks,
-        title: 'Q1 2024 Project Timeline',
-        subtitle: '3 tasks • Click to explore details',
-        mode: 'mini', // Shows preview, click to expand
-      },
-    },
-  },
-];`,
-          language: 'tsx',
-          fileName: 'messages.ts',
-        },
-      },
-    },
-    {
-      id: 'phil-15d',
-      content: "**Step 4: Use the Chat component in your app**",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.15),
-      status: 'delivered',
-      isOwn: false,
-      interactiveComponent: {
-        type: 'code-block',
-        data: {
-          code: `import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Chat, Message } from '@stash/react-native';
-
-export default function App() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      type: 'text',
-      content: 'Can you show me the Q1 project timeline?',
-      sender: { id: 'user-1', name: 'User' },
-      timestamp: new Date(),
-      isOwn: true,
-    },
-    {
-      id: '2',
-      type: 'text',
-      content: "Here's your Q1 project timeline:",
-      sender: { id: 'ai-1', name: 'AI Assistant' },
-      timestamp: new Date(),
-      isOwn: false,
-      interactiveComponent: {
-        type: 'gantt-chart',
-        data: {
-          tasks: projectTasks,
-          title: 'Q1 2024 Project Timeline',
-          subtitle: '3 tasks • Interactive view',
-          mode: 'mini',
-        },
-      },
-    },
-  ]);
-
-  const handleSendMessage = (message: Message) => {
-    // Add message to state
-    setMessages(prev => [...prev, message]);
-
-    // Send to your backend/AI service
-    // Then add AI response with interactive components
-  };
-
-  return (
-    <View style={styles.container}>
-      <Chat
-        userId="user-1"
-        chatType="ai"
-        messages={messages}
-        onSendMessage={handleSendMessage}
-        placeholder="Ask me anything..."
-      />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-});`,
-          language: 'tsx',
-          fileName: 'App.tsx',
-        },
-      },
-    },
-    {
-      id: 'phil-15e',
-      content: "**That's it!** Your chat now supports interactive Gantt charts, task lists, time series, and knowledge graphs.\n\nAll components work across Web, iOS, and Android with zero additional configuration.\n\nYour users get a richer, more interactive experience. You get to build it with minimal code.",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.16),
-      status: 'delivered',
-      isOwn: false,
-    },
-    {
-      id: 'phil-16',
-      content: "**Advanced: Production WebSocket Integration**\n\nFor production applications, you'll want real-time messaging with WebSockets, proper pagination, and session management. Here's a complete example:",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.17),
-      status: 'delivered',
-      isOwn: false,
-    },
-    {
-      id: 'phil-16a',
-      content: "**Step 1: Create a WebSocket client with reconnection logic**",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.18),
-      status: 'delivered',
-      isOwn: false,
-      interactiveComponent: {
-        type: 'code-block',
-        data: {
-          code: `// websocket.ts - WebSocket client with auto-reconnection
-export interface WebSocketMessage {
-  type: 'subscribe' | 'unsubscribe' | 'event' | 'ping' | 'pong';
-  tenant_id?: string;
-  project_id?: string;
-  action?: string;
-  data?: any;
-}
-
-class WebSocketClient {
-  private ws: WebSocket | null = null;
-  private messageCallbacks: ((msg: WebSocketMessage) => void)[] = [];
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private currentToken: string | null = null;
-  private subscribedChannels: Set<string> = new Set();
-  private pingInterval: NodeJS.Timeout | null = null;
-
-  connect(token: string): void {
-    this.currentToken = token;
-    const wsUrl = \`ws://your-backend.com/ws?token=\${token}\`;
-    this.ws = new WebSocket(wsUrl);
-
-    this.ws.onopen = () => {
-      console.log('WebSocket connected');
-      this.reconnectAttempts = 0;
-
-      // Resubscribe to all channels after reconnect
-      this.subscribedChannels.forEach(channelId => {
-        this.send({ type: 'subscribe', project_id: channelId });
-      });
-
-      // Keep connection alive with pings
-      this.pingInterval = setInterval(() => {
-        this.send({ type: 'ping' });
-      }, 30000);
-    };
-
-    this.ws.onmessage = (event) => {
-      const message: WebSocketMessage = JSON.parse(event.data);
-      this.messageCallbacks.forEach(cb => cb(message));
-    };
-
-    this.ws.onclose = () => {
-      this.cleanup();
-      // Auto-reconnect with exponential backoff
-      if (this.reconnectAttempts < this.maxReconnectAttempts) {
-        this.reconnectAttempts++;
-        setTimeout(() => {
-          if (this.currentToken) this.connect(this.currentToken);
-        }, 1000 * this.reconnectAttempts);
-      }
-    };
-  }
-
-  subscribe(channelId: string): void {
-    this.subscribedChannels.add(channelId);
-    this.send({ type: 'subscribe', project_id: channelId });
-  }
-
-  onMessage(callback: (msg: WebSocketMessage) => void): void {
-    this.messageCallbacks.push(callback);
-  }
-
-  private send(message: WebSocketMessage): void {
-    if (this.ws?.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(message));
-    }
-  }
-
-  private cleanup(): void {
-    if (this.pingInterval) clearInterval(this.pingInterval);
-    this.ws = null;
-  }
-
-  disconnect(): void {
-    this.ws?.close();
-    this.cleanup();
-  }
-}
-
-export const wsClient = new WebSocketClient();`,
-          language: 'tsx',
-          fileName: 'websocket.ts',
-        },
-      },
-    },
-    {
-      id: 'phil-16b',
-      content: "**Step 2: Create an API client for HTTP requests**",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.19),
-      status: 'delivered',
-      isOwn: false,
-      interactiveComponent: {
-        type: 'code-block',
-        data: {
-          code: `// api.ts - HTTP API client
-const API_BASE_URL = 'https://your-backend.com';
-
-export interface User {
-  id: string;
-  email: string;
-  display_name: string;
-}
-
-export interface Channel {
-  id: string;
-  name: string;
-  created_at: string;
-}
-
-export interface BackendMessage {
-  id: string;
-  channel_id: string;
-  user_id: string;
-  content: string;
-  created_at: string;
-}
-
-class ChatAPI {
-  private token: string | null = null;
-
-  setToken(token: string) {
-    this.token = token;
-    localStorage.setItem('auth_token', token);
-  }
-
-  getToken(): string | null {
-    if (!this.token) {
-      this.token = localStorage.getItem('auth_token');
-    }
-    return this.token;
-  }
-
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
-
-    if (this.token) {
-      headers['Authorization'] = \`Bearer \${this.token}\`;
-    }
-
-    const response = await fetch(\`\${API_BASE_URL}\${endpoint}\`, {
-      ...options,
-      headers,
-    });
-
-    if (!response.ok) {
-      throw new Error(\`API Error: \${response.status}\`);
-    }
-
-    return response.json();
-  }
-
-  async login(email: string, password: string): Promise<{ token: string; user: User }> {
-    return this.request('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-  }
-
-  async getChannels(): Promise<Channel[]> {
-    return this.request('/channels');
-  }
-
-  async getMessages(channelId: string): Promise<BackendMessage[]> {
-    return this.request(\`/channels/\${channelId}/messages\`);
-  }
-
-  async sendMessage(channelId: string, content: string): Promise<BackendMessage> {
-    return this.request(\`/channels/\${channelId}/messages\`, {
-      method: 'POST',
-      body: JSON.stringify({ content, type: 'text' }),
-    });
-  }
-}
-
-export const api = new ChatAPI();`,
-          language: 'tsx',
-          fileName: 'api.ts',
-        },
-      },
-    },
-    {
-      id: 'phil-16c',
-      content: "**Step 3: Integrate with ChatLayout for pagination and real-time updates**",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.2),
-      status: 'delivered',
-      isOwn: false,
-      interactiveComponent: {
-        type: 'code-block',
-        data: {
-          code: `// App.tsx - Full integration with WebSocket, API, and ChatLayout
-import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { ChatLayout, Chat, ChatPreview, Message } from '@stash/react-native';
-import { api, BackendMessage, Channel, User } from './api';
-import { wsClient, WebSocketMessage } from './websocket';
-
-export default function App() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [channels, setChannels] = useState<Channel[]>([]);
-  const [currentChannelId, setCurrentChannelId] = useState<string | null>(null);
-  const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>({});
-  const [isConnected, setIsConnected] = useState(false);
-
-  // Use ref to avoid stale closures in WebSocket callbacks
-  const currentUserRef = useRef<User | null>(null);
-  useEffect(() => {
-    currentUserRef.current = currentUser;
-  }, [currentUser]);
-
-  // Initialize WebSocket and restore session
-  useEffect(() => {
-    const token = api.getToken();
-    if (token) {
-      // Restore session
-      wsClient.connect(token);
-      loadChannels();
-    }
-
-    // WebSocket event handlers
-    wsClient.onMessage((message: WebSocketMessage) => {
-      if (message.type === 'event' && message.action === 'message.sent') {
-        const channelId = message.project_id;
-        const messageData = message.data;
-
-        if (channelId && messageData) {
-          const newMessage: Message = {
-            id: messageData.id,
-            type: 'text',
-            content: messageData.content,
-            sender: {
-              id: messageData.user_id,
-              name: messageData.user_id,
-            },
-            timestamp: new Date(messageData.created_at),
-            status: 'delivered',
-            isOwn: messageData.user_id === currentUserRef.current?.id,
-          };
-
-          // Add message with deduplication
-          setChatMessages((prev) => {
-            const existing = prev[channelId] || [];
-            if (existing.some(m => m.id === newMessage.id)) {
-              return prev; // Skip duplicates
-            }
-            return {
-              ...prev,
-              [channelId]: [...existing, newMessage],
-            };
-          });
-        }
-      }
-    });
-
-    return () => wsClient.disconnect();
-  }, []);
-
-  const loadChannels = async () => {
-    const channelsList = await api.getChannels();
-    setChannels(channelsList);
-  };
-
-  const loadMessages = async (channelId: string) => {
-    const messages = await api.getMessages(channelId);
-    const stashMessages: Message[] = messages.map(msg => ({
-      id: msg.id,
-      type: 'text',
-      content: msg.content,
-      sender: { id: msg.user_id, name: msg.user_id },
-      timestamp: new Date(msg.created_at),
-      status: 'delivered',
-      isOwn: msg.user_id === currentUser?.id,
-    }));
-
-    setChatMessages((prev) => ({
-      ...prev,
-      [channelId]: stashMessages,
-    }));
-  };
-
-  const handleChatSelect = async (chatId: string) => {
-    setCurrentChannelId(chatId);
-
-    // Load messages if not cached
-    if (!chatMessages[chatId]) {
-      await loadMessages(chatId);
-    }
-
-    // Subscribe to real-time updates
-    wsClient.subscribe(chatId);
-  };
-
-  const handleSendMessage = async (newMessage: Message) => {
-    if (!currentChannelId) return;
-
-    const sentMessage = await api.sendMessage(
-      currentChannelId,
-      newMessage.content
-    );
-
-    // Add message immediately (WebSocket will deduplicate)
-    const stashMessage: Message = {
-      id: sentMessage.id,
-      type: 'text',
-      content: sentMessage.content,
-      sender: { id: sentMessage.user_id, name: sentMessage.user_id },
-      timestamp: new Date(sentMessage.created_at),
-      status: 'sent',
-      isOwn: true,
-    };
-
-    setChatMessages((prev) => {
-      const existing = prev[currentChannelId] || [];
-      if (existing.some(m => m.id === stashMessage.id)) {
-        return prev;
-      }
-      return {
-        ...prev,
-        [currentChannelId]: [...existing, stashMessage],
-      };
-    });
-  };
-
-  // ChatLayout pagination handlers
-  const loadInitialChats = async (limit: number) => {
-    const chatPreviews: ChatPreview[] = channels.slice(0, limit).map(channel => ({
-      id: channel.id,
-      title: channel.name,
-      type: 'group',
-      participants: [],
-      lastMessage: {
-        content: 'Click to load messages',
-        timestamp: new Date(channel.created_at),
-        senderId: '',
-        senderName: 'System',
-      },
-      unreadCount: 0,
-      updatedAt: new Date(channel.created_at),
-      createdAt: new Date(channel.created_at),
-    }));
-
-    return {
-      chats: chatPreviews,
-      totalCount: channels.length,
-    };
-  };
-
-  const loadOlderChats = async (beforeId: string, limit: number) => {
-    const beforeIndex = channels.findIndex(c => c.id === beforeId);
-    if (beforeIndex === -1) return [];
-
-    return channels.slice(beforeIndex + 1, beforeIndex + 1 + limit).map(channel => ({
-      id: channel.id,
-      title: channel.name,
-      type: 'group' as const,
-      participants: [],
-      lastMessage: {
-        content: 'Click to load messages',
-        timestamp: new Date(channel.created_at),
-        senderId: '',
-        senderName: 'System',
-      },
-      unreadCount: 0,
-      updatedAt: new Date(channel.created_at),
-      createdAt: new Date(channel.created_at),
-    }));
-  };
-
-  const messages = currentChannelId ? chatMessages[currentChannelId] || [] : [];
-
-  return (
-    <View style={styles.container}>
-      <ChatLayout
-        chatHistoryProps={{
-          userId: currentUser?.id || '',
-          currentChatId: currentChannelId || undefined,
-          windowSize: 50, // Fixed memory window
-          loadMoreThreshold: 10, // Load more when 10 items from edge
-          onLoadInitial: loadInitialChats,
-          onLoadBefore: loadOlderChats,
-          onRefresh: loadChannels,
-        }}
-        onChatSelect={handleChatSelect}
-      >
-        {currentChannelId && (
-          <Chat
-            userId={currentUser?.id || ''}
-            chatType="group"
-            chatId={currentChannelId}
-            messages={messages}
-            onSendMessage={handleSendMessage}
-            enableWebSocket={false} // We handle WebSocket ourselves
-            enableHTTP={false}
-          />
-        )}
-      </ChatLayout>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-});`,
-          language: 'tsx',
-          fileName: 'App.tsx',
-        },
-      },
-    },
-    {
-      id: 'phil-16d',
-      content: "**Key features in this implementation:**\n\n- **WebSocket reconnection** - Automatically reconnects with exponential backoff\n- **Message deduplication** - Prevents duplicate messages from WebSocket and HTTP\n- **Fixed memory window** - ChatLayout only keeps 50 chats in memory, loading more on demand\n- **Session persistence** - Restores connection on app reload using localStorage\n- **Optimistic updates** - Shows sent messages immediately before server confirmation\n- **Channel resubscription** - Automatically resubscribes to channels after reconnect\n\nThis pattern handles production requirements like unreliable networks, memory management, and user experience optimization.",
-      sender: { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.21),
-      status: 'delivered',
-      isOwn: false,
     },
   ];
 };
@@ -2109,109 +1388,6 @@ const getAIIntegratedMessages = (): Message[] => {
 ];
 };
 
-// Mock chat data
-const generateMockChats = (count: number): ChatPreview[] => {
-  const chatTypes: Array<'direct' | 'group' | 'ai'> = ['direct', 'group', 'ai'];
-  const names = [
-    'Sarah Johnson',
-    'Mike Chen',
-    'Emily Rodriguez',
-    'James Wilson',
-    'Lisa Anderson',
-    'David Kim',
-    'Maria Garcia',
-    'Robert Taylor',
-    'Jennifer Lee',
-    'Michael Brown',
-    'Product Team',
-    'Design Review',
-    'Engineering Sync',
-    'Marketing Campaign',
-    'Sales Strategy',
-    'Customer Support',
-    'AI Assistant',
-    'Code Helper',
-    'Research Bot',
-    'Data Analyst AI',
-  ];
-
-  const lastMessages = [
-    'Hey, are we still on for the meeting tomorrow?',
-    'I just sent over the latest designs, let me know what you think!',
-    'Can you review this proposal by end of day?',
-    'Thanks for your help yesterday! Really appreciated it.',
-    'The project timeline looks great, let\'s move forward.',
-    'I have some concerns about the Q4 roadmap we should discuss.',
-    'Just finished the code review, found a few minor issues.',
-    'The client meeting went really well today!',
-    'Updated the documentation as requested.',
-    'Let\'s schedule a quick sync this week.',
-    'Great work on the presentation!',
-    'I\'ll have the report ready by Friday.',
-    'Can we push the deadline by a few days?',
-    'The new feature is ready for testing.',
-    'I analyzed the data and here are my findings...',
-    'Based on your requirements, I recommend...',
-    'I\'ve completed the research you requested.',
-    'Here\'s a summary of today\'s metrics.',
-  ];
-
-  const chats: ChatPreview[] = [];
-
-  for (let i = 0; i < count; i++) {
-    const type = chatTypes[i % chatTypes.length];
-    const isAI = type === 'ai';
-    const isGroup = type === 'group';
-    const isPinned = i < 3; // First 3 are pinned
-    const isMuted = i % 7 === 0; // Every 7th is muted
-    const isArchived = i % 11 === 0 && i > 0; // Every 11th is archived
-
-    const baseDate = new Date();
-    baseDate.setHours(baseDate.getHours() - i * 2); // 2 hours apart
-
-    const participantCount = isGroup ? Math.floor(Math.random() * 8) + 3 : (isAI ? 1 : 2);
-    const participants = [];
-
-    for (let j = 0; j < participantCount; j++) {
-      participants.push({
-        id: `user-${i}-${j}`,
-        name: isAI ? 'AI Assistant' : names[(i + j) % names.length],
-        avatar: undefined,
-      });
-    }
-
-    const unreadCount = isPinned ? Math.floor(Math.random() * 5) : (i % 5 === 0 ? Math.floor(Math.random() * 20) : 0);
-
-    chats.push({
-      id: `chat-${i}`,
-      title: isAI
-        ? `AI: ${names[i % names.length]}`
-        : isGroup
-        ? names[i % names.length]
-        : participants.find(p => p.name !== 'You')?.name || names[i % names.length],
-      lastMessage: {
-        content: lastMessages[i % lastMessages.length],
-        timestamp: baseDate,
-        senderId: participants[0].id,
-        senderName: participants[0].name,
-      },
-      participants,
-      unreadCount,
-      type,
-      updatedAt: baseDate,
-      createdAt: new Date(baseDate.getTime() - 1000 * 60 * 60 * 24 * 7), // 7 days before
-      isPinned,
-      isMuted,
-      isArchived,
-      metadata: {
-        lastReadAt: new Date(baseDate.getTime() - 1000 * 60 * 30), // 30 min ago
-      },
-    });
-  }
-
-  return chats;
-};
-
 // Generate 1000+ messages for pagination demo
 const getLargeMessageHistory = (): Message[] => {
   const messages: Message[] = [];
@@ -2242,19 +1418,19 @@ const getLargeMessageHistory = (): Message[] => {
 
 // Core demo chats showcasing Stash capabilities
 const ALL_MOCK_CHATS: ChatPreview[] = [
-  // Philosophy conversation - presentation mode
+  // Combined overview - what is Stash and why it exists
   {
-    id: 'chat-philosophy',
-    title: '💭 Why Chat Needs to Evolve',
+    id: 'chat-overview',
+    title: '✨ What is Stash?',
     type: 'ai',
     participants: [
-      { id: 'user-phil', name: 'You', avatar: '👤' },
-      { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
+      { id: 'user-overview', name: 'You', avatar: '👤' },
+      { id: 'ai-overview', name: 'Stash AI', avatar: '🤖' },
     ],
     lastMessage: {
-      content: 'Welcome to Stash. Ready to build the future?',
+      content: 'Getting Started is Easy: npm install @stash/react-native...',
       timestamp: new Date(),
-      senderId: 'ai-phil',
+      senderId: 'ai-overview',
       senderName: 'Stash AI',
     },
     unreadCount: 0,
@@ -2285,31 +1461,6 @@ const ALL_MOCK_CHATS: ChatPreview[] = [
     unreadCount: 0,
     updatedAt: new Date(),
     createdAt: subDays(new Date(), 60),
-    isPinned: true,
-    isMuted: false,
-    isArchived: false,
-    metadata: {
-      lastReadAt: new Date(),
-    },
-  },
-  // Getting started guide
-  {
-    id: 'chat-demo',
-    title: '✨ What is Stash?',
-    type: 'ai',
-    participants: [
-      { id: 'user-demo', name: 'You', avatar: '👤' },
-      { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
-    ],
-    lastMessage: {
-      content: 'Getting Started is Easy: npm install @stash/react-native...',
-      timestamp: new Date(),
-      senderId: 'ai-demo',
-      senderName: 'Stash AI',
-    },
-    unreadCount: 0,
-    updatedAt: new Date(),
-    createdAt: new Date(),
     isPinned: true,
     isMuted: false,
     isArchived: false,
@@ -2350,14 +1501,12 @@ export default function ChatHistoryExample() {
   const [isPresentationMode, setIsPresentationMode] = useState(false);
 
   // Memoize initial messages to avoid regenerating large datasets
-  const philosophyMessages = useMemo(() => getStashPhilosophyMessages(), []);
-  const demoMessages = useMemo(() => getStashDemoMessages(), []);
+  const overviewMessages = useMemo(() => getStashOverviewMessages(), []);
   const allPaginationMessages = useMemo(() => getLargeMessageHistory(), []); // Store all 1200 messages
   const initialMessages = useMemo(() => getAIIntegratedMessages(), []);
 
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>({
-    'chat-philosophy': philosophyMessages,
-    'chat-demo': demoMessages,
+    'chat-overview': overviewMessages,
     'chat-0': initialMessages,
   });
 
@@ -2428,8 +1577,8 @@ export default function ChatHistoryExample() {
   const handleChatSelect = useCallback((chatId: string) => {
     console.log('[ChatHistoryExample] Selected chat:', chatId);
     setCurrentChatId(chatId);
-    // Enable presentation mode for philosophy chat
-    setIsPresentationMode(chatId === 'chat-philosophy');
+    // Enable presentation mode for overview chat
+    setIsPresentationMode(chatId === 'chat-overview');
   }, []);
 
   const handleCreateNewChat = useCallback(() => {
