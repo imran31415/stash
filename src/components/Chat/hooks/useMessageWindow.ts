@@ -120,6 +120,7 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
         return;
       }
 
+      let trimmedMessages: Message[] = [];
       setMessages(prev => {
         // Combine older messages with current window
         const combined = [...olderMessages, ...prev];
@@ -139,6 +140,7 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
           willHaveMoreNewer: shouldTrim,
         });
 
+        trimmedMessages = trimmed;
         return trimmed;
       });
 
@@ -146,16 +148,23 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
         const combined = olderMessages.length + messages.length;
         const hasMoreNewer = combined > windowSize || prev.hasMoreNewer;
 
+        // Update newestMessageId to reflect the actual newest message in the window
+        const newestMessageId = trimmedMessages.length > 0
+          ? trimmedMessages[trimmedMessages.length - 1]?.id
+          : prev.newestMessageId;
+
         console.log('[useMessageWindow] Updated pagination after loading older:', {
           hasMoreOlder: olderMessages.length === windowSize,
           hasMoreNewer,
           oldestMessageId: olderMessages[0]?.id,
+          newestMessageId,
         });
 
         return {
           ...prev,
           isLoadingOlder: false,
           oldestMessageId: olderMessages[0]?.id || prev.oldestMessageId,
+          newestMessageId,
           hasMoreOlder: olderMessages.length === windowSize,
           hasMoreNewer,
           currentWindowStart: Math.max(0, prev.currentWindowStart - olderMessages.length),
@@ -192,6 +201,7 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
         return;
       }
 
+      let trimmedMessages: Message[] = [];
       setMessages(prev => {
         // Combine current window with newer messages
         const combined = [...prev, ...newerMessages];
@@ -210,6 +220,7 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
           willHaveMoreOlder: shouldTrim,
         });
 
+        trimmedMessages = trimmed;
         return trimmed;
       });
 
@@ -217,15 +228,22 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
         const combined = messages.length + newerMessages.length;
         const hasMoreOlder = combined > windowSize || prev.hasMoreOlder;
 
+        // Update oldestMessageId to reflect the actual oldest message in the window
+        const oldestMessageId = trimmedMessages.length > 0
+          ? trimmedMessages[0]?.id
+          : prev.oldestMessageId;
+
         console.log('[useMessageWindow] Updated pagination after loading newer:', {
           hasMoreNewer: newerMessages.length === windowSize,
           hasMoreOlder,
+          oldestMessageId,
           newestMessageId: newerMessages[newerMessages.length - 1]?.id,
         });
 
         return {
           ...prev,
           isLoadingNewer: false,
+          oldestMessageId,
           newestMessageId: newerMessages[newerMessages.length - 1]?.id || prev.newestMessageId,
           hasMoreNewer: newerMessages.length === windowSize,
           hasMoreOlder,

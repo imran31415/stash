@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  TouchableOpacity,
 } from 'react-native';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
@@ -119,6 +120,8 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
   // Track if this is the first load to enable auto-scroll
   const isFirstLoadRef = useRef(true);
   const hasLoadedInitialRef = useRef(false);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [isLoadingLatest, setIsLoadingLatest] = useState(false);
 
   // Load initial messages
   useEffect(() => {
@@ -291,6 +294,10 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
     const scrollFromTop = contentOffset.y;
     const scrollFromBottom = contentSize.height - layoutMeasurement.height - contentOffset.y;
 
+    // Show scroll-to-bottom button if not near bottom and there are newer messages
+    const isNearBottom = scrollFromBottom < 100;
+    setShowScrollToBottom(!isNearBottom && pagination.hasMoreNewer);
+
     // Load older messages when scrolling near the top
     if (scrollFromTop < 500 && pagination.hasMoreOlder && !pagination.isLoadingOlder) {
       console.log('[ChatWithPagination] Triggering load older messages', {
@@ -311,6 +318,36 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
       loadNewerMessages();
     }
   }, [pagination, loadOlderMessages, loadNewerMessages]);
+
+  // Scroll to latest messages (load most recent if needed)
+  const scrollToLatest = useCallback(async () => {
+    setShowScrollToBottom(false);
+
+    if (pagination.hasMoreNewer) {
+      // Need to progressively load newer messages until we reach the end
+      setIsLoadingLatest(true);
+      try {
+        let hasMore = pagination.hasMoreNewer;
+        let attempts = 0;
+        const maxAttempts = 50; // Prevent infinite loops
+
+        while (hasMore && attempts < maxAttempts) {
+          await loadNewerMessages();
+          // Wait a bit for state to update
+          await new Promise(resolve => setTimeout(resolve, 100));
+          hasMore = pagination.hasMoreNewer;
+          attempts++;
+        }
+      } catch (error) {
+        console.error('[ChatWithPagination] Error loading latest messages:', error);
+      } finally {
+        setIsLoadingLatest(false);
+      }
+    }
+
+    // Scroll to bottom
+    setTimeout(() => scrollToBottom(true), 200);
+  }, [pagination.hasMoreNewer, loadNewerMessages]);
 
   const renderMessageItem = ({ item, index }: { item: Message; index: number }) => {
     // Safety check: if item is undefined or null, return null
@@ -409,6 +446,28 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
         />
       </KeyboardAvoidingView>
 
+      {/* Scroll to Latest Button */}
+      {showScrollToBottom && !isLoadingLatest && (
+        <TouchableOpacity
+          style={styles.scrollToBottomButton}
+          onPress={scrollToLatest}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.scrollToBottomText}>↓</Text>
+          {pagination.hasMoreNewer && (
+            <Text style={styles.scrollToBottomSubtext}>Latest</Text>
+          )}
+        </TouchableOpacity>
+      )}
+
+      {/* Loading Overlay */}
+      {isLoadingLatest && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={theme?.primaryColor || '#007AFF'} />
+          <Text style={styles.loadingOverlayText}>Loading latest messages...</Text>
+        </View>
+      )}
+
       {/* Pagination Info (for debugging) */}
       {__DEV__ && (
         <View style={styles.debugInfo}>
@@ -460,6 +519,51 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     marginTop: 8,
   },
+  scrollToBottomButton: {
+    position: 'absolute',
+    bottom: 90,
+    right: 16,
+    backgroundColor: '#007AFF',
+    borderRadius: 28,
+    width: 56,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 100,
+  },
+  scrollToBottomText: {
+    fontSize: 24,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  scrollToBottomSubtext: {
+    fontSize: 9,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    marginTop: -4,
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+  },
+  loadingOverlayText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#8E8E93',
+    fontWeight: '500',
+  },
   debugInfo: {
     position: 'absolute',
     top: 0,
@@ -467,7 +571,7 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     padding: 4,
-    zIndex: 1000,
+    zIndex: 1100,
   },
   debugText: {
     fontSize: 10,
