@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,9 +7,10 @@ import {
   Dimensions,
   Pressable,
   ScrollView,
+  LayoutChangeEvent,
 } from 'react-native';
 import Svg, { Path, Line, Circle, Text as SvgText } from 'react-native-svg';
-import type { TimeSeriesChartProps } from './TimeSeriesChart.types';
+import type { TimeSeriesChartProps, TimeSeriesSeries } from './TimeSeriesChart.types';
 import {
   colors,
   getChartDimensions,
@@ -25,6 +26,7 @@ import {
   findNearestPoint,
   generateXAxisTicks,
 } from './TimeSeriesChart.utils';
+import { streamingCallbackRegistry } from './StreamingCallbackRegistry';
 
 const borderRadius = {
   sm: 4,
@@ -72,6 +74,7 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
   onExpandPress,
   onDataPointPress,
   height: customHeight,
+  width: customWidth,
   pageSize,
   currentPage = 0,
   totalDataPoints,
@@ -87,37 +90,114 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
   minY,
   maxY,
   autoScale = true,
+  enableLiveStreaming = false,
+  maxDataPoints = 100,
+  streamingWindowSize = 50,
+  onDataUpdate,
+  showStreamingControls = true,
+  onStreamingToggle,
+  streamingPaused = false,
+  streamingCallbackId,
 }) => {
   const screenWidth = Dimensions.get('window').width;
   const isMini = mode === 'mini';
   const [selectedPoint, setSelectedPoint] = useState<any>(null);
+  const [internalPaused, setInternalPaused] = useState(false);
+
+  // Track actual container width via onLayout
+  const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
+
+  // Calculate container width - only use measured or custom width
+  const containerWidth = customWidth || measuredWidth;
+
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const { width } = event.nativeEvent.layout;
+    if (width > 0 && !customWidth && width !== measuredWidth) {
+      setMeasuredWidth(width);
+    }
+  };
+
+  // Use external paused state if provided, otherwise use internal
+  const isPaused = streamingPaused !== undefined ? streamingPaused : internalPaused;
+
+  // Live streaming state - use ref for fixed memory management
+  const streamingDataRef = useRef<TimeSeriesSeries[]>(series);
+  const [streamingSeries, setStreamingSeries] = useState<TimeSeriesSeries[]>(series);
+
+  // Keep track of the data buffer with fixed size
+  const maintainFixedMemory = useCallback((newSeries: TimeSeriesSeries[]): TimeSeriesSeries[] => {
+    return newSeries.map(s => ({
+      ...s,
+      data: s.data.slice(-maxDataPoints), // Keep only the last N points
+    }));
+  }, [maxDataPoints]);
+
+  // Update streaming data when series prop changes (e.g., WebSocket data arrives)
+  useEffect(() => {
+    if (enableLiveStreaming && !isPaused) {
+      // Apply fixed memory constraint
+      const constrainedSeries = maintainFixedMemory(series);
+      streamingDataRef.current = constrainedSeries;
+      setStreamingSeries(constrainedSeries);
+
+      // Notify parent of data update
+      onDataUpdate?.(constrainedSeries);
+    }
+  }, [series, enableLiveStreaming, isPaused, maintainFixedMemory, onDataUpdate]);
+
+  // Handle streaming toggle
+  const handleStreamingToggle = useCallback(() => {
+    console.log('[TimeSeriesChart] Toggle button clicked, isPaused:', isPaused, 'callbackId:', streamingCallbackId);
+    const newPausedState = !isPaused;
+    if (streamingPaused === undefined) {
+      setInternalPaused(newPausedState);
+    }
+
+    // Try callback registry first (for serialized messages), then direct callback
+    if (streamingCallbackId) {
+      const called = streamingCallbackRegistry.call(streamingCallbackId, !newPausedState);
+      console.log('[TimeSeriesChart] Callback registry call result:', called, 'streaming value:', !newPausedState);
+    } else {
+      console.log('[TimeSeriesChart] Using direct callback');
+      onStreamingToggle?.(!newPausedState);
+    }
+  }, [isPaused, streamingPaused, onStreamingToggle, streamingCallbackId]);
+
+  // Use streaming series if enabled, otherwise use original series
+  const activeSeries = enableLiveStreaming ? streamingSeries : series;
 
   // Assign colors to series
-  const coloredSeries = useMemo(() => assignSeriesColors(series), [series]);
+  const coloredSeries = useMemo(() => assignSeriesColors(activeSeries), [activeSeries]);
 
-  // Apply pagination
-  const paginatedSeries = useMemo(
-    () => getPaginatedData(coloredSeries, pageSize, currentPage),
-    [coloredSeries, pageSize, currentPage]
-  );
+  // Apply pagination or streaming window
+  const paginatedSeries = useMemo(() => {
+    if (enableLiveStreaming) {
+      // In streaming mode, show the most recent N points
+      return coloredSeries.map(s => ({
+        ...s,
+        data: s.data.slice(-streamingWindowSize),
+      }));
+    }
+    return getPaginatedData(coloredSeries, pageSize, currentPage);
+  }, [coloredSeries, pageSize, currentPage, enableLiveStreaming, streamingWindowSize]);
 
   // Calculate dimensions
   const dimensions = useMemo(
-    () => getChartDimensions(mode, screenWidth - 32, customHeight, showLegend && !isMini),
-    [mode, screenWidth, customHeight, showLegend, isMini]
+    () => containerWidth ? getChartDimensions(mode, containerWidth, customHeight, showLegend && !isMini) : null,
+    [mode, containerWidth, customHeight, showLegend, isMini]
   );
 
   // Calculate scales
   const yScale = useMemo(
-    () => calculateYScale(paginatedSeries, minY, maxY, autoScale),
-    [paginatedSeries, minY, maxY, autoScale]
+    () => dimensions ? calculateYScale(paginatedSeries, minY, maxY, autoScale) : { min: 0, max: 100, step: 10, ticks: [] },
+    [paginatedSeries, minY, maxY, autoScale, dimensions]
   );
 
-  const xScale = useMemo(() => calculateXScale(paginatedSeries), [paginatedSeries]);
+  const xScale = useMemo(() => dimensions ? calculateXScale(paginatedSeries) : { minDate: new Date(), maxDate: new Date(), range: 0 }, [paginatedSeries, dimensions]);
 
   // Convert to screen coordinates
   const chartPoints = useMemo(
-    () => dataToScreenCoordinates(paginatedSeries, dimensions, yScale, xScale),
+    () => (dimensions ? dataToScreenCoordinates(paginatedSeries, dimensions, yScale, xScale) : []),
     [paginatedSeries, dimensions, yScale, xScale]
   );
 
@@ -165,13 +245,29 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
     return dateFormatter ? dateFormatter(date) : formatDateLabel(date, xScale.range);
   };
 
+  // Helper to safely calculate Y position from value (handles zero range)
+  const getYPosition = useCallback((value: number): number => {
+    if (!dimensions) return 0;
+    const yRange = yScale.max - yScale.min;
+    const yRatio = yRange > 0 ? (value - yScale.min) / yRange : 0.5;
+    return dimensions.paddingTop + dimensions.chartHeight - yRatio * dimensions.chartHeight;
+  }, [yScale, dimensions]);
+
   const renderHeader = () => (
     <View style={styles.header}>
       <View style={styles.headerContent}>
         {title && <Text style={[styles.title, isMini && styles.titleMini]}>{title}</Text>}
         {subtitle && <Text style={[styles.subtitle, isMini && styles.subtitleMini]}>{subtitle}</Text>}
+        {enableLiveStreaming && (
+          <View style={styles.liveIndicator}>
+            <View style={[styles.liveDot, isPaused && styles.liveDotPaused]} />
+            <Text style={[styles.liveText, isPaused && styles.liveTextPaused]}>
+              {isPaused ? 'PAUSED' : 'LIVE'}
+            </Text>
+          </View>
+        )}
       </View>
-      {isMini && onExpandPress && (
+      {onExpandPress && (
         <TouchableOpacity
           style={styles.expandButton}
           onPress={onExpandPress}
@@ -183,6 +279,33 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
       )}
     </View>
   );
+
+  const renderStreamingControls = () => {
+    if (!enableLiveStreaming || !showStreamingControls) return null;
+
+    return (
+      <View style={styles.streamingControls}>
+        <TouchableOpacity
+          style={styles.controlButton}
+          onPress={handleStreamingToggle}
+          accessibilityLabel={isPaused ? 'Resume streaming' : 'Pause streaming'}
+          accessibilityRole="button"
+        >
+          <Text style={styles.controlButtonIcon}>{isPaused ? '▶️' : '⏸'}</Text>
+          <Text style={styles.controlButtonText}>{isPaused ? 'Resume' : 'Pause'}</Text>
+        </TouchableOpacity>
+        <View style={styles.streamingStats}>
+          <Text style={styles.streamingStatsText}>
+            {activeSeries[0]?.data.length || 0} points
+          </Text>
+          <Text style={styles.streamingStatsSeparator}>•</Text>
+          <Text style={styles.streamingStatsText}>
+            {streamingWindowSize} displayed
+          </Text>
+        </View>
+      </View>
+    );
+  };
 
   const renderLegend = () => {
     if (!showLegend || isMini) return null;
@@ -201,7 +324,10 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
     );
   };
 
-  const renderChart = () => (
+  const renderChart = () => {
+    if (!dimensions) return null;
+
+    return (
     <Pressable onPress={handleChartPress}>
       <Svg width={dimensions.width} height={dimensions.height}>
         {/* Grid lines */}
@@ -209,10 +335,7 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
           <>
             {/* Horizontal grid lines (Y-axis) */}
             {yScale.ticks.map((tick, index) => {
-              const y =
-                dimensions.paddingTop +
-                dimensions.chartHeight -
-                ((tick - yScale.min) / (yScale.max - yScale.min)) * dimensions.chartHeight;
+              const y = getYPosition(tick);
 
               return (
                 <Line
@@ -253,10 +376,7 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
         {/* Y-axis labels */}
         {showYAxis &&
           yScale.ticks.map((tick, index) => {
-            const y =
-              dimensions.paddingTop +
-              dimensions.chartHeight -
-              ((tick - yScale.min) / (yScale.max - yScale.min)) * dimensions.chartHeight;
+            const y = getYPosition(tick);
 
             return (
               <SvgText
@@ -380,7 +500,8 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
         )}
       </Svg>
     </Pressable>
-  );
+    );
+  };
 
   const renderPagination = () => {
     // Hide pagination in mini mode - users should expand to detail view for pagination
@@ -440,20 +561,39 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
   };
 
   return (
-    <View style={[styles.container, isMini && styles.containerMini]}>
+    <View
+      style={[
+        styles.container,
+        isMini && styles.containerMini,
+        {
+          width: customWidth || (isMini ? 400 : '100%'),
+          alignSelf: isMini ? 'flex-start' : 'stretch'
+        }
+      ]}
+      onLayout={handleLayout}
+    >
       {renderHeader()}
+      {renderStreamingControls()}
       {renderLegend()}
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chartScrollContent}
-      >
-        {renderChart()}
-      </ScrollView>
+      {containerWidth ? (
+        <>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chartScrollContent}
+          >
+            {renderChart()}
+          </ScrollView>
 
-      {renderSelectedPointInfo()}
-      {renderPagination()}
+          {renderSelectedPointInfo()}
+          {renderPagination()}
+        </>
+      ) : (
+        <View style={{ height: customHeight || (isMini ? 200 : 400), justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: colors.text.secondary }}>Loading chart...</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -597,6 +737,71 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     minWidth: 100,
     textAlign: 'center',
+  },
+  liveIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing[1],
+    gap: spacing[1],
+  },
+  liveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+  },
+  liveDotPaused: {
+    backgroundColor: '#F59E0B',
+  },
+  liveText: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.bold,
+    color: '#EF4444',
+    letterSpacing: 0.5,
+  },
+  liveTextPaused: {
+    color: '#F59E0B',
+  },
+  streamingControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[2],
+    backgroundColor: colors.surface.secondary,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.default,
+  },
+  controlButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    paddingVertical: spacing[1],
+    paddingHorizontal: spacing[3],
+    borderRadius: borderRadius.base,
+    backgroundColor: colors.primary[500],
+  },
+  controlButtonIcon: {
+    fontSize: typography.fontSize.base,
+  },
+  controlButtonText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.text.inverse,
+  },
+  streamingStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  streamingStatsText: {
+    fontSize: typography.fontSize.xs,
+    color: colors.text.secondary,
+    fontWeight: typography.fontWeight.medium,
+  },
+  streamingStatsSeparator: {
+    fontSize: typography.fontSize.xs,
+    color: colors.text.tertiary,
   },
 });
 

@@ -17,6 +17,11 @@ interface MarkdownTextProps {
  * - Line breaks
  */
 export const MarkdownText: React.FC<MarkdownTextProps> = ({ content, style, color = '#000000' }) => {
+  // Handle non-string content
+  if (!content || typeof content !== 'string') {
+    return <Text style={[styles.text, { color }, style]}>{String(content || '')}</Text>;
+  }
+
   const renderLine = (line: string, index: number) => {
     // Skip empty lines
     if (!line.trim()) {

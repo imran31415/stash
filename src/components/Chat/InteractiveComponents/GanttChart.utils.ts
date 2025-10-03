@@ -272,21 +272,21 @@ export const getTaskColor = (
  */
 export const getChartDimensions = (
   mode: 'mini' | 'full',
-  screenWidth: number,
+  containerWidth: number,
   taskCount: number,
   customHeight?: number
 ): ChartDimensions => {
   const isMini = mode === 'mini';
 
   return {
-    rowHeight: isMini ? 36 : 48,
-    taskBarHeight: isMini ? 24 : 32,
-    cellWidth: isMini ? 30 : 60,
-    headerHeight: isMini ? 40 : 56,
-    sidebarWidth: isMini ? 120 : 180,
-    chartWidth: screenWidth,
+    rowHeight: isMini ? 32 : 48,
+    taskBarHeight: isMini ? 20 : 32,
+    cellWidth: isMini ? 20 : 60,
+    headerHeight: isMini ? 36 : 56,
+    sidebarWidth: isMini ? 100 : 180,
+    chartWidth: isMini ? 400 : containerWidth,
     chartHeight: customHeight || (isMini ? 200 : Math.min(600, taskCount * 48 + 56)),
-    padding: isMini ? 8 : 12,
+    padding: isMini ? 6 : 12,
   };
 };
 

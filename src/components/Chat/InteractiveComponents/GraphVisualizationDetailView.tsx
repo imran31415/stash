@@ -10,7 +10,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import Svg, { Circle, Line, Text as SvgText, G, Path } from 'react-native-svg';
+import Svg, { Circle, Line, Text as SvgText, G, Path, Defs, RadialGradient, Stop } from 'react-native-svg';
 import type { GraphVisualizationDetailViewProps, GraphNode, GraphEdge } from './GraphVisualization.types';
 import {
   applyForceLayout,
@@ -329,13 +329,16 @@ export const GraphVisualizationDetailView: React.FC<GraphVisualizationDetailView
         return null;
       }
 
-      // Highlight edges connected to focused node
+      // Highlight edges connected to focused node or between neighbors
       const isConnectedToFocus = focusedNodeId === edge.source || focusedNodeId === edge.target;
+      const isConnectedToNeighbors = focusedNodeId &&
+        neighborIds.has(edge.source) && neighborIds.has(edge.target);
       const isHighlighted = isConnectedToFocus;
+      const isSecondary = isConnectedToNeighbors && !isConnectedToFocus;
 
-      const color = isHighlighted ? '#3B82F6' : (edge.color || '#CBD5E1');
-      const strokeWidth = isHighlighted ? 3 : (edge.width || 2);
-      const opacity = isHighlighted ? 0.9 : (focusedNodeId ? 0.5 : 0.6);
+      const color = isHighlighted ? '#3B82F6' : isSecondary ? '#10B981' : (edge.color || '#CBD5E1');
+      const strokeWidth = isHighlighted ? 3.5 : isSecondary ? 3 : (edge.width || 2);
+      const opacity = isHighlighted ? 1 : isSecondary ? 0.8 : (focusedNodeId ? 0.2 : 0.6);
 
       const dx = target.x - source.x;
       const dy = target.y - source.y;
@@ -372,21 +375,21 @@ export const GraphVisualizationDetailView: React.FC<GraphVisualizationDetailView
               opacity={opacity}
             />
           )}
-          {/* Edge labels - always show for highlighted edges when node is focused */}
-          {(edge.label || edge.type) && (focusedNodeId ? isHighlighted : showEdgeLabels) && (
+          {/* Edge labels - show for primary and secondary edges when focused */}
+          {(edge.label || edge.type) && (focusedNodeId ? (isHighlighted || isSecondary) : showEdgeLabels) ? (
             <G>
-              {/* Background for label */}
+              {/* Background for label - enhanced for better visibility */}
               <SvgText
                 x={midX}
                 y={midY}
-                fontSize={12 / scale}
+                fontSize={14 / scale}
                 fill="#FFFFFF"
                 fontWeight="700"
                 textAnchor="middle"
                 alignmentBaseline="middle"
                 stroke="#FFFFFF"
-                strokeWidth={4 / scale}
-                opacity={0.95}
+                strokeWidth={6 / scale}
+                opacity={1}
               >
                 {edge.label || edge.type}
               </SvgText>
@@ -394,8 +397,8 @@ export const GraphVisualizationDetailView: React.FC<GraphVisualizationDetailView
               <SvgText
                 x={midX}
                 y={midY}
-                fontSize={12 / scale}
-                fill={isHighlighted ? '#3B82F6' : '#1E293B'}
+                fontSize={14 / scale}
+                fill={isHighlighted ? '#3B82F6' : isSecondary ? '#10B981' : '#1E293B'}
                 fontWeight="700"
                 textAnchor="middle"
                 alignmentBaseline="middle"
@@ -403,7 +406,7 @@ export const GraphVisualizationDetailView: React.FC<GraphVisualizationDetailView
                 {edge.label || edge.type}
               </SvgText>
             </G>
-          )}
+          ) : null}
         </G>
       );
     });
@@ -454,20 +457,53 @@ export const GraphVisualizationDetailView: React.FC<GraphVisualizationDetailView
 
       return (
         <G key={node.id}>
-          {/* Outer glow for focused node */}
+          {/* Shadow for 3D depth effect */}
+          <Circle
+            cx={node.x + 2 / scale}
+            cy={node.y + 3 / scale}
+            r={(nodeRadius + 1) / scale}
+            fill="url(#nodeShadowDetail)"
+            opacity={isDimmed ? 0.3 : 0.5}
+          />
+
+          {/* Multi-layer glow for focused node */}
           {isFocused && (
+            <>
+              <Circle
+                cx={node.x}
+                cy={node.y}
+                r={(nodeRadius + 14) / scale}
+                fill="none"
+                stroke="#10B981"
+                strokeWidth={3 / scale}
+                opacity={0.2}
+              />
+              <Circle
+                cx={node.x}
+                cy={node.y}
+                r={(nodeRadius + 10) / scale}
+                fill="none"
+                stroke="#10B981"
+                strokeWidth={2 / scale}
+                opacity={0.4}
+              />
+            </>
+          )}
+
+          {/* Subtle glow for neighbor nodes */}
+          {isNeighbor && !isFocused && (
             <Circle
               cx={node.x}
               cy={node.y}
-              r={(nodeRadius + 10) / scale}
+              r={(nodeRadius + 7) / scale}
               fill="none"
-              stroke="#10B981"
+              stroke="#3B82F6"
               strokeWidth={2 / scale}
-              opacity={0.4}
+              opacity={0.3}
             />
           )}
 
-          {/* Node circle */}
+          {/* Main node circle */}
           <Circle
             cx={node.x}
             cy={node.y}
@@ -476,6 +512,10 @@ export const GraphVisualizationDetailView: React.FC<GraphVisualizationDetailView
             opacity={nodeOpacity}
             stroke={strokeColor}
             strokeWidth={strokeWidth / scale}
+            onPress={() => {
+              console.log('[GraphVisualizationDetailView] Circle pressed:', node.id);
+              handleNodePress(node);
+            }}
           />
 
           {/* Node label - only show if there's space or it's important (focused/neighbor) */}
@@ -638,37 +678,21 @@ export const GraphVisualizationDetailView: React.FC<GraphVisualizationDetailView
                   width={width * scale}
                   height={height * scale}
                   style={styles.svg}
-                  onPress={(e: any) => {
-                    const evt = e.nativeEvent;
-                    // Use currentTarget to get the SVG element we attached the listener to
-                    const svgRect = (e.currentTarget as any)?.getBoundingClientRect?.();
-                    if (!svgRect) return;
-
-                    // Get click coordinates relative to SVG (unscaled space)
-                    const clickX = (evt.clientX - svgRect.left) / scale;
-                    const clickY = (evt.clientY - svgRect.top) / scale;
-
-                    // Find which node was clicked
-                    for (const node of layoutNodes) {
-                      if (node.x === undefined || node.y === undefined) continue;
-
-                      const size = getNodeSize(node, data.edges);
-                      const isFocused = focusedNodeId === node.id;
-                      const baseRadius = size / 2;
-                      const nodeRadius = isFocused ? baseRadius * 1.3 : baseRadius;
-
-                      const distance = Math.sqrt(
-                        Math.pow(clickX - node.x, 2) + Math.pow(clickY - node.y, 2)
-                      );
-
-                      if (distance <= nodeRadius) {
-                        console.log('[GraphVisualizationDetailView] ✓ Clicked node:', node.id);
-                        handleNodePress(node);
-                        break;
-                      }
-                    }
-                  }}
                 >
+                  <Defs>
+                    {/* Radial gradients for subtle 3D node effect */}
+                    <RadialGradient id="nodeGradientDetail" cx="30%" cy="30%">
+                      <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.15" />
+                      <Stop offset="100%" stopColor="#000000" stopOpacity="0.05" />
+                    </RadialGradient>
+
+                    {/* Shadow gradient for subtle depth */}
+                    <RadialGradient id="nodeShadowDetail" cx="50%" cy="50%">
+                      <Stop offset="0%" stopColor="#000000" stopOpacity="0" />
+                      <Stop offset="100%" stopColor="#000000" stopOpacity="0.15" />
+                    </RadialGradient>
+                  </Defs>
+
                   <G transform={`scale(${scale})`}>
                     {renderEdges()}
                     {renderNodes()}
@@ -692,31 +716,93 @@ export const GraphVisualizationDetailView: React.FC<GraphVisualizationDetailView
           </View>
 
           {/* Selected node details */}
-          {selectedNode && (
-            <View style={styles.nodeDetails}>
-              <View style={styles.nodeDetailsHeader}>
-                <Text style={styles.nodeDetailsTitle}>{getNodeLabel(selectedNode)}</Text>
-                <TouchableOpacity onPress={() => setSelectedNode(null)}>
-                  <Text style={styles.nodeDetailsClose}>✕</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.nodeDetailsLabels}>
-                {selectedNode.labels.map(label => (
-                  <View key={label} style={styles.nodeDetailsLabel}>
-                    <Text style={styles.nodeDetailsLabelText}>{label}</Text>
+          {selectedNode && (() => {
+            // Get all edges connected to this node
+            const connectedEdges = filteredEdges.filter(
+              edge => edge.source === selectedNode.id || edge.target === selectedNode.id
+            );
+            const outgoingEdges = connectedEdges.filter(edge => edge.source === selectedNode.id);
+            const incomingEdges = connectedEdges.filter(edge => edge.target === selectedNode.id);
+
+            return (
+              <View style={styles.nodeDetails}>
+                <View style={styles.nodeDetailsHeader}>
+                  <Text style={styles.nodeDetailsTitle}>{getNodeLabel(selectedNode)}</Text>
+                  <TouchableOpacity onPress={() => setSelectedNode(null)}>
+                    <Text style={styles.nodeDetailsClose}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.nodeDetailsLabels}>
+                  {selectedNode.labels.map(label => (
+                    <View key={label} style={styles.nodeDetailsLabel}>
+                      <Text style={styles.nodeDetailsLabelText}>{label}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                {/* Connection Summary */}
+                <View style={styles.connectionSummary}>
+                  <Text style={styles.connectionSummaryText}>
+                    {connectedEdges.length} connection{connectedEdges.length !== 1 ? 's' : ''}
+                    ({outgoingEdges.length} outgoing, {incomingEdges.length} incoming)
+                  </Text>
+                </View>
+
+                {/* Relationships Section */}
+                {connectedEdges.length > 0 && (
+                  <View style={styles.relationshipsSection}>
+                    <Text style={styles.sectionTitle}>Relationships</Text>
+                    <ScrollView style={styles.relationshipsList} nestedScrollEnabled>
+                      {outgoingEdges.map(edge => {
+                        const targetNode = filteredNodes.find(n => n.id === edge.target);
+                        return (
+                          <View key={edge.id} style={styles.relationshipRow}>
+                            <Text style={styles.relationshipArrow}>→</Text>
+                            <View style={styles.relationshipInfo}>
+                              <Text style={styles.relationshipType}>{edge.label || edge.type}</Text>
+                              <Text style={styles.relationshipTarget}>
+                                {targetNode ? getNodeLabel(targetNode) : edge.target}
+                              </Text>
+                            </View>
+                          </View>
+                        );
+                      })}
+                      {incomingEdges.map(edge => {
+                        const sourceNode = filteredNodes.find(n => n.id === edge.source);
+                        return (
+                          <View key={edge.id} style={styles.relationshipRow}>
+                            <Text style={styles.relationshipArrow}>←</Text>
+                            <View style={styles.relationshipInfo}>
+                              <Text style={styles.relationshipType}>{edge.label || edge.type}</Text>
+                              <Text style={styles.relationshipTarget}>
+                                {sourceNode ? getNodeLabel(sourceNode) : edge.source}
+                              </Text>
+                            </View>
+                          </View>
+                        );
+                      })}
+                    </ScrollView>
                   </View>
-                ))}
-              </View>
-              <View style={styles.nodeDetailsPropertiesContainer}>
-                {Object.entries(selectedNode.properties).map(([key, value]) => (
-                  <View key={key} style={styles.propertyRow}>
-                    <Text style={styles.propertyKey}>{key}:</Text>
-                    <Text style={styles.propertyValue}>{String(value)}</Text>
+                )}
+
+                {/* Properties Section */}
+                {Object.keys(selectedNode.properties).length > 0 && (
+                  <View style={styles.propertiesSection}>
+                    <Text style={styles.sectionTitle}>Properties</Text>
+                    <View style={styles.nodeDetailsPropertiesContainer}>
+                      {Object.entries(selectedNode.properties).map(([key, value]) => (
+                        <View key={key} style={styles.propertyRow}>
+                          <Text style={styles.propertyKey}>{key}:</Text>
+                          <Text style={styles.propertyValue}>{String(value)}</Text>
+                        </View>
+                      ))}
+                    </View>
                   </View>
-                ))}
+                )}
               </View>
-            </View>
-          )}
+            );
+          })()}
         </ScrollView>
       </View>
     </Modal>
@@ -911,9 +997,69 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#4338CA',
   },
-  nodeDetailsPropertiesContainer: {
+  connectionSummary: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#F8FAFC',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  connectionSummaryText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#3B82F6',
+  },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1E293B',
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  relationshipsSection: {
+    maxHeight: 200,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  relationshipsList: {
     paddingHorizontal: 12,
     paddingBottom: 12,
+  },
+  relationshipRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    gap: 12,
+  },
+  relationshipArrow: {
+    fontSize: 16,
+    color: '#3B82F6',
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  relationshipInfo: {
+    flex: 1,
+  },
+  relationshipType: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#3B82F6',
+    marginBottom: 2,
+  },
+  relationshipTarget: {
+    fontSize: 12,
+    color: '#64748B',
+  },
+  propertiesSection: {
+    paddingBottom: 12,
+  },
+  nodeDetailsPropertiesContainer: {
+    paddingHorizontal: 12,
   },
   propertyRow: {
     flexDirection: 'row',

@@ -11,7 +11,9 @@ import {
   generateLargeGraph,
 } from '../utils/mockDataGenerator';
 import MediaChatExample from './MediaChatExample';
+import LiveStreamingChatExample from './LiveStreamingChatExample';
 import { getWebSocketTutorialMessages } from './WebSocketTutorialExample';
+import { getLiveStreamingGraphTutorialMessages } from './LiveStreamingGraphTutorial';
 
 // Combined "What is Stash?" - Philosophy + Demo
 const getStashOverviewMessages = (): Message[] => {
@@ -211,6 +213,54 @@ const getStashOverviewMessages = (): Message[] => {
           },
           mode: 'mini',
           showCaption: true,
+        },
+      },
+    },
+    {
+      id: 'demo-6c',
+      content: "What about structured data? Like customer lists, sales reports, or analytics tables?",
+      sender: { id: 'user-demo', name: 'You', avatar: '👤' },
+      timestamp: addHours(new Date(), 0.045),
+      status: 'delivered',
+      isOwn: true,
+    },
+    {
+      id: 'demo-6d',
+      content: "## Data Tables: Power Meets Simplicity\n\nExcellent question! **Data Tables** are perfect for structured data that needs filtering, sorting, and analysis.\n\nInstead of:\n*\"Customer #1: John Smith, $45,230 revenue, 12 orders... Customer #2: Sarah Lee, $32,180 revenue, 8 orders...\"*\n\nYou get a **fully interactive table** with:\n• **Smart Sorting** - Click any column header to sort ascending/descending\n• **Powerful Search** - Filter across all columns instantly\n• **Pagination** - Handle thousands of rows smoothly (configurable page sizes)\n• **Row Selection** - Multi-select with callbacks for bulk actions\n• **Custom Formatters** - Auto-format currency, dates, numbers, percentages\n• **Responsive Design** - Horizontal scroll for wide tables, adapts to mobile\n\nPerfect for sales reports, customer data, analytics dashboards, inventory management, and any tabular data.\n\nTry the expand button (👁️) to see the full-featured detail view with advanced filtering!",
+      sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
+      timestamp: addHours(new Date(), 0.046),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'data-table',
+        data: {
+          columns: [
+            { id: 'name', header: 'Customer Name', accessor: 'name', type: 'text', sortable: true, width: 180, priority: 1 },
+            { id: 'email', header: 'Email', accessor: 'email', type: 'text', sortable: true, width: 220, priority: 3 },
+            { id: 'revenue', header: 'Total Revenue', accessor: 'revenue', type: 'currency', sortable: true, align: 'right', width: 140, priority: 1 },
+            { id: 'orders', header: 'Orders', accessor: 'orders', type: 'number', sortable: true, align: 'center', width: 100, priority: 2 },
+            { id: 'lastOrder', header: 'Last Order', accessor: 'lastOrder', type: 'date', sortable: true, width: 140, priority: 3 },
+            { id: 'status', header: 'Status', accessor: 'status', type: 'text', sortable: true, align: 'center', width: 120, priority: 2 },
+          ],
+          data: [
+            { id: 1, name: 'John Smith', email: 'john.smith@example.com', revenue: 45230, orders: 12, lastOrder: subDays(new Date(), 3), status: 'Active' },
+            { id: 2, name: 'Sarah Lee', email: 'sarah.lee@example.com', revenue: 32180, orders: 8, lastOrder: subDays(new Date(), 7), status: 'Active' },
+            { id: 3, name: 'Mike Johnson', email: 'mike.j@example.com', revenue: 28940, orders: 15, lastOrder: subDays(new Date(), 1), status: 'Active' },
+            { id: 4, name: 'Emily Chen', email: 'emily.chen@example.com', revenue: 56720, orders: 22, lastOrder: subDays(new Date(), 2), status: 'VIP' },
+            { id: 5, name: 'David Park', email: 'david.park@example.com', revenue: 19650, orders: 5, lastOrder: subDays(new Date(), 45), status: 'Inactive' },
+            { id: 6, name: 'Lisa Anderson', email: 'lisa.a@example.com', revenue: 41200, orders: 18, lastOrder: subDays(new Date(), 5), status: 'Active' },
+            { id: 7, name: 'Tom Wilson', email: 'tom.wilson@example.com', revenue: 67890, orders: 31, lastOrder: subDays(new Date(), 1), status: 'VIP' },
+            { id: 8, name: 'Anna Rodriguez', email: 'anna.r@example.com', revenue: 23450, orders: 9, lastOrder: subDays(new Date(), 12), status: 'Active' },
+          ],
+          title: 'Top Customers - Q1 2024',
+          subtitle: 'Click 👁️ to expand with search, filters, and advanced sorting',
+          mode: 'preview',
+          sortable: true,
+          filterable: true,
+          paginated: true,
+          defaultPageSize: 5,
+          striped: true,
+          bordered: true,
         },
       },
     },
@@ -754,6 +804,153 @@ const getAIIntegratedMessages = (): Message[] => {
       avatar: undefined,
     },
     timestamp: new Date(Date.now() - 60000),
+    status: 'read',
+    isOwn: false,
+  },
+  {
+    id: '7a',
+    type: 'text',
+    content: 'Can I get a system status dashboard? I want to see server health, API performance, and database metrics all in one view.',
+    sender: {
+      id: 'user2',
+      name: 'John Doe',
+      avatar: undefined,
+    },
+    timestamp: new Date(Date.now() - 90000),
+    status: 'read',
+    isOwn: false,
+  },
+  {
+    id: '7b',
+    type: 'text',
+    content: 'Absolutely! Here\'s a comprehensive system status dashboard showing all critical metrics:',
+    sender: {
+      id: 'ai',
+      name: 'AI Assistant',
+      avatar: undefined,
+    },
+    timestamp: new Date(Date.now() - 88000),
+    status: 'read',
+    isOwn: false,
+    interactiveComponent: {
+      type: 'dashboard',
+      data: {
+        config: {
+          id: 'system-status',
+          title: 'System Status Dashboard',
+          subtitle: 'Real-time infrastructure monitoring',
+          description: 'Live metrics for servers, APIs, and databases',
+          gridSize: '2x2',
+          spacing: 12,
+          items: [
+            {
+              id: 'cpu-usage',
+              type: 'time-series-chart',
+              gridPosition: { row: 0, col: 0 },
+              data: {
+                series: [
+                  {
+                    id: 'cpu',
+                    name: 'CPU Usage',
+                    data: Array.from({ length: 24 }, (_, i) => ({
+                      timestamp: addHours(new Date(), -24 + i),
+                      value: Math.random() * 40 + 30,
+                    })),
+                    color: '#3B82F6',
+                  },
+                ],
+                title: 'CPU Usage',
+                subtitle: 'Last 24 hours',
+                yAxisLabel: 'Usage (%)',
+                showLegend: false,
+                showGrid: true,
+              },
+            },
+            {
+              id: 'memory-usage',
+              type: 'time-series-chart',
+              gridPosition: { row: 0, col: 1 },
+              data: {
+                series: [
+                  {
+                    id: 'memory',
+                    name: 'Memory',
+                    data: Array.from({ length: 24 }, (_, i) => ({
+                      timestamp: addHours(new Date(), -24 + i),
+                      value: Math.random() * 20 + 60,
+                    })),
+                    color: '#10B981',
+                  },
+                ],
+                title: 'Memory Usage',
+                subtitle: 'Last 24 hours',
+                yAxisLabel: 'Usage (%)',
+                showLegend: false,
+                showGrid: true,
+              },
+            },
+            {
+              id: 'api-response-time',
+              type: 'time-series-chart',
+              gridPosition: { row: 1, col: 0 },
+              data: {
+                series: [
+                  {
+                    id: 'response-time',
+                    name: 'Response Time',
+                    data: Array.from({ length: 24 }, (_, i) => ({
+                      timestamp: addHours(new Date(), -24 + i),
+                      value: Math.random() * 100 + 50,
+                    })),
+                    color: '#F59E0B',
+                  },
+                ],
+                title: 'API Response Time',
+                subtitle: 'Average latency',
+                yAxisLabel: 'Time (ms)',
+                showLegend: false,
+                showGrid: true,
+              },
+            },
+            {
+              id: 'db-connections',
+              type: 'time-series-chart',
+              gridPosition: { row: 1, col: 1 },
+              data: {
+                series: [
+                  {
+                    id: 'connections',
+                    name: 'Active Connections',
+                    data: Array.from({ length: 24 }, (_, i) => ({
+                      timestamp: addHours(new Date(), -24 + i),
+                      value: Math.floor(Math.random() * 200) + 100,
+                    })),
+                    color: '#8B5CF6',
+                  },
+                ],
+                title: 'Database Connections',
+                subtitle: 'Active pool size',
+                yAxisLabel: 'Connections',
+                showLegend: false,
+                showGrid: true,
+              },
+            },
+          ],
+        },
+        mode: 'mini',
+      },
+    },
+  },
+  {
+    id: '7c',
+    type: 'text',
+    content: '✅ All systems operational! CPU and memory are within normal ranges, API response times are healthy at ~100ms average, and database connections are stable.',
+    sender: {
+      id: 'ai',
+      name: 'AI Assistant',
+      avatar: undefined,
+    },
+    timestamp: new Date(Date.now() - 87000),
     status: 'read',
     isOwn: false,
   },
@@ -1458,6 +1655,1024 @@ const getLargeMessageHistory = (): Message[] => {
   return messages;
 };
 
+// Thundering Herd Incident - Full End-to-End Example
+const getSystemIncidentMessages = (): Message[] => {
+  // Start timestamp: 5 minutes ago
+  const startTime = new Date(Date.now() - 300000);
+
+  return [
+    // 1. Initial Alert
+    {
+      id: 'incident-001',
+      type: 'text',
+      content: 'CRITICAL ALERT: Redis cache cluster showing massive spike in connection errors. Database query latency up 2000%. Multiple services reporting timeouts.',
+      sender: { id: 'user-ops', name: 'DevOps Team', avatar: '👨‍💻' },
+      timestamp: startTime,
+      status: 'delivered',
+      isOwn: false,
+    },
+
+    // 2. Dashboard - Critical System Metrics (2x2 grid)
+    {
+      id: 'incident-002',
+      type: 'text',
+      content: 'System health dashboard shows critical degradation across all metrics:',
+      sender: { id: 'ai-monitor', name: 'System Monitor AI', avatar: '🤖' },
+      timestamp: addMinutes(startTime, 0.5),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'dashboard',
+        data: {
+          config: {
+            id: 'incident-critical-dashboard',
+            title: '🚨 Critical System Metrics Dashboard',
+            subtitle: 'Real-time monitoring - ALL SYSTEMS DEGRADED',
+            description: 'Live monitoring of critical infrastructure metrics during incident',
+            gridSize: '2x3',
+            spacing: 8,
+            items: [
+              {
+                id: 'system-metrics',
+                type: 'time-series-chart',
+                title: 'CPU & Memory',
+                gridPosition: { row: 0, col: 0, rowSpan: 1, colSpan: 1 },
+                data: {
+                  series: [
+                    {
+                      id: 'cpu',
+                      name: 'CPU Usage (%)',
+                      data: [
+                        ...Array.from({ length: 10 }, (_, i) => ({
+                          timestamp: addMinutes(startTime, -10 + i),
+                          value: 45 + Math.random() * 10,
+                        })),
+                        { timestamp: addMinutes(startTime, 0), value: 52 },
+                        { timestamp: addMinutes(startTime, 0.5), value: 98 },
+                      ],
+                      color: '#EF4444',
+                      lineWidth: 2,
+                    },
+                    {
+                      id: 'memory',
+                      name: 'Memory Usage (%)',
+                      data: [
+                        ...Array.from({ length: 10 }, (_, i) => ({
+                          timestamp: addMinutes(startTime, -10 + i),
+                          value: 55 + Math.random() * 8,
+                        })),
+                        { timestamp: addMinutes(startTime, 0), value: 60 },
+                        { timestamp: addMinutes(startTime, 0.5), value: 95 },
+                      ],
+                      color: '#F59E0B',
+                      lineWidth: 2,
+                    },
+                  ],
+                  showLegend: true,
+                  showGrid: false,
+                  height: 160,
+                },
+              },
+              {
+                id: 'api-metrics',
+                type: 'time-series-chart',
+                title: 'API Response Time',
+                gridPosition: { row: 0, col: 1, rowSpan: 1, colSpan: 1 },
+                data: {
+                  series: [
+                    {
+                      id: 'api-response',
+                      name: 'Response Time (ms)',
+                      data: [
+                        ...Array.from({ length: 10 }, (_, i) => ({
+                          timestamp: addMinutes(startTime, -10 + i),
+                          value: 120 + Math.random() * 30,
+                        })),
+                        { timestamp: addMinutes(startTime, 0), value: 150 },
+                        { timestamp: addMinutes(startTime, 0.5), value: 3500 },
+                      ],
+                      color: '#8B5CF6',
+                      lineWidth: 2,
+                    },
+                  ],
+                  showLegend: true,
+                  showGrid: false,
+                  height: 160,
+                },
+              },
+              {
+                id: 'db-connections',
+                type: 'time-series-chart',
+                title: 'Database Connections',
+                gridPosition: { row: 0, col: 2, rowSpan: 1, colSpan: 1 },
+                data: {
+                  series: [
+                    {
+                      id: 'db-pool',
+                      name: 'Active Connections',
+                      data: [
+                        ...Array.from({ length: 10 }, (_, i) => ({
+                          timestamp: addMinutes(startTime, -10 + i),
+                          value: 150 + Math.random() * 50,
+                        })),
+                        { timestamp: addMinutes(startTime, 0), value: 200 },
+                        { timestamp: addMinutes(startTime, 0.5), value: 500 },
+                      ],
+                      color: '#EF4444',
+                      lineWidth: 2,
+                    },
+                  ],
+                  showLegend: true,
+                  showGrid: false,
+                  height: 160,
+                  maxY: 500,
+                  annotations: [{ value: 500, label: 'Max Pool Size', color: '#DC2626' }],
+                },
+              },
+              {
+                id: 'cache-hit-rate',
+                type: 'time-series-chart',
+                title: 'Cache Hit Rate',
+                gridPosition: { row: 1, col: 0, rowSpan: 1, colSpan: 1 },
+                data: {
+                  series: [
+                    {
+                      id: 'cache-hits',
+                      name: 'Hit Rate (%)',
+                      data: [
+                        ...Array.from({ length: 10 }, (_, i) => ({
+                          timestamp: addMinutes(startTime, -10 + i),
+                          value: 95 + Math.random() * 3,
+                        })),
+                        { timestamp: addMinutes(startTime, 0), value: 0 },
+                        { timestamp: addMinutes(startTime, 0.5), value: 0 },
+                      ],
+                      color: '#10B981',
+                      lineWidth: 2,
+                    },
+                  ],
+                  showLegend: true,
+                  showGrid: false,
+                  height: 160,
+                  maxY: 100,
+                },
+              },
+              {
+                id: 'error-rate',
+                type: 'time-series-chart',
+                title: 'Error Rate',
+                gridPosition: { row: 1, col: 1, rowSpan: 1, colSpan: 1 },
+                data: {
+                  series: [
+                    {
+                      id: 'errors',
+                      name: 'Error Rate (%)',
+                      data: [
+                        ...Array.from({ length: 10 }, (_, i) => ({
+                          timestamp: addMinutes(startTime, -10 + i),
+                          value: Math.random() * 0.5,
+                        })),
+                        { timestamp: addMinutes(startTime, 0), value: 5 },
+                        { timestamp: addMinutes(startTime, 0.5), value: 42 },
+                      ],
+                      color: '#EF4444',
+                      lineWidth: 2,
+                    },
+                  ],
+                  showLegend: true,
+                  showGrid: false,
+                  height: 160,
+                },
+              },
+              {
+                id: 'health-status',
+                type: 'time-series-chart',
+                title: 'Health Status',
+                gridPosition: { row: 1, col: 2, rowSpan: 1, colSpan: 1 },
+                data: {
+                  series: [
+                    {
+                      id: 'health-check',
+                      name: 'System Health',
+                      data: [
+                        ...Array.from({ length: 10 }, (_, i) => ({
+                          timestamp: addMinutes(startTime, -10 + i),
+                          value: 1,
+                          label: 'HEALTHY',
+                        })),
+                        { timestamp: addMinutes(startTime, 0), value: 0.5, label: 'DEGRADED' },
+                        { timestamp: addMinutes(startTime, 0.5), value: 0, label: 'CRITICAL' },
+                        { timestamp: addMinutes(startTime, 0.75), value: 0, label: 'CRITICAL' },
+                      ],
+                      color: '#EF4444',
+                      lineWidth: 3,
+                      showPoints: true,
+                      pointRadius: 6,
+                    },
+                  ],
+                  showLegend: false,
+                  showGrid: false,
+                  minY: 0,
+                  maxY: 1,
+                  height: 160,
+                  valueFormatter: (value: number) => {
+                    if (value >= 0.8) return 'HEALTHY';
+                    if (value >= 0.4) return 'DEGRADED';
+                    return 'CRITICAL';
+                  },
+                },
+              },
+            ],
+          },
+          mode: 'preview',
+        },
+      },
+    },
+
+    // 3. Root Cause Analysis
+    {
+      id: 'incident-003',
+      type: 'text',
+      content: 'What happened? I need root cause analysis NOW.',
+      sender: { id: 'user-ops', name: 'DevOps Team', avatar: '👨‍💻' },
+      timestamp: addMinutes(startTime, 1),
+      status: 'delivered',
+      isOwn: false,
+    },
+
+    {
+      id: 'incident-004',
+      type: 'text',
+      content: 'ROOT CAUSE IDENTIFIED: Classic Thundering Herd Problem\n\n**Timeline:**\n- T-0: Redis cache TTL expired for product catalog key at 14:23:47 UTC\n- T+0.1s: All 10,000 application servers detected cache miss simultaneously\n- T+0.2s: 10,000 concurrent database queries initiated for same data\n- T+0.5s: Database connection pool exhausted (max 500 connections)\n- T+1s: Database CPU spiked to 98%, query latency increased 20x\n- T+2s: Cascade failure - API timeouts, health checks failing\n\n**The Problem:**\nWithout rate limiting or cache stampede protection, all servers rushed to repopulate the cache at once. The database couldn\'t handle 10,000 simultaneous queries for the same data.\n\n**Impact:**\n- Database: 10,000 redundant queries\n- Connection pool: 100% exhausted\n- Response time: 150ms → 3500ms (2,233% increase)\n- Error rate: 0% → 42%\n- Affected users: ~150,000 active sessions',
+      sender: { id: 'ai-monitor', name: 'System Monitor AI', avatar: '🤖' },
+      timestamp: addMinutes(startTime, 1.5),
+      status: 'delivered',
+      isOwn: false,
+    },
+
+    // 4. Task List - Incident Response
+    {
+      id: 'incident-005',
+      type: 'text',
+      content: 'Generating incident response action plan...',
+      sender: { id: 'ai-monitor', name: 'System Monitor AI', avatar: '🤖' },
+      timestamp: addMinutes(startTime, 2),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'task-list',
+        data: {
+          title: 'Incident Response Tasks',
+          subtitle: 'Priority-ordered remediation steps',
+          tasks: [
+            {
+              id: 'task-1',
+              title: 'IMMEDIATE: Restart cache cluster',
+              description: 'Clear corrupted cache state and restore cache availability',
+              startDate: addMinutes(startTime, 2),
+              endDate: addMinutes(startTime, 3),
+              progress: 100,
+              status: 'completed',
+              priority: 'critical',
+              assignee: 'DevOps Team',
+            },
+            {
+              id: 'task-2',
+              title: 'IMMEDIATE: Enable database read replicas',
+              description: 'Distribute load across read replicas to reduce primary DB pressure',
+              startDate: addMinutes(startTime, 2.5),
+              endDate: addMinutes(startTime, 3.5),
+              progress: 100,
+              status: 'completed',
+              priority: 'critical',
+              assignee: 'DevOps Team',
+            },
+            {
+              id: 'task-3',
+              title: 'SHORT TERM: Deploy cache stampede protection',
+              description: 'Implement probabilistic early expiration and request coalescing',
+              startDate: addMinutes(startTime, 3),
+              endDate: addMinutes(startTime, 10),
+              progress: 60,
+              status: 'in-progress',
+              priority: 'high',
+              assignee: 'Senior Engineer',
+            },
+            {
+              id: 'task-4',
+              title: 'SHORT TERM: Add rate limiting to cache refresh',
+              description: 'Limit concurrent cache refresh operations per key',
+              startDate: addMinutes(startTime, 5),
+              endDate: addMinutes(startTime, 12),
+              progress: 30,
+              status: 'in-progress',
+              priority: 'high',
+              assignee: 'Senior Engineer',
+            },
+            {
+              id: 'task-5',
+              title: 'MONITORING: Verify system recovery',
+              description: 'Monitor all metrics return to healthy baselines',
+              startDate: addMinutes(startTime, 10),
+              endDate: addMinutes(startTime, 15),
+              progress: 0,
+              status: 'pending',
+              priority: 'high',
+              assignee: 'DevOps Team',
+            },
+            {
+              id: 'task-6',
+              title: 'POST-INCIDENT: Write postmortem',
+              description: 'Document incident timeline, root cause, and prevention measures',
+              startDate: addMinutes(startTime, 20),
+              endDate: addMinutes(startTime, 60),
+              progress: 0,
+              status: 'pending',
+              priority: 'medium',
+              assignee: 'Senior Engineer',
+            },
+          ],
+          mode: 'mini',
+          showProgress: true,
+        },
+      },
+    },
+
+    // 5. Code Block - Buggy Implementation
+    {
+      id: 'incident-006',
+      type: 'text',
+      content: 'Show me the problematic code.',
+      sender: { id: 'user-engineer', name: 'Senior Engineer', avatar: '👨‍💻' },
+      timestamp: addMinutes(startTime, 3),
+      status: 'delivered',
+      isOwn: false,
+    },
+
+    {
+      id: 'incident-007',
+      type: 'text',
+      content: 'Here is the current implementation causing the thundering herd:',
+      sender: { id: 'ai-monitor', name: 'System Monitor AI', avatar: '🤖' },
+      timestamp: addMinutes(startTime, 3.2),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'code-block',
+        data: {
+          code: `// BUGGY CODE - No stampede protection
+class ProductCatalogService {
+  private cache: RedisClient;
+  private db: DatabaseClient;
+  private CACHE_TTL = 3600; // 1 hour
+
+  async getProductCatalog(): Promise<Product[]> {
+    const cacheKey = 'product_catalog';
+
+    // Try cache first
+    const cached = await this.cache.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
+    // PROBLEM: When cache expires, ALL 10,000 servers
+    // hit this code path simultaneously
+    console.log('Cache miss - fetching from database');
+
+    // PROBLEM: No rate limiting or coordination
+    // All servers query the DB at the same time
+    const products = await this.db.query(
+      'SELECT * FROM products WHERE active = true'
+    );
+
+    // PROBLEM: All servers try to set cache simultaneously
+    await this.cache.set(
+      cacheKey,
+      JSON.stringify(products),
+      'EX',
+      this.CACHE_TTL
+    );
+
+    return products;
+  }
+}
+
+// What happens when cache expires:
+// 1. Request comes in to server #1
+// 2. Cache miss → query database
+// 3. Request comes in to server #2 (0.001s later)
+// 4. Cache STILL empty → query database
+// 5. Repeat 9,998 more times
+// 6. Database receives 10,000 identical queries
+// 7. Connection pool exhausted
+// 8. System-wide failure`,
+          language: 'typescript',
+          fileName: 'ProductCatalogService.ts (BEFORE)',
+          mode: 'preview',
+          showLineNumbers: true,
+        },
+      },
+    },
+
+    // 6. Code Block - Fixed Implementation
+    {
+      id: 'incident-008',
+      type: 'text',
+      content: 'Here is the fixed implementation with stampede protection and rate limiting:',
+      sender: { id: 'ai-monitor', name: 'System Monitor AI', avatar: '🤖' },
+      timestamp: addMinutes(startTime, 3.5),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'code-block',
+        data: {
+          code: `// FIXED CODE - Multiple layers of protection
+import { RateLimiter } from 'rate-limiter-flexible';
+import { promisify } from 'util';
+
+class ProductCatalogService {
+  private cache: RedisClient;
+  private db: DatabaseClient;
+  private CACHE_TTL = 3600; // 1 hour
+  private EARLY_EXPIRATION_WINDOW = 60; // 60 seconds before expiration
+
+  // In-flight request tracking (prevents duplicate DB calls)
+  private inflightRequests = new Map<string, Promise<any>>();
+
+  // Rate limiter: max 10 cache refresh operations per minute
+  private rateLimiter = new RateLimiter({
+    points: 10,
+    duration: 60,
+    keyPrefix: 'cache_refresh',
+  });
+
+  async getProductCatalog(): Promise<Product[]> {
+    const cacheKey = 'product_catalog';
+
+    // Try cache first
+    const cachedData = await this.cache.get(cacheKey);
+    if (cachedData) {
+      const { data, cachedAt } = JSON.parse(cachedData);
+
+      // SOLUTION 1: Probabilistic Early Expiration
+      // Refresh cache probabilistically before it expires
+      // to prevent all servers from missing cache simultaneously
+      const age = Date.now() - cachedAt;
+      const timeUntilExpiry = this.CACHE_TTL * 1000 - age;
+
+      if (timeUntilExpiry < this.EARLY_EXPIRATION_WINDOW * 1000) {
+        // Probabilistic refresh: higher probability as expiry approaches
+        const refreshProbability = 1 - (timeUntilExpiry / (this.EARLY_EXPIRATION_WINDOW * 1000));
+
+        if (Math.random() < refreshProbability) {
+          // Refresh in background, return stale data immediately
+          this.refreshCacheInBackground(cacheKey).catch(err => {
+            console.error('Background cache refresh failed:', err);
+          });
+        }
+      }
+
+      return data;
+    }
+
+    // Cache miss - need to fetch from database
+    return this.fetchAndCacheProducts(cacheKey);
+  }
+
+  private async fetchAndCacheProducts(cacheKey: string): Promise<Product[]> {
+    // SOLUTION 2: Request Coalescing
+    // If another request is already fetching, wait for it instead
+    // of making a duplicate database query
+    if (this.inflightRequests.has(cacheKey)) {
+      console.log('Coalescing request - waiting for in-flight fetch');
+      return this.inflightRequests.get(cacheKey)!;
+    }
+
+    // SOLUTION 3: Rate Limiting
+    // Ensure we don't overwhelm the database even if cache fails
+    try {
+      await this.rateLimiter.consume(cacheKey);
+    } catch (rateLimitError) {
+      // Rate limit exceeded - return stale data or error gracefully
+      console.warn('Cache refresh rate limit exceeded');
+      throw new Error('Service temporarily unavailable - rate limit exceeded');
+    }
+
+    // Create the fetch promise and track it
+    const fetchPromise = this.doFetchProducts(cacheKey);
+    this.inflightRequests.set(cacheKey, fetchPromise);
+
+    try {
+      const products = await fetchPromise;
+      return products;
+    } finally {
+      // Clean up in-flight tracking
+      this.inflightRequests.delete(cacheKey);
+    }
+  }
+
+  private async doFetchProducts(cacheKey: string): Promise<Product[]> {
+    console.log('Fetching from database (cache miss)');
+
+    const products = await this.db.query(
+      'SELECT * FROM products WHERE active = true'
+    );
+
+    // Store with timestamp for early expiration logic
+    const cacheValue = {
+      data: products,
+      cachedAt: Date.now(),
+    };
+
+    // SOLUTION 4: Add jitter to TTL
+    // Prevent all cache entries from expiring simultaneously
+    const jitter = Math.floor(Math.random() * 60); // 0-60 seconds
+    const ttlWithJitter = this.CACHE_TTL + jitter;
+
+    await this.cache.set(
+      cacheKey,
+      JSON.stringify(cacheValue),
+      'EX',
+      ttlWithJitter
+    );
+
+    return products;
+  }
+
+  private async refreshCacheInBackground(cacheKey: string): Promise<void> {
+    // Non-blocking background refresh
+    return this.fetchAndCacheProducts(cacheKey).then(() => {
+      console.log('Background cache refresh completed');
+    });
+  }
+}
+
+// How the fixed version prevents thundering herd:
+// 1. Probabilistic early expiration: Cache refreshes before expiring
+// 2. Request coalescing: Only one DB query per cache key
+// 3. Rate limiting: Maximum 10 refreshes per minute
+// 4. TTL jitter: Cache entries expire at different times
+//
+// Result: 10,000 requests → 1 database query`,
+          language: 'typescript',
+          fileName: 'ProductCatalogService.ts (AFTER - FIXED)',
+          mode: 'preview',
+          showLineNumbers: true,
+        },
+      },
+    },
+
+    // 7. Gantt Chart - Rollout Timeline
+    {
+      id: 'incident-009',
+      type: 'text',
+      content: 'I need a deployment timeline for rolling out this fix.',
+      sender: { id: 'user-ops', name: 'DevOps Team', avatar: '👨‍💻' },
+      timestamp: addMinutes(startTime, 5),
+      status: 'delivered',
+      isOwn: false,
+    },
+
+    {
+      id: 'incident-010',
+      type: 'text',
+      content: 'Here is the phased rollout plan to minimize risk:',
+      sender: { id: 'ai-monitor', name: 'System Monitor AI', avatar: '🤖' },
+      timestamp: addMinutes(startTime, 5.2),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'gantt-chart',
+        data: {
+          title: 'Fix Deployment Timeline',
+          subtitle: 'Phased rollout with monitoring gates',
+          tasks: [
+            {
+              id: 'rollout-1',
+              title: 'Code Review & Testing',
+              description: 'Peer review, unit tests, integration tests',
+              startDate: addMinutes(startTime, 5),
+              endDate: addMinutes(startTime, 15),
+              progress: 100,
+              status: 'completed',
+              priority: 'critical',
+              assignee: 'Senior Engineer',
+              color: '#10B981',
+            },
+            {
+              id: 'rollout-2',
+              title: 'Deploy to Staging',
+              description: 'Deploy to staging environment, run load tests',
+              startDate: addMinutes(startTime, 15),
+              endDate: addMinutes(startTime, 25),
+              progress: 100,
+              status: 'completed',
+              priority: 'high',
+              assignee: 'DevOps Team',
+              dependencies: ['rollout-1'],
+              color: '#10B981',
+            },
+            {
+              id: 'rollout-3',
+              title: 'Canary Deployment (1% traffic)',
+              description: 'Deploy to 1% of production servers, monitor metrics',
+              startDate: addMinutes(startTime, 25),
+              endDate: addMinutes(startTime, 40),
+              progress: 100,
+              status: 'completed',
+              priority: 'critical',
+              assignee: 'DevOps Team',
+              dependencies: ['rollout-2'],
+              color: '#10B981',
+              milestones: [
+                {
+                  id: 'm1',
+                  title: 'Canary Success',
+                  date: addMinutes(startTime, 40),
+                  completed: true,
+                },
+              ],
+            },
+            {
+              id: 'rollout-4',
+              title: 'Gradual Rollout (10% → 50%)',
+              description: 'Increase to 10%, monitor 15min, then 50%',
+              startDate: addMinutes(startTime, 40),
+              endDate: addMinutes(startTime, 70),
+              progress: 100,
+              status: 'completed',
+              priority: 'high',
+              assignee: 'DevOps Team',
+              dependencies: ['rollout-3'],
+              color: '#10B981',
+            },
+            {
+              id: 'rollout-5',
+              title: 'Full Deployment (100%)',
+              description: 'Deploy to all production servers',
+              startDate: addMinutes(startTime, 70),
+              endDate: addMinutes(startTime, 90),
+              progress: 100,
+              status: 'completed',
+              priority: 'critical',
+              assignee: 'DevOps Team',
+              dependencies: ['rollout-4'],
+              color: '#10B981',
+              milestones: [
+                {
+                  id: 'm2',
+                  title: 'Full Deployment Complete',
+                  date: addMinutes(startTime, 90),
+                  completed: true,
+                },
+              ],
+            },
+            {
+              id: 'rollout-6',
+              title: 'Post-Deployment Monitoring',
+              description: 'Monitor metrics for 2 hours to ensure stability',
+              startDate: addMinutes(startTime, 90),
+              endDate: addMinutes(startTime, 210),
+              progress: 45,
+              status: 'in-progress',
+              priority: 'high',
+              assignee: 'DevOps Team',
+              dependencies: ['rollout-5'],
+              color: '#3B82F6',
+            },
+          ],
+          mode: 'mini',
+          showProgress: true,
+          showMilestones: true,
+        },
+      },
+    },
+
+    // 8. Final Dashboard - Healthy Metrics with Live Streaming
+    {
+      id: 'incident-011',
+      type: 'text',
+      content: 'Deployment complete. Monitoring system recovery...',
+      sender: { id: 'ai-monitor', name: 'System Monitor AI', avatar: '🤖' },
+      timestamp: addMinutes(startTime, 90),
+      status: 'delivered',
+      isOwn: false,
+    },
+
+    {
+      id: 'incident-012',
+      type: 'text',
+      content: 'All systems returning to healthy state. Real-time health monitoring shows GREEN:',
+      sender: { id: 'ai-monitor', name: 'System Monitor AI', avatar: '🤖' },
+      timestamp: addMinutes(startTime, 95),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'time-series-chart',
+        data: {
+          series: [
+            {
+              id: 'health-check-recovery',
+              name: 'Health Check Status',
+              data: [
+                { timestamp: addMinutes(startTime, 90), value: 0.3, label: 'RECOVERING' },
+                { timestamp: addMinutes(startTime, 91), value: 0.6, label: 'DEGRADED' },
+                { timestamp: addMinutes(startTime, 92), value: 0.85, label: 'HEALTHY' },
+                { timestamp: addMinutes(startTime, 93), value: 1, label: 'HEALTHY' },
+                { timestamp: addMinutes(startTime, 94), value: 1, label: 'HEALTHY' },
+                { timestamp: addMinutes(startTime, 95), value: 1, label: 'HEALTHY' },
+              ],
+              color: '#10B981',
+              lineWidth: 4,
+              showPoints: true,
+              pointRadius: 6,
+            },
+          ],
+          mode: 'full',
+          title: 'Live Health Monitor - SYSTEM HEALTHY',
+          subtitle: 'Status: HEALTHY (GREEN) - Streaming every 2 seconds',
+          enableLiveStreaming: true,
+          maxDataPoints: 50,
+          streamingWindowSize: 30,
+          showStreamingControls: true,
+          streamingPaused: false,
+          streamingCallbackId: 'health-monitor-stream',
+          showLegend: false,
+          showGrid: true,
+          showXAxis: true,
+          showYAxis: true,
+          xAxisLabel: 'Time',
+          yAxisLabel: 'Status',
+          valueFormatter: (value: number) => {
+            if (value >= 0.8) return 'HEALTHY';
+            if (value >= 0.4) return 'DEGRADED';
+            return 'CRITICAL';
+          },
+          height: 250,
+          minY: 0,
+          maxY: 1,
+        },
+      },
+    },
+
+    {
+      id: 'incident-013',
+      type: 'text',
+      content: 'Performance metrics stabilized:',
+      sender: { id: 'ai-monitor', name: 'System Monitor AI', avatar: '🤖' },
+      timestamp: addMinutes(startTime, 96),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'time-series-chart',
+        data: {
+          series: [
+            {
+              id: 'cpu-recovery',
+              name: 'CPU Usage (%)',
+              data: [
+                { timestamp: addMinutes(startTime, 90), value: 78 },
+                { timestamp: addMinutes(startTime, 91), value: 65 },
+                { timestamp: addMinutes(startTime, 92), value: 52 },
+                { timestamp: addMinutes(startTime, 93), value: 48 },
+                { timestamp: addMinutes(startTime, 94), value: 45 },
+                { timestamp: addMinutes(startTime, 95), value: 47 },
+                { timestamp: addMinutes(startTime, 96), value: 46 },
+              ],
+              color: '#10B981',
+              lineWidth: 3,
+            },
+            {
+              id: 'memory-recovery',
+              name: 'Memory Usage (%)',
+              data: [
+                { timestamp: addMinutes(startTime, 90), value: 82 },
+                { timestamp: addMinutes(startTime, 91), value: 72 },
+                { timestamp: addMinutes(startTime, 92), value: 65 },
+                { timestamp: addMinutes(startTime, 93), value: 62 },
+                { timestamp: addMinutes(startTime, 94), value: 60 },
+                { timestamp: addMinutes(startTime, 95), value: 59 },
+                { timestamp: addMinutes(startTime, 96), value: 58 },
+              ],
+              color: '#3B82F6',
+              lineWidth: 3,
+            },
+            {
+              id: 'api-recovery',
+              name: 'API Response Time (ms)',
+              data: [
+                { timestamp: addMinutes(startTime, 90), value: 850 },
+                { timestamp: addMinutes(startTime, 91), value: 420 },
+                { timestamp: addMinutes(startTime, 92), value: 250 },
+                { timestamp: addMinutes(startTime, 93), value: 180 },
+                { timestamp: addMinutes(startTime, 94), value: 145 },
+                { timestamp: addMinutes(startTime, 95), value: 138 },
+                { timestamp: addMinutes(startTime, 96), value: 132 },
+              ],
+              color: '#8B5CF6',
+              lineWidth: 3,
+            },
+          ],
+          mode: 'full',
+          title: 'System Performance Recovery',
+          subtitle: 'All metrics within normal operating ranges',
+          showLegend: true,
+          showGrid: true,
+          showXAxis: true,
+          showYAxis: true,
+          xAxisLabel: 'Time',
+          yAxisLabel: 'Value',
+          height: 300,
+        },
+      },
+    },
+
+    // 9. Engineer Confirmation
+    {
+      id: 'incident-014',
+      type: 'text',
+      content: 'Confirmed. All systems healthy. Database query count reduced from 10,000 to 1 per cache refresh. Response times back to baseline. Incident resolved.\n\n**Incident Summary:**\n- Duration: 95 minutes\n- Root Cause: Thundering herd on cache expiration\n- Impact: 150,000 users affected\n- Resolution: Implemented stampede protection with request coalescing, rate limiting, and probabilistic early expiration\n- Prevention: Added monitoring alerts for cache miss rate and database connection pool exhaustion\n\nAll systems healthy. Incident closed.',
+      sender: { id: 'user-engineer', name: 'Senior Engineer', avatar: '👨‍💻' },
+      timestamp: addMinutes(startTime, 98),
+      status: 'delivered',
+      isOwn: false,
+    },
+  ];
+};
+
+// DataTable focused chat - Sales Analytics
+const getDataTableChatMessages = (): Message[] => {
+  return [
+    {
+      id: 'dt-1',
+      content: "Hey! Can you pull the Q1 sales performance report? I need to see customer data, revenue breakdown, and identify our top performers.",
+      sender: { id: 'user-sales', name: 'Sales Manager', avatar: '👔' },
+      timestamp: new Date(Date.now() - 180000),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'dt-2',
+      content: "Absolutely! Here's the complete Q1 2024 sales performance data. I've organized it into an interactive table so you can sort, filter, and analyze the data easily.\n\nThe table shows all customers with their key metrics. You can:\n• **Sort** by any column (click the headers)\n• **Search** across all fields (try searching for \"VIP\" or specific names)\n• **Filter** by revenue, order count, or status\n• **Paginate** through the full dataset\n\nClick the 👁️ Expand button to see the full-screen view with advanced features!",
+      sender: { id: 'ai-sales', name: 'Sales AI', avatar: '🤖' },
+      timestamp: new Date(Date.now() - 175000),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'data-table',
+        data: {
+          columns: [
+            { id: 'name', header: 'Customer Name', accessor: 'name', type: 'text', sortable: true, width: 180, priority: 1 },
+            { id: 'company', header: 'Company', accessor: 'company', type: 'text', sortable: true, width: 200, priority: 2 },
+            { id: 'email', header: 'Email', accessor: 'email', type: 'text', sortable: true, width: 220, priority: 3 },
+            { id: 'revenue', header: 'Q1 Revenue', accessor: 'revenue', type: 'currency', sortable: true, align: 'right', width: 140, priority: 1 },
+            { id: 'orders', header: 'Orders', accessor: 'orders', type: 'number', sortable: true, align: 'center', width: 100, priority: 2 },
+            { id: 'avgOrder', header: 'Avg Order', accessor: 'avgOrder', type: 'currency', sortable: true, align: 'right', width: 130, priority: 3 },
+            { id: 'lastOrder', header: 'Last Order', accessor: 'lastOrder', type: 'date', sortable: true, width: 140, priority: 3 },
+            { id: 'status', header: 'Status', accessor: 'status', type: 'text', sortable: true, align: 'center', width: 120, priority: 2 },
+          ],
+          data: [
+            { id: 1, name: 'John Smith', company: 'TechCorp Inc', email: 'john.smith@techcorp.com', revenue: 145230, orders: 28, avgOrder: 5186.79, lastOrder: subDays(new Date(), 2), status: 'VIP' },
+            { id: 2, name: 'Sarah Lee', company: 'InnovateCo', email: 'sarah.lee@innovateco.com', revenue: 132180, orders: 24, avgOrder: 5507.50, lastOrder: subDays(new Date(), 5), status: 'VIP' },
+            { id: 3, name: 'Mike Johnson', company: 'DataFlow Systems', email: 'mike.j@dataflow.com', revenue: 98940, orders: 35, avgOrder: 2826.86, lastOrder: subDays(new Date(), 1), status: 'Active' },
+            { id: 4, name: 'Emily Chen', company: 'CloudScale Ltd', email: 'emily.chen@cloudscale.com', revenue: 186720, orders: 42, avgOrder: 4446.67, lastOrder: subDays(new Date(), 3), status: 'VIP' },
+            { id: 5, name: 'David Park', company: 'StartupHub', email: 'david.park@startuphub.com', revenue: 45650, orders: 12, avgOrder: 3804.17, lastOrder: subDays(new Date(), 45), status: 'Inactive' },
+            { id: 6, name: 'Lisa Anderson', company: 'Enterprise Solutions', email: 'lisa.a@entsol.com', revenue: 121200, orders: 31, avgOrder: 3909.68, lastOrder: subDays(new Date(), 4), status: 'Active' },
+            { id: 7, name: 'Tom Wilson', company: 'MegaCorp Global', email: 'tom.wilson@megacorp.com', revenue: 267890, orders: 56, avgOrder: 4783.75, lastOrder: subDays(new Date(), 1), status: 'VIP' },
+            { id: 8, name: 'Anna Rodriguez', company: 'SmartTech', email: 'anna.r@smarttech.com', revenue: 87450, orders: 22, avgOrder: 3975.00, lastOrder: subDays(new Date(), 8), status: 'Active' },
+            { id: 9, name: 'Chris Taylor', company: 'FinanceFirst', email: 'chris.t@financefirst.com', revenue: 156780, orders: 38, avgOrder: 4125.79, lastOrder: subDays(new Date(), 6), status: 'Active' },
+            { id: 10, name: 'Rachel Kim', company: 'DevOps Pro', email: 'rachel.k@devopspro.com', revenue: 198320, orders: 47, avgOrder: 4219.57, lastOrder: subDays(new Date(), 2), status: 'VIP' },
+            { id: 11, name: 'James Brown', company: 'AI Innovations', email: 'james.b@aiinnovations.com', revenue: 76540, orders: 18, avgOrder: 4252.22, lastOrder: subDays(new Date(), 15), status: 'Active' },
+            { id: 12, name: 'Maria Garcia', company: 'Global Trading', email: 'maria.g@globaltrading.com', revenue: 143210, orders: 29, avgOrder: 4938.28, lastOrder: subDays(new Date(), 7), status: 'Active' },
+            { id: 13, name: 'Kevin Zhang', company: 'TechVentures', email: 'kevin.z@techventures.com', revenue: 89650, orders: 21, avgOrder: 4269.05, lastOrder: subDays(new Date(), 12), status: 'Active' },
+            { id: 14, name: 'Sophie Martin', company: 'Retail Plus', email: 'sophie.m@retailplus.com', revenue: 54320, orders: 15, avgOrder: 3621.33, lastOrder: subDays(new Date(), 30), status: 'Inactive' },
+            { id: 15, name: 'Daniel Lee', company: 'Manufacturing Co', email: 'daniel.l@mfgco.com', revenue: 234560, orders: 52, avgOrder: 4510.77, lastOrder: subDays(new Date(), 3), status: 'VIP' },
+          ],
+          title: 'Q1 2024 Customer Sales Report',
+          subtitle: 'Top 15 customers • Click 👁️ to expand for advanced filtering',
+          mode: 'preview',
+          sortable: true,
+          filterable: true,
+          paginated: true,
+          defaultPageSize: 8,
+          defaultSort: { columnId: 'revenue', direction: 'desc' },
+          striped: true,
+          bordered: true,
+        },
+      },
+    },
+    {
+      id: 'dt-3',
+      content: "Perfect! I can see we have 5 VIP customers generating the most revenue. Can you break down the product sales by category?",
+      sender: { id: 'user-sales', name: 'Sales Manager', avatar: '👔' },
+      timestamp: new Date(Date.now() - 150000),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'dt-4',
+      content: "Here's the product category breakdown for Q1. Notice how Software & SaaS is leading with strong margins, while Hardware has higher volume but lower margins.\n\nYou can sort by any metric to identify opportunities. Try sorting by margin percentage to see which categories are most profitable!",
+      sender: { id: 'ai-sales', name: 'Sales AI', avatar: '🤖' },
+      timestamp: new Date(Date.now() - 145000),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'data-table',
+        data: {
+          columns: [
+            { id: 'category', header: 'Product Category', accessor: 'category', type: 'text', sortable: true, width: 200, priority: 1 },
+            { id: 'units', header: 'Units Sold', accessor: 'units', type: 'number', sortable: true, align: 'right', width: 120, priority: 3 },
+            { id: 'revenue', header: 'Revenue', accessor: 'revenue', type: 'currency', sortable: true, align: 'right', width: 140, priority: 1 },
+            { id: 'cost', header: 'Cost', accessor: 'cost', type: 'currency', sortable: true, align: 'right', width: 130, priority: 3 },
+            { id: 'profit', header: 'Gross Profit', accessor: 'profit', type: 'currency', sortable: true, align: 'right', width: 140, priority: 2 },
+            { id: 'margin', header: 'Margin %', accessor: 'margin', type: 'number', sortable: true, align: 'right', width: 110, priority: 2 },
+            { id: 'growth', header: 'QoQ Growth', accessor: 'growth', type: 'text', sortable: true, align: 'center', width: 130, priority: 3 },
+          ],
+          data: [
+            { id: 1, category: 'Software & SaaS', units: 1247, revenue: 586420, cost: 198340, profit: 388080, margin: 66.2, growth: '+12.4%' },
+            { id: 2, category: 'Hardware', units: 3856, revenue: 445230, cost: 312661, profit: 132569, margin: 29.8, growth: '+5.2%' },
+            { id: 3, category: 'Consulting Services', units: 428, revenue: 512800, cost: 205120, profit: 307680, margin: 60.0, growth: '+18.7%' },
+            { id: 4, category: 'Cloud Infrastructure', units: 892, revenue: 398760, cost: 159504, profit: 239256, margin: 60.0, growth: '+22.1%' },
+            { id: 5, category: 'Training & Support', units: 645, revenue: 193500, cost: 96750, profit: 96750, margin: 50.0, growth: '+8.9%' },
+            { id: 6, category: 'Security Solutions', units: 534, revenue: 267000, cost: 120150, profit: 146850, margin: 55.0, growth: '+15.3%' },
+          ],
+          title: 'Product Category Performance - Q1 2024',
+          subtitle: 'Sales and profitability by category',
+          mode: 'preview',
+          sortable: true,
+          filterable: true,
+          paginated: false,
+          defaultSort: { columnId: 'revenue', direction: 'desc' },
+          striped: true,
+          bordered: true,
+        },
+      },
+    },
+    {
+      id: 'dt-5',
+      content: "Excellent data! This makes it really easy to spot trends. The expand view with full search is fantastic - I can quickly find specific customers or filter by status.\n\nCan you show me the regional performance breakdown?",
+      sender: { id: 'user-sales', name: 'Sales Manager', avatar: '👔' },
+      timestamp: new Date(Date.now() - 120000),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'dt-6',
+      content: "Here's the regional breakdown! Notice North America is leading in revenue, but APAC has the highest growth rate and lowest acquisition cost.\n\nThe interactive table makes it easy to compare metrics across regions. Try the expand view to see all the data with sorting and filtering!",
+      sender: { id: 'ai-sales', name: 'Sales AI', avatar: '🤖' },
+      timestamp: new Date(Date.now() - 115000),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'data-table',
+        data: {
+          columns: [
+            { id: 'region', header: 'Region', accessor: 'region', type: 'text', sortable: true, width: 180, priority: 1 },
+            { id: 'customers', header: 'Customers', accessor: 'customers', type: 'number', sortable: true, align: 'right', width: 120, priority: 2 },
+            { id: 'revenue', header: 'Revenue', accessor: 'revenue', type: 'currency', sortable: true, align: 'right', width: 150, priority: 1 },
+            { id: 'avgDeal', header: 'Avg Deal Size', accessor: 'avgDeal', type: 'currency', sortable: true, align: 'right', width: 140, priority: 3 },
+            { id: 'growth', header: 'YoY Growth', accessor: 'growth', type: 'text', sortable: true, align: 'center', width: 130, priority: 2 },
+            { id: 'cac', header: 'CAC', accessor: 'cac', type: 'currency', sortable: true, align: 'right', width: 120, priority: 3 },
+            { id: 'ltv', header: 'LTV', accessor: 'ltv', type: 'currency', sortable: true, align: 'right', width: 120, priority: 3 },
+          ],
+          data: [
+            { id: 1, region: 'North America', customers: 487, revenue: 1245680, avgDeal: 2558, growth: '+14.2%', cac: 850, ltv: 12400 },
+            { id: 2, region: 'Europe', customers: 356, revenue: 892340, avgDeal: 2507, growth: '+11.8%', cac: 920, ltv: 11200 },
+            { id: 3, region: 'APAC', customers: 298, revenue: 734520, avgDeal: 2465, growth: '+28.5%', cac: 680, ltv: 13800 },
+            { id: 4, region: 'Latin America', customers: 142, revenue: 298760, avgDeal: 2104, growth: '+19.3%', cac: 580, ltv: 8900 },
+            { id: 5, region: 'Middle East & Africa', customers: 89, revenue: 187940, avgDeal: 2112, growth: '+22.7%', cac: 720, ltv: 9600 },
+          ],
+          title: 'Regional Sales Performance - Q1 2024',
+          subtitle: 'Revenue, growth, and efficiency metrics by region',
+          mode: 'preview',
+          sortable: true,
+          filterable: true,
+          paginated: false,
+          defaultSort: { columnId: 'revenue', direction: 'desc' },
+          striped: true,
+          bordered: true,
+        },
+      },
+    },
+    {
+      id: 'dt-7',
+      content: "This is perfect! The DataTable component makes complex sales data so much easier to analyze. I love that I can:\n\n✅ Sort by any metric instantly\n✅ Search across all columns\n✅ See formatted currency and dates\n✅ Compare performance across regions and categories\n✅ Export selections for presentations\n\nThis will save our team hours every week. Thanks!",
+      sender: { id: 'user-sales', name: 'Sales Manager', avatar: '👔' },
+      timestamp: new Date(Date.now() - 90000),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'dt-8',
+      content: "Glad you find it useful! The DataTable component is designed for exactly these use cases:\n\n📊 **Sales Reports** - Customer data, revenue tracking, performance metrics\n💼 **Business Analytics** - KPIs, growth tracking, comparative analysis\n📈 **Financial Data** - P&L statements, budget tracking, forecasting\n🎯 **Marketing Metrics** - Campaign performance, conversion rates, ROI\n📦 **Inventory Management** - Stock levels, reorder points, supplier data\n\n**Key Features:**\n• Handles 1000+ rows with smooth pagination\n• Auto-formats currency, dates, numbers, percentages\n• Advanced sorting and filtering\n• Responsive design (works on mobile!)\n• Export and selection capabilities\n• Fully customizable column widths and types\n\nYou can even customize cell rendering for special formatting like progress bars, status badges, or action buttons!",
+      sender: { id: 'ai-sales', name: 'Sales AI', avatar: '🤖' },
+      timestamp: new Date(Date.now() - 85000),
+      status: 'delivered',
+      isOwn: false,
+    },
+  ];
+};
+
 // Core demo chats showcasing Stash capabilities
 const ALL_MOCK_CHATS: ChatPreview[] = [
   // Combined overview - what is Stash and why it exists
@@ -1499,6 +2714,107 @@ const ALL_MOCK_CHATS: ChatPreview[] = [
       timestamp: new Date(),
       senderId: 'ai-tutorial',
       senderName: 'Stash Tutorial',
+    },
+    unreadCount: 0,
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    isPinned: true,
+    isMuted: false,
+    isArchived: false,
+    metadata: {
+      lastReadAt: new Date(),
+    },
+  },
+  // Thundering Herd Production Incident - End-to-End Example
+  {
+    id: 'chat-incident',
+    title: '🚨 Thundering Herd Incident - Cache Stampede',
+    type: 'ai',
+    participants: [
+      { id: 'user-ops', name: 'DevOps Team', avatar: '👨‍💻' },
+      { id: 'ai-monitor', name: 'System Monitor AI', avatar: '🤖' },
+      { id: 'user-engineer', name: 'Senior Engineer', avatar: '👨‍💻' },
+    ],
+    lastMessage: {
+      content: 'All systems healthy. Incident closed.',
+      timestamp: new Date(Date.now() - 30000),
+      senderId: 'user-engineer',
+      senderName: 'Senior Engineer',
+    },
+    unreadCount: 0,
+    updatedAt: new Date(Date.now() - 30000),
+    createdAt: new Date(Date.now() - 300000),
+    isPinned: true,
+    isMuted: false,
+    isArchived: false,
+    metadata: {
+      lastReadAt: new Date(),
+    },
+  },
+  // DataTable Sales Analytics
+  {
+    id: 'chat-data-table',
+    title: '📊 Sales Analytics - DataTable Demo',
+    type: 'ai',
+    participants: [
+      { id: 'user-sales', name: 'Sales Manager', avatar: '👔' },
+      { id: 'ai-sales', name: 'Sales AI', avatar: '🤖' },
+    ],
+    lastMessage: {
+      content: 'The DataTable component is perfect for sales reports, analytics, and structured data!',
+      timestamp: new Date(Date.now() - 85000),
+      senderId: 'ai-sales',
+      senderName: 'Sales AI',
+    },
+    unreadCount: 0,
+    updatedAt: new Date(Date.now() - 85000),
+    createdAt: new Date(Date.now() - 180000),
+    isPinned: true,
+    isMuted: false,
+    isArchived: false,
+    metadata: {
+      lastReadAt: new Date(),
+    },
+  },
+  // Live Streaming Graph Tutorial
+  {
+    id: 'chat-graph-tutorial',
+    title: '📊 Tutorial: Live Streaming Graphs with WebSockets',
+    type: 'ai',
+    participants: [
+      { id: 'user-tutorial', name: 'You', avatar: '👤' },
+      { id: 'ai-assistant', name: 'Stash AI', avatar: '🤖' },
+    ],
+    lastMessage: {
+      content: 'Check out the Live Streaming Chat example to see it in action! 📈',
+      timestamp: new Date(),
+      senderId: 'ai-assistant',
+      senderName: 'Stash AI',
+    },
+    unreadCount: 0,
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    isPinned: true,
+    isMuted: false,
+    isArchived: false,
+    metadata: {
+      lastReadAt: new Date(),
+    },
+  },
+  // Live Streaming Sales Dashboard
+  {
+    id: 'chat-live-streaming',
+    title: '📈 Live Streaming Sales Dashboard',
+    type: 'ai',
+    participants: [
+      { id: 'user-streaming', name: 'You', avatar: '👤' },
+      { id: 'ai-streaming', name: 'Sales AI', avatar: '📊' },
+    ],
+    lastMessage: {
+      content: 'Type "start" to begin streaming live sales data!',
+      timestamp: new Date(),
+      senderId: 'ai-streaming',
+      senderName: 'Sales AI',
     },
     unreadCount: 0,
     updatedAt: new Date(),
@@ -1597,10 +2913,16 @@ export default function ChatHistoryExample() {
   const allPaginationMessages = useMemo(() => getLargeMessageHistory(), []); // Store all 1200 messages
   const initialMessages = useMemo(() => getAIIntegratedMessages(), []);
   const webSocketTutorialMessages = useMemo(() => getWebSocketTutorialMessages(), []);
+  const graphTutorialMessages = useMemo(() => getLiveStreamingGraphTutorialMessages(), []);
+  const incidentMessages = useMemo(() => getSystemIncidentMessages(), []);
+  const dataTableMessages = useMemo(() => getDataTableChatMessages(), []);
 
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>({
     'chat-overview': overviewMessages,
     'chat-websocket-tutorial': webSocketTutorialMessages,
+    'chat-graph-tutorial': graphTutorialMessages,
+    'chat-data-table': dataTableMessages,
+    'chat-incident': incidentMessages,
     'chat-0': initialMessages,
   });
 
@@ -1671,8 +2993,8 @@ export default function ChatHistoryExample() {
   const handleChatSelect = useCallback((chatId: string) => {
     console.log('[ChatHistoryExample] Selected chat:', chatId);
     setCurrentChatId(chatId);
-    // Enable presentation mode for overview chat and WebSocket tutorial
-    setIsPresentationMode(chatId === 'chat-overview' || chatId === 'chat-websocket-tutorial');
+    // Start in regular chat mode for all conversations
+    setIsPresentationMode(false);
   }, []);
 
   const handleEnterPresentation = useCallback(() => {
@@ -1813,7 +3135,10 @@ export default function ChatHistoryExample() {
     >
       {/* Chat content area */}
       {currentChatId ? (
-        currentChatId === 'chat-media' ? (
+        currentChatId === 'chat-live-streaming' ? (
+          // Use LiveStreamingChatExample for live streaming sales dashboard
+          <LiveStreamingChatExample />
+        ) : currentChatId === 'chat-media' ? (
           // Use MediaChatExample for media collaboration demo
           <MediaChatExample />
         ) : currentChatId === 'chat-pagination' ? (
@@ -1849,6 +3174,7 @@ export default function ChatHistoryExample() {
             onExitPresentation={() => setIsPresentationMode(false)}
             onEnterPresentation={handleEnterPresentation}
             onCopyHistory={handleCopyHistory}
+            initialScrollPosition={currentChatId === 'chat-overview' ? 'top' : 'bottom'}
           />
         )
       ) : (

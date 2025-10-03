@@ -25,8 +25,13 @@ import {
   CodeBlockDetailView,
   Media,
   MediaDetailView,
+  Dashboard,
+  DashboardDetailView,
+  DashboardPreview,
+  DataTable,
+  DataTableDetailView,
 } from './InteractiveComponents';
-import type { Task, TimeSeriesSeries, GraphData, SupportedLanguage, MediaItem } from './InteractiveComponents';
+import type { Task, TimeSeriesSeries, GraphData, SupportedLanguage, MediaItem, DashboardConfig, ColumnDefinition, RowData } from './InteractiveComponents';
 import { MarkdownText } from './MarkdownText';
 
 export interface ChatMessageProps {
@@ -61,7 +66,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   const shouldUseFullWidth = presentationMode && (
     message?.type === 'image' ||
     (message?.interactiveComponent &&
-      ['gantt-chart', 'task-list', 'time-series-chart', 'graph-visualization', 'code-block', 'media'].includes(
+      ['gantt-chart', 'task-list', 'time-series-chart', 'graph-visualization', 'code-block', 'media', 'dashboard', 'data-table'].includes(
         message.interactiveComponent.type
       ))
   );
@@ -98,6 +103,15 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   } | null>(null);
   const [showMediaDetail, setShowMediaDetail] = useState(false);
   const [mediaData, setMediaData] = useState<MediaItem | MediaItem[] | null>(null);
+  const [showDashboardDetail, setShowDashboardDetail] = useState(false);
+  const [dashboardConfig, setDashboardConfig] = useState<DashboardConfig | null>(null);
+  const [showDataTableDetail, setShowDataTableDetail] = useState(false);
+  const [dataTableData, setDataTableData] = useState<{
+    columns: ColumnDefinition[];
+    data: RowData[];
+    title?: string;
+    subtitle?: string;
+  } | null>(null);
 
   // Loading state for AI messages
   if (isLoading) {
@@ -173,6 +187,21 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     setShowMediaDetail(true);
   };
 
+  const handleDashboardExpand = (config: DashboardConfig) => {
+    setDashboardConfig(config);
+    setShowDashboardDetail(true);
+  };
+
+  const handleDataTableExpand = (
+    columns: ColumnDefinition[],
+    data: RowData[],
+    title?: string,
+    subtitle?: string
+  ) => {
+    setDataTableData({ columns, data, title, subtitle });
+    setShowDataTableDetail(true);
+  };
+
   const renderInteractiveComponent = () => {
     if (!message.interactiveComponent) return null;
 
@@ -210,9 +239,6 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           <Pressable onPress={() => handleGanttExpand(ganttTasksForDetailView, data.title, data.subtitle)}>
             <GanttChart
               {...data}
-              mode={data.mode || 'mini'}
-              height={presentationMode ? 500 : data.height}
-              width={presentationMode ? Dimensions.get('window').width - 32 : data.width}
               onTaskPress={(task) => {
                 handleTaskPress(task);
                 onAction?.('task-press', task);
@@ -239,9 +265,6 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           >
             <TimeSeriesChart
               {...data}
-              mode={data.mode || 'mini'}
-              height={presentationMode ? 450 : data.height}
-              width={presentationMode ? Dimensions.get('window').width - 32 : data.width}
               onDataPointPress={(dataPoint, series) => onAction?.('data-point-press', { dataPoint, series })}
               onExpandPress={() =>
                 handleTimeSeriesExpand(
@@ -261,9 +284,6 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         return (
           <GraphVisualization
             {...data}
-            mode={data.mode || 'mini'}
-            height={presentationMode ? 600 : data.height}
-            width={presentationMode ? Dimensions.get('window').width - 32 : data.width}
             onNodePress={(node) => onAction?.('node-press', node)}
             onEdgePress={(edge) => onAction?.('edge-press', edge)}
             onExpandPress={() => handleGraphExpand(data.data, data.title, data.subtitle)}
@@ -288,6 +308,40 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             onExpand={() => handleMediaExpand(data.media)}
             onAction={(action, actionData) => onAction?.(action, actionData)}
           />
+        );
+      case 'dashboard':
+        return (
+          <Dashboard
+            config={data.config}
+            onItemPress={(item) => onAction?.('item-press', item)}
+            onExpandPress={() => handleDashboardExpand(data.config)}
+          />
+        );
+      case 'dashboard-preview':
+        return (
+          <DashboardPreview
+            config={data.config}
+            maxPreviewItems={data.maxPreviewItems}
+            onPress={() => handleDashboardExpand(data.config)}
+            onLongPress={() => onAction?.('long-press', data.config)}
+          />
+        );
+      case 'data-table':
+        return (
+          <Pressable
+            onPress={() =>
+              handleDataTableExpand(data.columns, data.data, data.title, data.subtitle)
+            }
+          >
+            <DataTable
+              {...data}
+              mode={data.mode || 'preview'}
+              onExpandPress={() =>
+                handleDataTableExpand(data.columns, data.data, data.title, data.subtitle)
+              }
+              onRowPress={(row) => onAction?.('row-press', row)}
+            />
+          </Pressable>
         );
       default:
         return null;
@@ -520,6 +574,32 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           onClose={() => setShowMediaDetail(false)}
         />
       )}
+
+      {/* Dashboard Detail View */}
+      {dashboardConfig && (
+        <DashboardDetailView
+          visible={showDashboardDetail}
+          config={dashboardConfig}
+          onClose={() => setShowDashboardDetail(false)}
+          onItemPress={(item) => console.log('Dashboard item pressed:', item)}
+        />
+      )}
+
+      {/* DataTable Detail View */}
+      {dataTableData && (
+        <DataTableDetailView
+          visible={showDataTableDetail}
+          columns={dataTableData.columns}
+          data={dataTableData.data}
+          title={dataTableData.title}
+          subtitle={dataTableData.subtitle}
+          onClose={() => setShowDataTableDetail(false)}
+          sortable={true}
+          filterable={true}
+          paginated={true}
+          onRowPress={(row) => console.log('Row pressed in detail:', row)}
+        />
+      )}
     </View>
   );
 };
@@ -528,7 +608,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     marginVertical: 4,
-    paddingHorizontal: 12,
+    paddingLeft: 12,
+    paddingRight: 16,
   },
   ownContainer: {
     justifyContent: 'flex-end',
@@ -587,6 +668,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     borderRadius: 12,
     overflow: 'hidden',
+    alignItems: 'center',
   },
   messageText: {
     fontSize: 16,

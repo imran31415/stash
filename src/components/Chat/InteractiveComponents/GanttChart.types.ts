@@ -37,6 +37,7 @@ export interface GanttChartProps {
   showToday?: boolean; // Highlight today's date
   timeScale?: 'day' | 'week' | 'month'; // Granularity of time axis
   height?: number; // Custom height
+  width?: number; // Custom width
   title?: string; // Chart title
   subtitle?: string; // Chart subtitle
   enablePagination?: boolean; // Enable pagination for large task lists

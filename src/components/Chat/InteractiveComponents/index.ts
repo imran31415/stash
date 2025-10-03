@@ -52,6 +52,31 @@ export type {
   MediaGalleryState,
 } from './Media.types';
 
+export type {
+  DashboardGridSize,
+  DashboardItemType,
+  DashboardItemConfig,
+  DashboardConfig,
+  DashboardMode,
+  DashboardProps,
+  DashboardDetailViewProps,
+  DashboardPreviewProps,
+} from './Dashboard.types';
+
+export type {
+  ColumnType,
+  SortDirection,
+  FilterOperator,
+  ColumnDefinition,
+  RowData,
+  SortConfig,
+  FilterConfig,
+  PaginationConfig,
+  DataTableProps,
+  DataTableDetailViewProps,
+  DataTableState,
+} from './DataTable.types';
+
 export { TaskList } from './TaskList';
 export { TaskDetailModal } from './TaskDetailModal';
 export { TaskDetailBottomSheet } from './TaskDetailBottomSheet';
@@ -68,6 +93,11 @@ export { CodeBlock } from './CodeBlock';
 export { CodeBlockDetailView } from './CodeBlockDetailView';
 export { Media } from './Media';
 export { MediaDetailView } from './MediaDetailView';
+export { Dashboard } from './Dashboard';
+export { DashboardDetailView } from './DashboardDetailView';
+export { DashboardPreview } from './DashboardPreview';
+export { DataTable } from './DataTable';
+export { DataTableDetailView } from './DataTableDetailView';
 export { LoadingState } from './LoadingState';
 export type { LoadingStateProps } from './LoadingState';
 

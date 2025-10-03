@@ -9,7 +9,7 @@ export interface User {
 }
 
 export interface InteractiveComponent {
-  type: 'task-list' | 'resource-list' | 'risk-list' | 'gantt-chart' | 'time-series-chart' | 'graph-visualization' | 'code-block' | 'media' | 'button' | 'custom';
+  type: 'task-list' | 'resource-list' | 'risk-list' | 'gantt-chart' | 'time-series-chart' | 'graph-visualization' | 'code-block' | 'media' | 'data-table' | 'dashboard' | 'dashboard-preview' | 'button' | 'custom';
   data: any;
   onAction?: (action: string, data: any) => void;
 }

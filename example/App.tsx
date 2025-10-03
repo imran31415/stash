@@ -3,9 +3,11 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar } fro
 import InteractiveComponentsExample from './examples/InteractiveComponentsExample';
 import ChatHistoryExample from './examples/ChatHistoryExample';
 import MediaExample from './examples/MediaExample';
+import LiveStreamingSalesExample from './examples/LiveStreamingSalesExample';
+import DashboardExample from './examples/DashboardExample';
 import { LoadingState } from '../src/components/Chat/InteractiveComponents';
 
-type TabType = 'history' | 'interactive' | 'media';
+type TabType = 'history' | 'interactive' | 'media' | 'streaming' | 'dashboard';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('history');
@@ -41,6 +43,8 @@ export default function App() {
       const loadingMessage =
         activeTab === 'history' ? 'Chats' :
         activeTab === 'media' ? 'Media Examples' :
+        activeTab === 'streaming' ? 'Live Streaming' :
+        activeTab === 'dashboard' ? 'Dashboards' :
         'UI Components';
 
       return (
@@ -61,6 +65,10 @@ export default function App() {
         return <ChatHistoryExample />;
       case 'media':
         return <MediaExample />;
+      case 'streaming':
+        return <LiveStreamingSalesExample />;
+      case 'dashboard':
+        return <DashboardExample />;
       default:
         return null;
     }
@@ -95,6 +103,26 @@ export default function App() {
         >
           <Text style={[styles.tabText, activeTab === 'interactive' && styles.tabTextActive]}>
             📊 UI
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'dashboard' && styles.tabActive]}
+          onPress={() => handleTabChange('dashboard')}
+          disabled={isLoadingTab}
+        >
+          <Text style={[styles.tabText, activeTab === 'dashboard' && styles.tabTextActive]}>
+            📋 Dash
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'streaming' && styles.tabActive]}
+          onPress={() => handleTabChange('streaming')}
+          disabled={isLoadingTab}
+        >
+          <Text style={[styles.tabText, activeTab === 'streaming' && styles.tabTextActive]}>
+            📈 Live
           </Text>
         </TouchableOpacity>
 

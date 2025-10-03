@@ -125,11 +125,15 @@ export const Media: React.FC<MediaProps> = ({
 
   // Video/Audio playback state
   const videoRef = useRef<Video>(null);
+  const audioRef = useRef<Audio.Sound | null>(null);
+  const htmlAudioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [audioPosition, setAudioPosition] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
 
   // Calculate container dimensions
-  const containerWidth = maxWidth || (isMini ? screenWidth - 32 : screenWidth - 32);
+  const containerWidth = maxWidth || (isMini ? 400 : screenWidth - 32);
   const containerHeight = maxHeight || (isMini ? 200 : 400);
 
   // Current media item
@@ -143,9 +147,21 @@ export const Media: React.FC<MediaProps> = ({
     setCurrentIndex((prev) => Math.max(0, prev - 1));
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    // Stop any audio playback when navigating
+    if (htmlAudioRef.current) {
+      htmlAudioRef.current.pause();
+      htmlAudioRef.current.src = '';
+      htmlAudioRef.current = null;
+    }
+    if (audioRef.current) {
+      await audioRef.current.stopAsync();
+      await audioRef.current.unloadAsync();
+      audioRef.current = null;
+    }
     setCurrentIndex((prev) => Math.min(mediaArray.length - 1, prev + 1));
     setIsPlaying(false);
+    setAudioPosition(0);
   };
 
   const handlePlayPause = async () => {
@@ -171,6 +187,159 @@ export const Media: React.FC<MediaProps> = ({
     }
   };
 
+  // Audio playback handlers - Platform-specific implementation
+  const handleAudioPlayPause = async () => {
+    try {
+      if (Platform.OS === 'web') {
+        // Web: Use HTML5 Audio
+        if (!htmlAudioRef.current) {
+          setIsLoading(true);
+          const audio = new window.Audio(currentMedia.url);
+          htmlAudioRef.current = audio;
+
+          // Set up event listeners
+          audio.addEventListener('loadedmetadata', () => {
+            setAudioDuration(audio.duration * 1000);
+            setIsLoading(false);
+          });
+
+          audio.addEventListener('timeupdate', () => {
+            setAudioPosition(audio.currentTime * 1000);
+          });
+
+          audio.addEventListener('ended', () => {
+            setIsPlaying(false);
+            setAudioPosition(0);
+            audio.currentTime = 0;
+          });
+
+          audio.addEventListener('error', (e) => {
+            console.error('Audio playback error:', e);
+            setIsLoading(false);
+          });
+
+          // Start playing
+          await audio.play();
+          setIsPlaying(true);
+          setIsLoading(false);
+        } else {
+          // Toggle play/pause
+          if (htmlAudioRef.current.paused) {
+            await htmlAudioRef.current.play();
+            setIsPlaying(true);
+          } else {
+            htmlAudioRef.current.pause();
+            setIsPlaying(false);
+          }
+        }
+      } else {
+        // Native: Use expo-av
+        if (!audioRef.current) {
+          setIsLoading(true);
+
+          await Audio.setAudioModeAsync({
+            playsInSilentModeIOS: true,
+            staysActiveInBackground: false,
+            shouldDuckAndroid: true,
+          });
+
+          const { sound } = await Audio.Sound.createAsync(
+            { uri: currentMedia.url },
+            { shouldPlay: true },
+            onAudioPlaybackStatusUpdate
+          );
+          audioRef.current = sound;
+          setIsPlaying(true);
+          setIsLoading(false);
+        } else {
+          const status = await audioRef.current.getStatusAsync();
+          if (status.isLoaded) {
+            if (status.isPlaying) {
+              await audioRef.current.pauseAsync();
+              setIsPlaying(false);
+            } else {
+              await audioRef.current.playAsync();
+              setIsPlaying(true);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error playing/pausing audio:', error);
+      setIsLoading(false);
+    }
+  };
+
+  const onAudioPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
+    if (status.isLoaded) {
+      setIsPlaying(status.isPlaying);
+      setAudioPosition(status.positionMillis || 0);
+      setAudioDuration(status.durationMillis || 0);
+      setIsLoading(false);
+
+      if (status.didJustFinish && !status.isLooping) {
+        setIsPlaying(false);
+        setAudioPosition(0);
+      }
+    }
+  };
+
+  const handleAudioSeek = async (position: number) => {
+    try {
+      if (Platform.OS === 'web') {
+        if (htmlAudioRef.current) {
+          htmlAudioRef.current.currentTime = position / 1000;
+          setAudioPosition(position);
+        }
+      } else {
+        if (audioRef.current) {
+          await audioRef.current.setPositionAsync(position);
+          setAudioPosition(position);
+        }
+      }
+    } catch (error) {
+      console.error('Error seeking audio:', error);
+    }
+  };
+
+  // Cleanup audio on unmount or when media changes
+  React.useEffect(() => {
+    return () => {
+      // Cleanup HTML audio
+      if (htmlAudioRef.current) {
+        htmlAudioRef.current.pause();
+        htmlAudioRef.current.src = '';
+        htmlAudioRef.current = null;
+      }
+      // Cleanup expo-av audio
+      if (audioRef.current) {
+        audioRef.current.unloadAsync();
+      }
+    };
+  }, []);
+
+  React.useEffect(() => {
+    // Cleanup audio when media changes
+    const cleanup = async () => {
+      // Cleanup HTML audio
+      if (htmlAudioRef.current) {
+        htmlAudioRef.current.pause();
+        htmlAudioRef.current.src = '';
+        htmlAudioRef.current = null;
+      }
+      // Cleanup expo-av audio
+      if (audioRef.current) {
+        await audioRef.current.stopAsync();
+        await audioRef.current.unloadAsync();
+        audioRef.current = null;
+      }
+      setIsPlaying(false);
+      setAudioPosition(0);
+      setAudioDuration(0);
+    };
+    cleanup();
+  }, [currentIndex]);
+
   const renderMediaContent = (item: MediaItem, index: number) => {
     const typeColor = getMediaTypeColor(item.type);
 
@@ -194,8 +363,18 @@ export const Media: React.FC<MediaProps> = ({
       };
     }
 
+    // For audio and video, we don't want the outer container to be clickable
+    // since they have their own play controls
+    const isInteractiveMedia = item.type === 'audio' || item.type === 'video';
+    const ContainerComponent = isInteractiveMedia ? View : TouchableOpacity;
+    const containerProps = isInteractiveMedia ? {} : {
+      onPress: handleMediaPress,
+      activeOpacity: 0.9,
+      accessibilityRole: 'button' as const,
+    };
+
     return (
-      <TouchableOpacity
+      <ContainerComponent
         key={item.id}
         style={[
           styles.mediaContainer,
@@ -206,10 +385,8 @@ export const Media: React.FC<MediaProps> = ({
             borderRadius: customBorderRadius || borderRadius.lg,
           },
         ]}
-        onPress={handleMediaPress}
-        activeOpacity={0.9}
         accessibilityLabel={`${item.type}: ${getMediaTitle(item)}`}
-        accessibilityRole="button"
+        {...containerProps}
       >
         {/* Media Type Badge */}
         <View
@@ -301,19 +478,75 @@ export const Media: React.FC<MediaProps> = ({
           </View>
         )}
 
-        {/* Audio Placeholder */}
+        {/* Audio Player */}
         {item.type === 'audio' && (
           <View style={[styles.audioPlaceholder, { width: containerWidth, height: containerHeight }]}>
+            {/* Audio Icon */}
             <Text style={styles.audioIcon}>🎵</Text>
-            <Text style={styles.audioTitle}>{getMediaTitle(item)}</Text>
-            {item.metadata?.duration && (
-              <Text style={styles.audioDuration}>{formatDuration(item.metadata.duration)}</Text>
-            )}
+
+            {/* Title */}
+            <Text style={styles.audioTitle} numberOfLines={2}>
+              {getMediaTitle(item)}
+            </Text>
+
+            {/* Progress Bar */}
+            <View style={styles.progressBarContainer}>
+              <Text style={styles.timeText}>
+                {formatDuration((audioPosition || 0) / 1000)}
+              </Text>
+              <View style={styles.progressBarTrack}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      width: audioDuration > 0
+                        ? `${(audioPosition / audioDuration) * 100}%`
+                        : '0%',
+                    },
+                  ]}
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.progressBarThumb,
+                    {
+                      left: audioDuration > 0
+                        ? `${(audioPosition / audioDuration) * 100}%`
+                        : '0%',
+                    },
+                  ]}
+                  onPress={(e) => {
+                    // Calculate seek position based on press location
+                    const trackWidth = containerWidth - 120; // Account for padding
+                    const pressX = e.nativeEvent.locationX;
+                    const seekPosition = (pressX / trackWidth) * audioDuration;
+                    handleAudioSeek(seekPosition);
+                  }}
+                />
+              </View>
+              <Text style={styles.timeText}>
+                {formatDuration((audioDuration || item.metadata?.duration || 0) / 1000)}
+              </Text>
+            </View>
+
+            {/* Playback Controls */}
             <View style={styles.audioControls}>
-              <TouchableOpacity style={styles.audioControlButton}>
-                <Text style={styles.audioControlIcon}>▶</Text>
+              <TouchableOpacity
+                style={styles.audioControlButton}
+                onPress={handleAudioPlayPause}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.audioControlIcon}>{isPlaying ? '⏸' : '▶'}</Text>
+                )}
               </TouchableOpacity>
             </View>
+
+            {/* Metadata display */}
+            {item.metadata?.format && (
+              <Text style={styles.audioFormat}>{item.metadata.format.toUpperCase()}</Text>
+            )}
           </View>
         )}
 
@@ -328,7 +561,7 @@ export const Media: React.FC<MediaProps> = ({
             <Text style={styles.expandButtonText}>👁️ Expand</Text>
           </TouchableOpacity>
         )}
-      </TouchableOpacity>
+      </ContainerComponent>
     );
   };
 
@@ -507,7 +740,11 @@ export const Media: React.FC<MediaProps> = ({
   // Early return if no media data
   if (!currentMedia) {
     return (
-      <View style={[styles.container, isMini && styles.containerMini]}>
+      <View style={[
+        styles.container,
+        isMini && styles.containerMini,
+        { width: isMini ? 400 : '100%', alignSelf: isMini ? 'flex-start' : 'stretch' }
+      ]}>
         <View style={[
           styles.mediaContainer,
           {
@@ -528,7 +765,11 @@ export const Media: React.FC<MediaProps> = ({
   }
 
   return (
-    <View style={[styles.container, isMini && styles.containerMini]}>
+    <View style={[
+      styles.container,
+      isMini && styles.containerMini,
+      { width: isMini ? 400 : '100%', alignSelf: isMini ? 'flex-start' : 'stretch' }
+    ]}>
       {/* Header with title */}
       {!isMini && currentMedia && (
         <View style={styles.header}>
@@ -723,6 +964,50 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: colors.text.inverse,
     marginLeft: 4,
+  },
+  audioFormat: {
+    fontSize: typography.fontSize.xs,
+    color: colors.text.tertiary,
+    marginTop: spacing[2],
+  },
+  progressBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    paddingHorizontal: spacing[4],
+    marginVertical: spacing[3],
+    gap: spacing[2],
+  },
+  timeText: {
+    fontSize: typography.fontSize.xs,
+    color: colors.text.secondary,
+    fontWeight: typography.fontWeight.medium,
+    minWidth: 40,
+  },
+  progressBarTrack: {
+    flex: 1,
+    height: 4,
+    backgroundColor: colors.border.medium,
+    borderRadius: 2,
+    position: 'relative',
+    overflow: 'visible',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: colors.accent[500],
+    borderRadius: 2,
+  },
+  progressBarThumb: {
+    position: 'absolute',
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: colors.accent[500],
+    top: -6,
+    marginLeft: -8,
+    borderWidth: 2,
+    borderColor: colors.surface.primary,
+    ...shadows.sm,
   },
   expandButton: {
     position: 'absolute',

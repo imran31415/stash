@@ -210,6 +210,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 1000,
     borderRadius: 0,
+    pointerEvents: 'auto',
   },
   content: {
     alignItems: 'center',

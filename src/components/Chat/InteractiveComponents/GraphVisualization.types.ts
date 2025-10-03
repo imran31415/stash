@@ -70,7 +70,7 @@ export interface GraphStats {
 
 export interface GraphVisualizationProps {
   data: GraphData;
-  mode?: 'mini' | 'full';
+  mode?: 'mini' | 'preview' | 'full';
   title?: string;
   subtitle?: string;
 

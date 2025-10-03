@@ -23,6 +23,7 @@ export interface TimeSeriesChartProps {
   onExpandPress?: () => void;
   onDataPointPress?: (dataPoint: TimeSeriesDataPoint, series: TimeSeriesSeries) => void;
   height?: number;
+  width?: number;
 
   // Pagination options
   pageSize?: number; // Number of data points to show per page
@@ -46,6 +47,16 @@ export interface TimeSeriesChartProps {
   minY?: number;
   maxY?: number;
   autoScale?: boolean;
+
+  // Live streaming options
+  enableLiveStreaming?: boolean;
+  maxDataPoints?: number; // Maximum number of points to keep in memory (default: 100)
+  streamingWindowSize?: number; // Number of data points to display in streaming mode (default: 50)
+  onDataUpdate?: (series: TimeSeriesSeries[]) => void; // Callback when data is updated
+  showStreamingControls?: boolean; // Show play/pause controls (default: true when streaming)
+  onStreamingToggle?: (isStreaming: boolean) => void; // Callback when user toggles streaming
+  streamingPaused?: boolean; // External control for paused state
+  streamingCallbackId?: string; // ID for global callback registry (for serialized messages)
 }
 
 export interface ChartDimensions {

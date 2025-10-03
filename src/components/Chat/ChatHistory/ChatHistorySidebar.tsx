@@ -19,11 +19,7 @@ export const ChatHistorySidebar: React.FC<ChatHistorySidebarProps> = ({
   ...chatHistoryProps
 }) => {
   if (!isVisible) {
-    return showToggleButton ? (
-      <TouchableOpacity style={styles.toggleButtonCollapsed} onPress={onToggle}>
-        <Text style={styles.toggleIcon}>☰</Text>
-      </TouchableOpacity>
-    ) : null;
+    return null; // Don't show toggle button when collapsed - use floating menu instead
   }
 
   return (

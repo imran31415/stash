@@ -31,7 +31,7 @@ export interface ChatLayoutProps {
 
   // Menu button customization
   showMenuButton?: boolean;
-  menuButtonPosition?: 'floating';
+  menuButtonPosition?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
 }
 
 export const ChatLayout: React.FC<ChatLayoutProps> = ({
@@ -45,7 +45,7 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({
   onChatsLoaded,
   children,
   showMenuButton = true,
-  menuButtonPosition = 'floating',
+  menuButtonPosition = 'bottom-right',
 }) => {
   const [windowWidth, setWindowWidth] = useState(Dimensions.get('window').width);
   const [isSidebarVisible, setIsSidebarVisible] = useState(defaultSidebarVisible);
@@ -102,13 +102,22 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({
 
     if (!shouldShow) return null;
 
+    // Get position style based on menuButtonPosition
+    const positionStyle = {
+      'bottom-right': styles.positionBottomRight,
+      'bottom-left': styles.positionBottomLeft,
+      'top-right': styles.positionTopRight,
+      'top-left': styles.positionTopLeft,
+    }[menuButtonPosition];
+
     return (
       <TouchableOpacity
-        style={styles.floatingMenuButton}
+        style={[styles.floatingMenuButton, positionStyle]}
         onPress={toggleHistory}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
-        <Text style={styles.floatingMenuIcon}>☰</Text>
+        <Text style={styles.floatingMenuIcon}>💬</Text>
+        <Text style={styles.floatingMenuLabel}>Chats</Text>
       </TouchableOpacity>
     );
   };
@@ -164,19 +173,39 @@ const styles = StyleSheet.create({
   },
   floatingMenuButton: {
     position: 'absolute',
-    top: spacing.lg,
-    left: spacing.lg,
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.primary,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 28,
+    backgroundColor: colors.primary,
     zIndex: 1000,
     ...shadows.heavy,
   },
+  positionBottomRight: {
+    bottom: 80, // Higher position to avoid chat input
+    right: spacing.xl,
+  },
+  positionBottomLeft: {
+    bottom: 80, // Higher position to avoid chat input
+    left: spacing.xl,
+  },
+  positionTopRight: {
+    top: spacing.xl,
+    right: spacing.xl,
+  },
+  positionTopLeft: {
+    top: spacing.xl,
+    left: spacing.xl,
+  },
   floatingMenuIcon: {
-    fontSize: 24,
-    color: colors.background,
+    fontSize: 20,
+  },
+  floatingMenuLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

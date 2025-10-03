@@ -12,6 +12,8 @@ import {
   CodeBlock,
   CodeBlockDetailView,
   LoadingState,
+  DataTable,
+  DataTableDetailView,
   type Task,
   type Resource,
   type GanttTask,
@@ -21,6 +23,8 @@ import {
   type GraphNode,
   type GraphEdge,
   type SupportedLanguage,
+  type ColumnDefinition,
+  type RowData,
 } from '../../src/components/Chat/InteractiveComponents';
 import { addDays, addWeeks, addHours, subDays } from 'date-fns';
 import {
@@ -36,6 +40,7 @@ const InteractiveComponentsExample: React.FC = () => {
   const [taskListDetailVisible, setTaskListDetailVisible] = useState(false);
   const [graphDetailVisible, setGraphDetailVisible] = useState(false);
   const [codeBlockDetailVisible, setCodeBlockDetailVisible] = useState(false);
+  const [dataTableDetailVisible, setDataTableDetailVisible] = useState(false);
   const [currentCodeBlock, setCurrentCodeBlock] = useState<{
     code: string;
     language: SupportedLanguage;
@@ -51,6 +56,25 @@ const InteractiveComponentsExample: React.FC = () => {
   const largeGanttTasks = useMemo(() => generateMockGanttTasks(100), []);
   const largeTimeSeriesData = useMemo(() => generateMockTimeSeriesData(3, 2000, 60), []);
   const largeGraphData = useMemo(() => generateLargeGraph(1000), []);
+
+  // DataTable mock data
+  const tableColumns: ColumnDefinition[] = [
+    { id: 'id', header: 'ID', width: 60, priority: 1 },
+    { id: 'name', header: 'Name', width: 150, priority: 1 },
+    { id: 'email', header: 'Email', width: 200, priority: 2 },
+    { id: 'role', header: 'Role', width: 120, priority: 2 },
+    { id: 'status', header: 'Status', width: 100, priority: 1 },
+    { id: 'joinDate', header: 'Join Date', width: 120, priority: 3 },
+  ];
+
+  const tableData: RowData[] = Array.from({ length: 50 }, (_, i) => ({
+    id: `${i + 1}`,
+    name: `User ${i + 1}`,
+    email: `user${i + 1}@example.com`,
+    role: ['Admin', 'Developer', 'Designer', 'Manager'][i % 4],
+    status: ['Active', 'Inactive', 'Pending'][i % 3],
+    joinDate: addDays(new Date(), -i * 5).toLocaleDateString(),
+  }));
 
   // Sample task data (kept for reference but using large dataset in examples)
   const sampleTasks: Task[] = [
@@ -787,6 +811,26 @@ yarn add stash
       </View>
 
       <View style={styles.section}>
+        <Text style={styles.sectionTitle}>DataTable Component</Text>
+        <Text style={styles.sectionDescription}>
+          Responsive data table with sorting, filtering, pagination, and selection. Adapts to screen size.
+        </Text>
+        <DataTable
+          columns={tableColumns}
+          data={tableData}
+          title="User Directory"
+          subtitle="50 users"
+          mode="preview"
+          sortable={true}
+          filterable={true}
+          paginated={true}
+          defaultPageSize={10}
+          onRowPress={(row) => console.log('Row pressed:', row)}
+          onExpandPress={() => setDataTableDetailVisible(true)}
+        />
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>LoadingState Component</Text>
         <Text style={styles.sectionDescription}>
           Beautiful loading indicators with smooth animations. Supports inline and overlay modes.
@@ -904,6 +948,20 @@ yarn add stash
           onCopy={() => console.log('Code copied from detail view')}
         />
       )}
+
+      {/* DataTable Detail View Modal */}
+      <DataTableDetailView
+        visible={dataTableDetailVisible}
+        columns={tableColumns}
+        data={tableData}
+        title="User Directory - Full View"
+        subtitle="All users with advanced filtering and sorting"
+        sortable={true}
+        filterable={true}
+        paginated={true}
+        onClose={() => setDataTableDetailVisible(false)}
+        onRowPress={(row) => console.log('Row pressed in detail:', row)}
+      />
     </ScrollView>
   );
 };

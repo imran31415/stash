@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   ScrollView,
   TouchableOpacity,
+  Animated,
 } from 'react-native';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
@@ -57,6 +58,7 @@ export interface ChatProps {
   onEnterPresentation?: () => void; // Called when user wants to enter presentation mode
   onCopyHistory?: (json: string) => void; // Called when chat history is copied
   showControlBar?: boolean; // Show the control bar with actions (default: true in non-presentation mode)
+  initialScrollPosition?: 'top' | 'bottom'; // Initial scroll position when messages load (default: 'bottom')
 }
 
 export const Chat: React.FC<ChatProps> = ({
@@ -88,6 +90,7 @@ export const Chat: React.FC<ChatProps> = ({
   onEnterPresentation,
   onCopyHistory,
   showControlBar = true,
+  initialScrollPosition = 'bottom',
 }) => {
   const [messages, setMessages] = useState<Message[]>(externalMessages);
   const [inputText, setInputText] = useState('');
@@ -96,6 +99,7 @@ export const Chat: React.FC<ChatProps> = ({
   const [typingUsers, setTypingUsers] = useState<TypingIndicatorType[]>([]);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const flatListRef = useRef<FlatList>(null);
   const wsServiceRef = useRef<WebSocketChatService | null>(null);
@@ -103,16 +107,45 @@ export const Chat: React.FC<ChatProps> = ({
   const isNearBottomRef = useRef(true); // Track if user is scrolled to bottom
   const previousMessageCountRef = useRef(externalMessages.length);
   const wasPresentationModeRef = useRef(presentationMode);
+  const dimOpacity = useRef(new Animated.Value(0)).current;
+  const hasInitialScrolledRef = useRef(false);
 
   // Sync external messages
   useEffect(() => {
     setMessages(externalMessages);
   }, [externalMessages]);
 
-  // Track presentation mode changes
+  // Reset scroll tracker when chatId changes
+  useEffect(() => {
+    hasInitialScrolledRef.current = false;
+  }, [chatId]);
+
+  // Handle initial scroll position
+  useEffect(() => {
+    if (externalMessages.length > 0 && !hasInitialScrolledRef.current) {
+      hasInitialScrolledRef.current = true;
+
+      setTimeout(() => {
+        if (initialScrollPosition === 'top') {
+          flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
+        } else {
+          flatListRef.current?.scrollToEnd({ animated: false });
+        }
+      }, 100);
+    }
+  }, [externalMessages.length, initialScrollPosition]);
+
+  // Track presentation mode changes and animate dimming effect
   useEffect(() => {
     wasPresentationModeRef.current = presentationMode;
-  }, [presentationMode]);
+
+    // Animate dimming effect when entering/exiting presentation
+    Animated.timing(dimOpacity, {
+      toValue: presentationMode ? 0.6 : 0,
+      duration: 400,
+      useNativeDriver: true,
+    }).start();
+  }, [presentationMode, dimOpacity]);
 
   // Auto-scroll on new messages (only if user is near bottom)
   useEffect(() => {
@@ -411,25 +444,47 @@ export const Chat: React.FC<ChatProps> = ({
     return (
       <View style={[styles.container, style]}>
         {/* Progress indicators */}
-        <View style={styles.presentationTopBar}>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${progress}%` }]} />
+        {!isFullscreen && (
+          <View style={styles.presentationTopBar}>
+            <View style={styles.progressBar}>
+              <View style={[styles.progressFill, { width: `${progress}%` }]} />
+            </View>
+            <View style={styles.presentationHeader}>
+              <Text style={styles.presentationCounter}>
+                {currentMessageIndex + 1} of {messages.length}
+              </Text>
+              <View style={styles.presentationHeaderButtons}>
+                <TouchableOpacity
+                  style={styles.fullscreenButton}
+                  onPress={() => setIsFullscreen(true)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.fullscreenButtonText}>⛶</Text>
+                </TouchableOpacity>
+                {onExitPresentation && (
+                  <TouchableOpacity
+                    style={styles.exitPresentationButton}
+                    onPress={onExitPresentation}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.exitPresentationText}>Exit</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
           </View>
-          <View style={styles.presentationHeader}>
-            <Text style={styles.presentationCounter}>
-              {currentMessageIndex + 1} of {messages.length}
-            </Text>
-            {onExitPresentation && (
-              <TouchableOpacity
-                style={styles.exitPresentationButton}
-                onPress={onExitPresentation}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.exitPresentationText}>Exit Presentation</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
+        )}
+
+        {/* Fullscreen exit button */}
+        {isFullscreen && (
+          <TouchableOpacity
+            style={styles.exitFullscreenButton}
+            onPress={() => setIsFullscreen(false)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.exitFullscreenText}>⛶ Exit Fullscreen</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Current message - scrollable with max width for readability */}
         <ScrollView
@@ -458,7 +513,8 @@ export const Chat: React.FC<ChatProps> = ({
         </ScrollView>
 
         {/* Navigation controls at bottom */}
-        <View style={styles.presentationBottomBar}>
+        {!isFullscreen && (
+          <View style={styles.presentationBottomBar}>
           {isMobile ? (
             // Mobile: tap hints
             <View style={styles.navigationHint}>
@@ -501,7 +557,8 @@ export const Chat: React.FC<ChatProps> = ({
               </TouchableOpacity>
             </View>
           )}
-        </View>
+          </View>
+        )}
 
         {/* Invisible tap areas for navigation - only on edges for mobile */}
         {isMobile && (
@@ -523,6 +580,15 @@ export const Chat: React.FC<ChatProps> = ({
 
   return (
     <View style={[styles.container, style]}>
+      {/* Dimming overlay when entering presentation mode */}
+      <Animated.View
+        style={[
+          styles.dimOverlay,
+          { opacity: dimOpacity },
+        ]}
+        pointerEvents="none"
+      />
+
       {/* Control Bar - only show when not in presentation mode */}
       {!presentationMode && showControlBar && (
         <ChatControlBar
@@ -585,6 +651,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
+  dimOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#000000',
+    zIndex: 999,
+  },
   keyboardAvoid: {
     flex: 1,
   },
@@ -640,6 +711,21 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
+  presentationHeaderButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  fullscreenButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: '#F2F2F7',
+  },
+  fullscreenButtonText: {
+    fontSize: 16,
+    color: '#007AFF',
+  },
   exitPresentationButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -650,6 +736,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#007AFF',
+  },
+  exitFullscreenButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    zIndex: 1000,
+  },
+  exitFullscreenText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   presentationScroll: {
     flex: 1,

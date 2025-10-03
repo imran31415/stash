@@ -1,6 +1,6 @@
-import React, { useMemo, useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Platform } from 'react-native';
-import Svg, { Circle, Line, Text as SvgText, Defs, Marker, Path, G } from 'react-native-svg';
+import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Platform, Animated, LayoutChangeEvent } from 'react-native';
+import Svg, { Circle, Line, Text as SvgText, Defs, Marker, Path, G, RadialGradient, Stop } from 'react-native-svg';
 import type { GraphVisualizationProps, GraphNode, GraphEdge } from './GraphVisualization.types';
 import {
   applyForceLayout,
@@ -41,9 +41,21 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
   const [isFocusing, setIsFocusing] = useState(false);
   const [focusProgress, setFocusProgress] = useState(0);
 
+  // Track actual container width via onLayout
+  const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
+
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const { width } = event.nativeEvent.layout;
+    if (width > 0 && !customWidth) {
+      setMeasuredWidth(width);
+    }
+  };
+
   // Determine dimensions based on mode
-  const width = customWidth || (mode === 'mini' ? SCREEN_WIDTH - 100 : SCREEN_WIDTH - 32);
-  const height = customHeight || (mode === 'mini' ? 250 : 450);
+  const isMiniOrPreview = mode === 'mini' || mode === 'preview';
+  const containerWidth = customWidth || measuredWidth || (isMiniOrPreview ? 400 : SCREEN_WIDTH - 32);
+  const width = containerWidth;
+  const height = customHeight || (isMiniOrPreview ? 250 : 450);
 
   // Calculate graph stats
   const stats = useMemo(() => calculateGraphStats(data), [data]);
@@ -104,8 +116,8 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
           width,
           height,
           {
-            iterations: mode === 'mini' ? 50 : 100,
-            repulsionStrength: mode === 'mini' ? 4000 : 5000,
+            iterations: isMiniOrPreview ? 50 : 100,
+            repulsionStrength: isMiniOrPreview ? 4000 : 5000,
             attractionStrength: 0.005,
           },
           (progress) => {
@@ -264,16 +276,19 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
         return null;
       }
 
-      // Highlight edges connected to focused node
+      // Highlight edges connected to focused node or between neighbors
       const isConnectedToFocus = focusedNodeId === edge.source || focusedNodeId === edge.target;
+      const isConnectedToNeighbors = focusedNodeId &&
+        neighborIds.has(edge.source) && neighborIds.has(edge.target);
       const isHighlighted = isConnectedToFocus;
+      const isSecondary = isConnectedToNeighbors && !isConnectedToFocus;
 
       // Show labels for first few edges in mini mode
       const isTopEdge = edgeIndex < 5;
 
-      const color = isHighlighted ? '#3B82F6' : (edge.color || '#CBD5E1');
-      const strokeWidth = isHighlighted ? 2.5 : (edge.width || 1.5);
-      const opacity = isHighlighted ? 0.9 : (focusedNodeId ? 0.5 : 0.6);
+      const color = isHighlighted ? '#3B82F6' : isSecondary ? '#10B981' : (edge.color || '#CBD5E1');
+      const strokeWidth = isHighlighted ? 3 : isSecondary ? 2.5 : (edge.width || 1.5);
+      const opacity = isHighlighted ? 1 : isSecondary ? 0.8 : (focusedNodeId ? 0.2 : 0.6);
 
       // Calculate arrow position (at 80% of the line to account for node size)
       const dx = target.x - source.x;
@@ -313,27 +328,27 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
             />
           )}
           {/* Edge labels - uniform rendering logic:
-              - When focused: always show labels for highlighted (connected) edges
+              - When focused: ALWAYS show labels for primary (connected) and secondary (between neighbors) edges
               - When not focused: show based on mode (mini: first 5, full: showEdgeLabels prop)
           */}
           {(edge.label || edge.type) && (
             focusedNodeId
-              ? isHighlighted  // When focused, show labels for connected edges
-              : (mode === 'mini' ? isTopEdge : showEdgeLabels)  // When not focused, use mode rules
-          ) && (
+              ? (isHighlighted || isSecondary)  // When focused, show labels for connected and neighbor edges
+              : (isMiniOrPreview ? isTopEdge : showEdgeLabels)  // When not focused, use mode rules
+          ) ? (
             <G>
-              {/* Label background rect for better visibility */}
+              {/* Label background for better visibility */}
               <SvgText
                 x={midX}
                 y={midY}
-                fontSize={mode === 'mini' ? 10 : 12}
+                fontSize={isMiniOrPreview ? 11 : 13}
                 fill="#FFFFFF"
                 fontWeight="700"
                 textAnchor="middle"
                 alignmentBaseline="middle"
                 stroke="#FFFFFF"
-                strokeWidth={4}
-                opacity={0.95}
+                strokeWidth={5}
+                opacity={1}
               >
                 {edge.label || edge.type}
               </SvgText>
@@ -341,8 +356,8 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
               <SvgText
                 x={midX}
                 y={midY}
-                fontSize={mode === 'mini' ? 10 : 12}
-                fill={isHighlighted ? '#3B82F6' : '#1E293B'}
+                fontSize={isMiniOrPreview ? 11 : 13}
+                fill={isHighlighted ? '#3B82F6' : isSecondary ? '#10B981' : '#1E293B'}
                 fontWeight="700"
                 textAnchor="middle"
                 alignmentBaseline="middle"
@@ -350,7 +365,7 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
                 {edge.label || edge.type}
               </SvgText>
             </G>
-          )}
+          ) : null}
         </G>
       );
     });
@@ -379,45 +394,89 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
       const strokeWidth = isFocused ? 4 : (isNeighbor ? 3 : 2);
       const nodeRadius = isFocused ? radius * 1.2 : radius;
 
+      // Calculate depth based on node importance (connections) for parallax effect
+      // More connected nodes appear "closer" with slightly larger shadows and size
+      const nodeConnections = data.edges.filter(
+        e => e.source === node.id || e.target === node.id
+      ).length;
+      const depthFactor = Math.min(nodeConnections / 10, 1); // Normalize to 0-1
+      const shadowOffset = 2 + depthFactor * 2; // 2-4px shadow offset based on depth
+      const shadowOpacity = (isDimmed ? 0.3 : 0.5) + depthFactor * 0.2; // Slightly darker shadow for "closer" nodes
+      const sizeMultiplier = 1 + depthFactor * 0.15; // Up to 15% larger for important nodes
+      const adjustedNodeRadius = nodeRadius * sizeMultiplier;
+
       return (
         <G key={node.id}>
-          {/* Outer glow for focused node */}
+          {/* Shadow for 3D depth effect - varies based on node importance */}
+          <Circle
+            cx={node.x + shadowOffset}
+            cy={node.y + shadowOffset + 1}
+            r={adjustedNodeRadius + 1 + depthFactor}
+            fill="url(#nodeShadow)"
+            opacity={shadowOpacity}
+          />
+
+          {/* Outer glow for focused node with layered depth */}
           {isFocused && (
+            <>
+              <Circle
+                cx={node.x}
+                cy={node.y}
+                r={adjustedNodeRadius + 12}
+                fill="none"
+                stroke="#10B981"
+                strokeWidth={3}
+                opacity={0.2}
+              />
+              <Circle
+                cx={node.x}
+                cy={node.y}
+                r={adjustedNodeRadius + 8}
+                fill="none"
+                stroke="#10B981"
+                strokeWidth={2}
+                opacity={0.4}
+              />
+            </>
+          )}
+
+          {/* Subtle glow for neighbor nodes */}
+          {isNeighbor && !isFocused && (
             <Circle
               cx={node.x}
               cy={node.y}
-              r={nodeRadius + 8}
+              r={adjustedNodeRadius + 6}
               fill="none"
-              stroke="#10B981"
+              stroke="#3B82F6"
               strokeWidth={2}
               opacity={0.3}
             />
           )}
 
-          {/* Node circle */}
+          {/* Main node circle - size varies with importance */}
           <Circle
             cx={node.x}
             cy={node.y}
-            r={nodeRadius}
+            r={adjustedNodeRadius}
             fill={color}
             opacity={nodeOpacity}
             stroke={strokeColor}
             strokeWidth={strokeWidth}
-            {...(Platform.OS === 'web'
-              ? { onClick: () => handleNodePress(node), style: { cursor: 'pointer' } }
-              : { onPress: () => handleNodePress(node) }
-            )}
+            onPress={() => {
+              console.log('[GraphVisualization] Circle pressed:', node.id);
+              handleNodePress(node);
+            }}
           />
 
           {/* Node label */}
-          {showLabels && (mode === 'full' || layoutNodes.length <= 20 || isFocused || isNeighbor || (mode === 'mini' && isTopNode)) && (
+          {showLabels && (mode === 'full' || layoutNodes.length <= 20 || isFocused || isNeighbor || (isMiniOrPreview && isTopNode)) && (
             <G pointerEvents="none">
               {/* Background for better readability */}
-              {(isFocused || isNeighbor || (mode === 'mini' && isTopNode)) && (
+              {(isFocused || isNeighbor || (isMiniOrPreview && isTopNode)) && (
                 <SvgText
                   x={node.x}
-                  y={node.y + nodeRadius + 14}
-                  fontSize={mode === 'mini' ? 10 : 12}
+                  y={node.y + adjustedNodeRadius + 14}
+                  fontSize={isMiniOrPreview ? 10 : 12}
                   fill="#FFFFFF"
                   fontWeight="700"
                   textAnchor="middle"
@@ -431,10 +490,10 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
               {/* Foreground label */}
               <SvgText
                 x={node.x}
-                y={node.y + nodeRadius + 14}
-                fontSize={mode === 'mini' ? 10 : 12}
+                y={node.y + adjustedNodeRadius + 14}
+                fontSize={isMiniOrPreview ? 10 : 12}
                 fill={isDimmed ? '#94A3B8' : '#1E293B'}
-                fontWeight={isFocused || isNeighbor || (mode === 'mini' && isTopNode) ? '700' : '600'}
+                fontWeight={isFocused || isNeighbor || (isMiniOrPreview && isTopNode) ? '700' : '600'}
                 textAnchor="middle"
                 opacity={nodeOpacity}
                 pointerEvents="none"
@@ -448,7 +507,7 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
           <SvgText
             x={node.x}
             y={node.y + 5}
-            fontSize={node.icon ? nodeRadius * 0.7 : Math.min(nodeRadius * 0.35, mode === 'mini' ? 8 : 10)}
+            fontSize={node.icon ? adjustedNodeRadius * 0.7 : Math.min(adjustedNodeRadius * 0.35, isMiniOrPreview ? 8 : 10)}
             fill="#FFF"
             fontWeight="700"
             textAnchor="middle"
@@ -463,7 +522,16 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          width: customWidth || (isMiniOrPreview ? 400 : '100%'),
+          alignSelf: isMiniOrPreview ? 'flex-start' : 'stretch'
+        }
+      ]}
+      onLayout={handleLayout}
+    >
       {/* Header */}
       {(title || subtitle) && (
         <View style={styles.header}>
@@ -480,7 +548,7 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
               ? `Focusing node ${focusProgress > 0 ? `${focusProgress}%` : ''}...`
               : `Computing layout ${layoutProgress > 0 ? `${layoutProgress}%` : ''}...`
           }
-          size={mode === 'mini' ? 'small' : 'medium'}
+          size={isMiniOrPreview ? 'small' : 'medium'}
           overlay
           backgroundColor="rgba(255, 255, 255, 0.95)"
         />
@@ -524,6 +592,18 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
             >
               <Path d="M0,0 L0,6 L9,3 z" fill="#94A3B8" />
             </Marker>
+
+            {/* Radial gradients for subtle 3D node effect */}
+            <RadialGradient id="nodeGradient" cx="30%" cy="30%">
+              <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.15" />
+              <Stop offset="100%" stopColor="#000000" stopOpacity="0.05" />
+            </RadialGradient>
+
+            {/* Shadow gradient for subtle depth */}
+            <RadialGradient id="nodeShadow" cx="50%" cy="50%">
+              <Stop offset="0%" stopColor="#000000" stopOpacity="0" />
+              <Stop offset="100%" stopColor="#000000" stopOpacity="0.15" />
+            </RadialGradient>
           </Defs>
 
           {/* Render edges first (so nodes appear on top) */}
@@ -534,8 +614,8 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
         </Svg>
       </View>
 
-      {/* Expand button for mini mode */}
-      {mode === 'mini' && onExpandPress && (
+      {/* Expand button for mini/preview mode */}
+      {(mode === 'mini' || mode === 'preview') && onExpandPress && (
         <TouchableOpacity style={styles.expandButton} onPress={onExpandPress}>
           <Text style={styles.expandButtonText}>👁️ Expand</Text>
         </TouchableOpacity>

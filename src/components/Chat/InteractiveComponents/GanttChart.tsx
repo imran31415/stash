@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Pressable,
   Dimensions,
   Platform,
+  LayoutChangeEvent,
 } from 'react-native';
 import type { GanttChartProps, GanttTask } from './GanttChart.types';
 import {
@@ -88,6 +89,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
   showToday = true,
   timeScale = 'day',
   height: customHeight,
+  width: customWidth,
   title,
   subtitle,
   enablePagination = false,
@@ -95,7 +97,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
 }) => {
   const screenWidth = Dimensions.get('window').width;
   const scrollViewRef = useRef<ScrollView>(null);
-  const isMini = mode === 'mini';
+  const isMini = mode === 'mini' || mode === 'preview';
 
   // Pagination state
   const [currentPage, setCurrentPage] = React.useState(1);
@@ -138,8 +140,8 @@ export const GanttChart: React.FC<GanttChartProps> = ({
 
   // Get chart dimensions
   const dimensions = useMemo(
-    () => getChartDimensions(mode, screenWidth, paginatedTasks.length, customHeight),
-    [mode, screenWidth, paginatedTasks.length, customHeight]
+    () => getChartDimensions(mode, customWidth || screenWidth, paginatedTasks.length, customHeight),
+    [mode, customWidth, screenWidth, paginatedTasks.length, customHeight]
   );
 
   // Calculate total width of timeline
@@ -447,116 +449,128 @@ export const GanttChart: React.FC<GanttChartProps> = ({
   );
 
   return (
-    <View style={[styles.container, isMini && styles.containerMini, { height: dimensions.chartHeight }]}>
+    <View
+      style={[
+        styles.container,
+        isMini && styles.containerMini,
+        {
+          height: dimensions.chartHeight,
+          width: customWidth || (isMini ? 400 : '100%'),
+          alignSelf: isMini ? 'flex-start' : 'stretch'
+        }
+      ]}
+    >
       {renderHeader()}
 
-      <View style={styles.chartContainer}>
-        {/* Fixed task sidebar */}
-        <View style={[styles.sidebar, { width: dimensions.sidebarWidth }]}>
-          <View style={[styles.sidebarHeader, { height: dimensions.headerHeight }]}>
-            <Text style={[styles.sidebarHeaderText, isMini && styles.sidebarHeaderTextMini]}>
-              Tasks
-            </Text>
+      <>
+          <View style={styles.chartContainer}>
+            {/* Fixed task sidebar */}
+            <View style={[styles.sidebar, { width: dimensions.sidebarWidth }]}>
+              <View style={[styles.sidebarHeader, { height: dimensions.headerHeight }]}>
+                <Text style={[styles.sidebarHeaderText, isMini && styles.sidebarHeaderTextMini]}>
+                  Tasks
+                </Text>
+              </View>
+              <ScrollView
+                style={styles.sidebarScroll}
+                scrollEnabled={false}
+                showsVerticalScrollIndicator={false}
+              >
+                {paginatedTasks.map((task, index) => renderTaskSidebar(task, index))}
+              </ScrollView>
+            </View>
+
+            {/* Scrollable timeline */}
+            <ScrollView
+              ref={scrollViewRef}
+              horizontal
+              showsHorizontalScrollIndicator={!isMini}
+              style={styles.timelineScroll}
+            >
+              <View style={styles.timelineContainer}>
+                {renderTimelineHeader()}
+
+                <View style={styles.chartArea}>
+                  {renderTimelineGrid()}
+                  {renderTaskRows()}
+                  {renderTodayLine()}
+
+                  {/* Task bars layer */}
+                  <View style={styles.taskBarsContainer}>
+                    {taskBars.map((taskBar) => renderTaskBar(taskBar))}
+                  </View>
+
+                  {/* Milestones layer */}
+                  <View style={styles.milestonesContainer}>
+                    {paginatedTasks.map((task, index) => renderMilestones(task, index))}
+                  </View>
+                </View>
+              </View>
+            </ScrollView>
           </View>
-          <ScrollView
-            style={styles.sidebarScroll}
-            scrollEnabled={false}
-            showsVerticalScrollIndicator={false}
-          >
-            {paginatedTasks.map((task, index) => renderTaskSidebar(task, index))}
-          </ScrollView>
-        </View>
 
-        {/* Scrollable timeline */}
-        <ScrollView
-          ref={scrollViewRef}
-          horizontal
-          showsHorizontalScrollIndicator={!isMini}
-          style={styles.timelineScroll}
-        >
-          <View style={styles.timelineContainer}>
-            {renderTimelineHeader()}
+          {/* Pagination Controls */}
+          {enablePagination && !isMini && totalPages > 1 && (
+            <View style={styles.paginationContainer}>
+              <TouchableOpacity
+                style={[styles.paginationButton, currentPage === 1 && styles.paginationButtonDisabled]}
+                onPress={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                accessibilityLabel="Previous page"
+                accessibilityRole="button"
+              >
+                <Text style={[styles.paginationButtonText, currentPage === 1 && styles.paginationButtonTextDisabled]}>
+                  ‹ Previous
+                </Text>
+              </TouchableOpacity>
 
-            <View style={styles.chartArea}>
-              {renderTimelineGrid()}
-              {renderTaskRows()}
-              {renderTodayLine()}
-
-              {/* Task bars layer */}
-              <View style={styles.taskBarsContainer}>
-                {taskBars.map((taskBar) => renderTaskBar(taskBar))}
+              <View style={styles.paginationInfo}>
+                <Text style={styles.paginationText}>
+                  Page {currentPage} of {totalPages}
+                </Text>
+                <Text style={styles.paginationSubtext}>
+                  Showing {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, sortedTasks.length)} of {sortedTasks.length} tasks
+                </Text>
               </View>
 
-              {/* Milestones layer */}
-              <View style={styles.milestonesContainer}>
-                {paginatedTasks.map((task, index) => renderMilestones(task, index))}
+              <TouchableOpacity
+                style={[styles.paginationButton, currentPage === totalPages && styles.paginationButtonDisabled]}
+                onPress={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                accessibilityLabel="Next page"
+                accessibilityRole="button"
+              >
+                <Text style={[styles.paginationButtonText, currentPage === totalPages && styles.paginationButtonTextDisabled]}>
+                  Next ›
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Legend */}
+          {!isMini && (
+            <View style={styles.legend}>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendColor, { backgroundColor: colors.accent[100] }]} />
+                <Text style={styles.legendText}>In Progress</Text>
+              </View>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendColor, { backgroundColor: colors.success[100] }]} />
+                <Text style={styles.legendText}>Completed</Text>
+              </View>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendColor, { backgroundColor: colors.error[100] }]} />
+                <Text style={styles.legendText}>Blocked</Text>
+              </View>
+              <View style={styles.legendItem}>
+                <View style={styles.legendMilestoneContainer}>
+                  <View style={styles.legendMilestoneDiamond} />
+                </View>
+                <Text style={styles.legendText}>Milestone</Text>
               </View>
             </View>
-          </View>
-        </ScrollView>
-      </View>
-
-      {/* Pagination Controls */}
-      {enablePagination && !isMini && totalPages > 1 && (
-        <View style={styles.paginationContainer}>
-          <TouchableOpacity
-            style={[styles.paginationButton, currentPage === 1 && styles.paginationButtonDisabled]}
-            onPress={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            accessibilityLabel="Previous page"
-            accessibilityRole="button"
-          >
-            <Text style={[styles.paginationButtonText, currentPage === 1 && styles.paginationButtonTextDisabled]}>
-              ‹ Previous
-            </Text>
-          </TouchableOpacity>
-
-          <View style={styles.paginationInfo}>
-            <Text style={styles.paginationText}>
-              Page {currentPage} of {totalPages}
-            </Text>
-            <Text style={styles.paginationSubtext}>
-              Showing {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, sortedTasks.length)} of {sortedTasks.length} tasks
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            style={[styles.paginationButton, currentPage === totalPages && styles.paginationButtonDisabled]}
-            onPress={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            accessibilityLabel="Next page"
-            accessibilityRole="button"
-          >
-            <Text style={[styles.paginationButtonText, currentPage === totalPages && styles.paginationButtonTextDisabled]}>
-              Next ›
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* Legend */}
-      {!isMini && (
-        <View style={styles.legend}>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendColor, { backgroundColor: colors.accent[100] }]} />
-            <Text style={styles.legendText}>In Progress</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendColor, { backgroundColor: colors.success[100] }]} />
-            <Text style={styles.legendText}>Completed</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendColor, { backgroundColor: colors.error[100] }]} />
-            <Text style={styles.legendText}>Blocked</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={styles.legendMilestoneContainer}>
-              <View style={styles.legendMilestoneDiamond} />
-            </View>
-            <Text style={styles.legendText}>Milestone</Text>
-          </View>
-        </View>
-      )}
+          )}
+        </>
     </View>
   );
 };
@@ -680,7 +694,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   timelineContainer: {
-    flex: 1,
+    // Don't use flex - let it expand based on content width
   },
   timelineHeader: {
     flexDirection: 'row',

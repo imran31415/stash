@@ -57,13 +57,13 @@ export const getChartDimensions = (
 ): ChartDimensions => {
   const isMini = mode === 'mini';
 
-  const width = screenWidth;
+  const width = isMini ? 400 : screenWidth;
   const height = customHeight || (isMini ? 200 : 400);
 
-  const paddingTop = isMini ? 16 : 24;
-  const paddingRight = isMini ? 16 : 24;
-  const paddingBottom = isMini ? 32 : 48;
-  const paddingLeft = isMini ? 40 : 56;
+  const paddingTop = isMini ? 12 : 24;
+  const paddingRight = isMini ? 12 : 24;
+  const paddingBottom = isMini ? 28 : 48;
+  const paddingLeft = isMini ? 36 : 56;
 
   const legendHeight = showLegend && !isMini ? 32 : 0;
 
@@ -213,7 +213,8 @@ export const dataToScreenCoordinates = (
       const x = paddingLeft + xRatio * chartWidth;
 
       // Calculate y position (value)
-      const yRatio = (dataPoint.value - yMin) / (yMax - yMin);
+      const yRange = yMax - yMin;
+      const yRatio = yRange > 0 ? (dataPoint.value - yMin) / yRange : 0.5;
       const y = paddingTop + chartHeight - yRatio * chartHeight; // Invert y-axis
 
       return {
