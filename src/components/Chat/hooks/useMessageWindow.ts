@@ -130,17 +130,37 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
           ? combined.slice(0, windowSize)
           : combined;
 
+        console.log('[useMessageWindow] Loaded older messages:', {
+          oldCount: prev.length,
+          newCount: olderMessages.length,
+          combinedCount: combined.length,
+          trimmed: shouldTrim,
+          finalCount: trimmed.length,
+          willHaveMoreNewer: shouldTrim,
+        });
+
         return trimmed;
       });
 
-      setPagination(prev => ({
-        ...prev,
-        isLoadingOlder: false,
-        oldestMessageId: olderMessages[0]?.id || prev.oldestMessageId,
-        hasMoreOlder: olderMessages.length === windowSize,
-        hasMoreNewer: prev.hasMoreNewer || (olderMessages.length + messages.length > windowSize),
-        currentWindowStart: Math.max(0, prev.currentWindowStart - olderMessages.length),
-      }));
+      setPagination(prev => {
+        const combined = olderMessages.length + messages.length;
+        const hasMoreNewer = combined > windowSize || prev.hasMoreNewer;
+
+        console.log('[useMessageWindow] Updated pagination after loading older:', {
+          hasMoreOlder: olderMessages.length === windowSize,
+          hasMoreNewer,
+          oldestMessageId: olderMessages[0]?.id,
+        });
+
+        return {
+          ...prev,
+          isLoadingOlder: false,
+          oldestMessageId: olderMessages[0]?.id || prev.oldestMessageId,
+          hasMoreOlder: olderMessages.length === windowSize,
+          hasMoreNewer,
+          currentWindowStart: Math.max(0, prev.currentWindowStart - olderMessages.length),
+        };
+      });
     } catch (error) {
       console.error('[useMessageWindow] Error loading older messages:', error);
       setPagination(prev => ({ ...prev, isLoadingOlder: false }));
@@ -181,17 +201,37 @@ export function useMessageWindow(options: UseMessageWindowOptions): UseMessageWi
         const startIndex = shouldTrim ? combined.length - windowSize : 0;
         const trimmed = combined.slice(startIndex);
 
+        console.log('[useMessageWindow] Loaded newer messages:', {
+          oldCount: prev.length,
+          newCount: newerMessages.length,
+          combinedCount: combined.length,
+          trimmed: shouldTrim,
+          finalCount: trimmed.length,
+          willHaveMoreOlder: shouldTrim,
+        });
+
         return trimmed;
       });
 
-      setPagination(prev => ({
-        ...prev,
-        isLoadingNewer: false,
-        newestMessageId: newerMessages[newerMessages.length - 1]?.id || prev.newestMessageId,
-        hasMoreNewer: newerMessages.length === windowSize,
-        hasMoreOlder: prev.hasMoreOlder || (messages.length + newerMessages.length > windowSize),
-        currentWindowEnd: prev.currentWindowEnd + newerMessages.length,
-      }));
+      setPagination(prev => {
+        const combined = messages.length + newerMessages.length;
+        const hasMoreOlder = combined > windowSize || prev.hasMoreOlder;
+
+        console.log('[useMessageWindow] Updated pagination after loading newer:', {
+          hasMoreNewer: newerMessages.length === windowSize,
+          hasMoreOlder,
+          newestMessageId: newerMessages[newerMessages.length - 1]?.id,
+        });
+
+        return {
+          ...prev,
+          isLoadingNewer: false,
+          newestMessageId: newerMessages[newerMessages.length - 1]?.id || prev.newestMessageId,
+          hasMoreNewer: newerMessages.length === windowSize,
+          hasMoreOlder,
+          currentWindowEnd: prev.currentWindowEnd + newerMessages.length,
+        };
+      });
     } catch (error) {
       console.error('[useMessageWindow] Error loading newer messages:', error);
       setPagination(prev => ({ ...prev, isLoadingNewer: false }));

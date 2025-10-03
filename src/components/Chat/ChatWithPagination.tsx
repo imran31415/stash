@@ -103,6 +103,7 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
     loadOlderMessages,
     loadNewerMessages,
     addMessage,
+    addMessages,
     updateMessage,
   } = useMessageWindow({
     windowSize,
@@ -115,14 +116,19 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
       : undefined,
   });
 
+  // Track if this is the first load to enable auto-scroll
+  const isFirstLoadRef = useRef(true);
+  const hasLoadedInitialRef = useRef(false);
+
   // Load initial messages
   useEffect(() => {
     const loadInitial = async () => {
-      if (onLoadInitialMessages) {
+      if (onLoadInitialMessages && !hasLoadedInitialRef.current) {
         setIsLoading(true);
         try {
           const { messages: initialMessages } = await onLoadInitialMessages(chatId, windowSize);
-          initialMessages.forEach(msg => addMessage(msg));
+          addMessages(initialMessages); // Use addMessages for batch addition
+          hasLoadedInitialRef.current = true;
         } catch (error) {
           console.error('Error loading initial messages:', error);
         } finally {
@@ -264,11 +270,19 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
     }
   };
 
-  const scrollToBottom = () => {
+  const scrollToBottom = (animated: boolean = true) => {
     setTimeout(() => {
-      flatListRef.current?.scrollToEnd({ animated: true });
+      flatListRef.current?.scrollToEnd({ animated });
     }, 100);
   };
+
+  // Handle content size change - only auto-scroll on first load or when sending messages
+  const handleContentSizeChange = useCallback(() => {
+    if (isFirstLoadRef.current && messages.length > 0) {
+      scrollToBottom(false); // Don't animate on first load
+      isFirstLoadRef.current = false;
+    }
+  }, [messages.length]);
 
   // Handle scroll events for pagination
   const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -279,11 +293,21 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
 
     // Load older messages when scrolling near the top
     if (scrollFromTop < 500 && pagination.hasMoreOlder && !pagination.isLoadingOlder) {
+      console.log('[ChatWithPagination] Triggering load older messages', {
+        scrollFromTop,
+        hasMoreOlder: pagination.hasMoreOlder,
+        isLoadingOlder: pagination.isLoadingOlder,
+      });
       loadOlderMessages();
     }
 
     // Load newer messages when scrolling near the bottom
     if (scrollFromBottom < 500 && pagination.hasMoreNewer && !pagination.isLoadingNewer) {
+      console.log('[ChatWithPagination] Triggering load newer messages', {
+        scrollFromBottom,
+        hasMoreNewer: pagination.hasMoreNewer,
+        isLoadingNewer: pagination.isLoadingNewer,
+      });
       loadNewerMessages();
     }
   }, [pagination, loadOlderMessages, loadNewerMessages]);
@@ -366,8 +390,7 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
           ListHeaderComponent={ListHeaderComponent}
           ListFooterComponent={ListFooterComponent}
           ListEmptyComponent={isLoading ? null : (renderEmptyState || defaultEmptyState)}
-          onContentSizeChange={scrollToBottom}
-          onLayout={scrollToBottom}
+          onContentSizeChange={handleContentSizeChange}
           // Memory optimization
           removeClippedSubviews={true}
           maxToRenderPerBatch={10}
@@ -390,7 +413,10 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
       {__DEV__ && (
         <View style={styles.debugInfo}>
           <Text style={styles.debugText}>
-            Window: {messages.length}/{windowSize} | Older: {pagination.hasMoreOlder ? '✓' : '✗'} | Newer: {pagination.hasMoreNewer ? '✓' : '✗'}
+            Messages: {messages.length}/{windowSize} | Older: {pagination.hasMoreOlder ? '✓' : '✗'} ({pagination.isLoadingOlder ? 'loading...' : 'idle'}) | Newer: {pagination.hasMoreNewer ? '✓' : '✗'} ({pagination.isLoadingNewer ? 'loading...' : 'idle'})
+          </Text>
+          <Text style={styles.debugText}>
+            Range: {pagination.oldestMessageId || 'N/A'} → {pagination.newestMessageId || 'N/A'}
           </Text>
         </View>
       )}
