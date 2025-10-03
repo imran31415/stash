@@ -10,6 +10,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   TouchableOpacity,
+  InteractionManager,
 } from 'react-native';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
@@ -298,8 +299,8 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
     const isNearBottom = scrollFromBottom < 100;
     setShowScrollToBottom(!isNearBottom && pagination.hasMoreNewer);
 
-    // Load older messages when scrolling near the top
-    if (scrollFromTop < 500 && pagination.hasMoreOlder && !pagination.isLoadingOlder) {
+    // Load older messages when scrolling near the top (increased threshold for earlier load)
+    if (scrollFromTop < 800 && pagination.hasMoreOlder && !pagination.isLoadingOlder) {
       console.log('[ChatWithPagination] Triggering load older messages', {
         scrollFromTop,
         hasMoreOlder: pagination.hasMoreOlder,
@@ -308,8 +309,8 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
       loadOlderMessages();
     }
 
-    // Load newer messages when scrolling near the bottom
-    if (scrollFromBottom < 500 && pagination.hasMoreNewer && !pagination.isLoadingNewer) {
+    // Load newer messages when scrolling near the bottom (increased threshold for earlier load)
+    if (scrollFromBottom < 800 && pagination.hasMoreNewer && !pagination.isLoadingNewer) {
       console.log('[ChatWithPagination] Triggering load newer messages', {
         scrollFromBottom,
         hasMoreNewer: pagination.hasMoreNewer,
@@ -319,37 +320,35 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
     }
   }, [pagination, loadOlderMessages, loadNewerMessages]);
 
-  // Scroll to latest messages (load most recent if needed)
+  // Scroll to latest messages (reload from end for instant jump)
   const scrollToLatest = useCallback(async () => {
     setShowScrollToBottom(false);
 
-    if (pagination.hasMoreNewer) {
-      // Need to progressively load newer messages until we reach the end
+    if (pagination.hasMoreNewer && onLoadInitialMessages) {
+      // Reload from the end for instant smooth jump
       setIsLoadingLatest(true);
       try {
-        let hasMore = pagination.hasMoreNewer;
-        let attempts = 0;
-        const maxAttempts = 50; // Prevent infinite loops
+        const { messages: latestMessages } = await onLoadInitialMessages(chatId, windowSize);
 
-        while (hasMore && attempts < maxAttempts) {
-          await loadNewerMessages();
-          // Wait a bit for state to update
-          await new Promise(resolve => setTimeout(resolve, 100));
-          hasMore = pagination.hasMoreNewer;
-          attempts++;
-        }
+        // Replace messages in one batch for smooth transition
+        addMessages(latestMessages);
+
+        // Wait for interactions to complete before scrolling
+        InteractionManager.runAfterInteractions(() => {
+          scrollToBottom(false);
+          setIsLoadingLatest(false);
+        });
       } catch (error) {
         console.error('[ChatWithPagination] Error loading latest messages:', error);
-      } finally {
         setIsLoadingLatest(false);
       }
+    } else {
+      // Already have latest, just scroll
+      scrollToBottom(true);
     }
+  }, [pagination.hasMoreNewer, onLoadInitialMessages, chatId, windowSize, addMessages]);
 
-    // Scroll to bottom
-    setTimeout(() => scrollToBottom(true), 200);
-  }, [pagination.hasMoreNewer, loadNewerMessages]);
-
-  const renderMessageItem = ({ item, index }: { item: Message; index: number }) => {
+  const renderMessageItem = useCallback(({ item, index }: { item: Message; index: number }) => {
     // Safety check: if item is undefined or null, return null
     if (!item) {
       return null;
@@ -370,7 +369,7 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
         onAvatarPress={onAvatarPress}
       />
     );
-  };
+  }, [renderMessage, theme, onMessagePress, onMessageLongPress, onAvatarPress]);
 
   const defaultEmptyState = () => (
     <View style={styles.emptyState}>
@@ -423,16 +422,24 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
           contentContainerStyle={styles.messagesContent}
           showsVerticalScrollIndicator={true}
           onScroll={handleScroll}
-          scrollEventThrottle={400}
+          scrollEventThrottle={16}
           ListHeaderComponent={ListHeaderComponent}
           ListFooterComponent={ListFooterComponent}
           ListEmptyComponent={isLoading ? null : (renderEmptyState || defaultEmptyState)}
           onContentSizeChange={handleContentSizeChange}
-          // Memory optimization
-          removeClippedSubviews={true}
-          maxToRenderPerBatch={10}
-          initialNumToRender={20}
-          windowSize={21}
+          // Maintain scroll position when prepending messages (loading older)
+          maintainVisibleContentPosition={{
+            minIndexForVisible: 0,
+            autoscrollToTopThreshold: 10,
+          }}
+          // Memory and performance optimization
+          removeClippedSubviews={Platform.OS === 'android'}
+          maxToRenderPerBatch={5}
+          initialNumToRender={15}
+          windowSize={10}
+          updateCellsBatchingPeriod={50}
+          // Faster reflow
+          legacyImplementation={false}
         />
 
         <ChatInput
@@ -471,9 +478,6 @@ export const ChatWithPagination: React.FC<ChatWithPaginationProps> = ({
       {/* Pagination Info (for debugging) */}
       {__DEV__ && (
         <View style={styles.debugInfo}>
-          <Text style={styles.debugText}>
-            Messages: {messages.length}/{windowSize} | Older: {pagination.hasMoreOlder ? '✓' : '✗'} ({pagination.isLoadingOlder ? 'loading...' : 'idle'}) | Newer: {pagination.hasMoreNewer ? '✓' : '✗'} ({pagination.isLoadingNewer ? 'loading...' : 'idle'})
-          </Text>
           <Text style={styles.debugText}>
             Range: {pagination.oldestMessageId || 'N/A'} → {pagination.newestMessageId || 'N/A'}
           </Text>
