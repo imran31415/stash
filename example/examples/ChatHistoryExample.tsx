@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { ChatLayout, Chat, ChatWithPagination } from '../../src/components/Chat';
 import type { ChatPreview, Message, GraphData } from '../../src/components/Chat';
-import { addDays, addWeeks, addHours, subDays } from 'date-fns';
+import { addDays, addWeeks, addHours, addMinutes, subDays } from 'date-fns';
 import {
   generateMockTasks,
   generateMockResources,
@@ -10,6 +10,7 @@ import {
   generateMockTimeSeriesData,
   generateLargeGraph,
 } from '../utils/mockDataGenerator';
+import MediaChatExample from './MediaChatExample';
 
 // Combined "What is Stash?" - Philosophy + Demo
 const getStashOverviewMessages = (): Message[] => {
@@ -176,10 +177,43 @@ const getStashOverviewMessages = (): Message[] => {
       },
     },
     {
-      id: 'demo-7',
-      content: "## Why Stash?\n\nYou've seen the components in action. Here's what makes Stash different from other UI libraries:\n\n✅ **True Cross-Platform** - One codebase, truly native performance on iOS, Android, and Web. No compromises.\n\n✅ **Built for Scale** - Handles 1000+ items smoothly with pagination, virtualization, and smart rendering. Your app stays responsive.\n\n✅ **AI-Native Design** - Components designed for AI-generated content. Perfect for chatbots, assistants, and agentic workflows.\n\n✅ **Real-time Ready** - WebSocket support built-in. Live updates without custom integration work.\n\n✅ **Beautiful by Default** - Polished UI/UX out of the box. Fully customizable to match your brand.\n\n✅ **Developer Friendly** - TypeScript-first API, comprehensive docs, easy integration. Works with Expo.\n\n✅ **Performance Obsessed** - Optimized rendering, async computations, 60fps interactions. No UI freezing, ever.\n\nEvery component you saw can be expanded (⛶) for full-screen detail views with filtering, search, and advanced features!",
+      id: 'demo-6a',
+      content: "What about images, videos, and other media? Can Stash handle rich media in conversations?",
+      sender: { id: 'user-demo', name: 'You', avatar: '👤' },
+      timestamp: addHours(new Date(), 0.0425),
+      status: 'delivered',
+      isOwn: true,
+    },
+    {
+      id: 'demo-6b',
+      content: "## Rich Media Support\n\nAbsolutely! **Stash handles images, videos, and files beautifully** - crucial for modern collaboration.\n\nInstead of:\n*\"I uploaded the design mockup to Dropbox, check the Q1-Campaign folder, file v3-final-FINAL.png\"*\n\nYou get inline media with:\n• **Image preview and zoom** - High-res images with pinch-to-zoom\n• **Video playback** - Native video player with controls\n• **File attachments** - Documents, PDFs, archives with metadata\n• **Smart layout** - Automatically adapts to image dimensions\n• **Gallery mode** - Swipe through multiple images\n• **Download support** - Save media locally\n\nPerfect for design reviews, campaign assets, documentation, and any visual collaboration. All with the same cross-platform performance guarantees.\n\nCheck out the **🎨 Creative Team** chat to see media-rich conversations in action!",
       sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
-      timestamp: addHours(new Date(), 0.045),
+      timestamp: addHours(new Date(), 0.0435),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'media',
+        data: {
+          type: 'image',
+          url: 'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead',
+          width: 1200,
+          height: 800,
+          thumbnail: 'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?w=400',
+          caption: 'Campaign Hero Image - Q1 2024',
+          metadata: {
+            fileName: 'hero-image-v3-final.jpg',
+            fileSize: '2.4 MB',
+            uploadedBy: 'Sarah Chen',
+            uploadedAt: new Date(),
+          },
+        },
+      },
+    },
+    {
+      id: 'demo-7',
+      content: "## Why Stash?\n\nYou've seen the components in action. Here's what makes Stash different from other UI libraries:\n\n✅ **True Cross-Platform** - One codebase, truly native performance on iOS, Android, and Web. No compromises.\n\n✅ **Built for Scale** - Handles 1000+ items smoothly with pagination, virtualization, and smart rendering. Your app stays responsive.\n\n✅ **Rich Media Support** - Images, videos, files with preview, zoom, and gallery modes. Perfect for visual collaboration.\n\n✅ **AI-Native Design** - Components designed for AI-generated content. Perfect for chatbots, assistants, and agentic workflows.\n\n✅ **Real-time Ready** - WebSocket support built-in. Live updates without custom integration work.\n\n✅ **Beautiful by Default** - Polished UI/UX out of the box. Fully customizable to match your brand.\n\n✅ **Developer Friendly** - TypeScript-first API, comprehensive docs, easy integration. Works with Expo.\n\n✅ **Performance Obsessed** - Optimized rendering, async computations, 60fps interactions. No UI freezing, ever.\n\nEvery component you saw can be expanded (⛶) for full-screen detail views with filtering, search, and advanced features!",
+      sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
+      timestamp: addHours(new Date(), 0.0475),
       status: 'delivered',
       isOwn: false,
       interactiveComponent: {
@@ -192,6 +226,9 @@ const getStashOverviewMessages = (): Message[] => {
 
 ✅ **Built for Scale**
    Handles 1000+ items with pagination, virtualization, smart rendering
+
+✅ **Rich Media Support**
+   Images, videos, files with preview, zoom, and gallery modes
 
 ✅ **AI-Native Design**
    Components designed for AI-generated content and agentic workflows
@@ -215,7 +252,7 @@ const getStashOverviewMessages = (): Message[] => {
     },
     {
       id: 'demo-8',
-      content: "## Getting Started is Easy\n\nReady to transform your chat interface? Here's all it takes:\n\n**1. Install**\n```bash\nnpm install @stash/react-native\n```\n\n**2. Import**\n```tsx\nimport { TaskList, GanttChart, GraphVisualization } from '@stash/react-native';\n```\n\n**3. Use**\n```tsx\n<TaskList tasks={myTasks} mode=\"full\" />\n```\n\nThat's it! You get a production-ready, performant component that works across iOS, Android, and Web.\n\n**Next Steps:**\n• Explore the **📄 Pagination Demo** chat to see 1,200 messages handled smoothly\n• Check out the **Q1 Website Redesign** chat for real-world usage examples\n• Visit the **📊 UI tab** to explore individual components in depth\n\nWelcome to the future of chat interfaces! 🚀",
+      content: "## Getting Started is Easy\n\nReady to transform your chat interface? Here's all it takes:\n\n**1. Install**\n```bash\nnpm install @stash/react-native\n```\n\n**2. Import**\n```tsx\nimport { TaskList, GanttChart, GraphVisualization } from '@stash/react-native';\n```\n\n**3. Use**\n```tsx\n<TaskList tasks={myTasks} mode=\"full\" />\n```\n\nThat's it! You get a production-ready, performant component that works across iOS, Android, and Web.\n\n**Next Steps:**\n• Explore the **🎨 Creative Team** chat for media-rich collaboration examples\n• Check out the **📄 Pagination Demo** chat to see 1,200 messages handled smoothly\n• Try the **Q1 Website Redesign** chat for real-world interactive components\n• Visit the **📊 UI tab** to explore individual components in depth\n\nWelcome to the future of chat interfaces! 🚀",
       sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
       timestamp: addHours(new Date(), 0.05),
       status: 'delivered',
@@ -1443,6 +1480,31 @@ const ALL_MOCK_CHATS: ChatPreview[] = [
       lastReadAt: new Date(),
     },
   },
+  // Media collaboration demo
+  {
+    id: 'chat-media',
+    title: '🎨 Creative Team - Campaign Assets',
+    type: 'group',
+    participants: [
+      { id: 'user-sarah', name: 'Sarah Chen', avatar: '👩‍🎨' },
+      { id: 'user-mike', name: 'Mike Rodriguez', avatar: '🧑‍💼' },
+      { id: 'user-alex', name: 'Alex Kim', avatar: '🎬' },
+      { id: 'user-jamie', name: 'Jamie Foster', avatar: '🎙️' },
+      { id: 'user-you', name: 'You', avatar: '👤' },
+    ],
+    lastMessage: {
+      content: 'Thanks everyone! Let\'s sync tomorrow morning to finalize the timeline.',
+      timestamp: addMinutes(new Date(), -1),
+      senderId: 'user-sarah',
+      senderName: 'Sarah Chen',
+    },
+    unreadCount: 0,
+    updatedAt: new Date(),
+    createdAt: addMinutes(new Date(), -45),
+    isPinned: true,
+    isMuted: false,
+    isArchived: false,
+  },
   // Pagination demo - 1,200 messages
   {
     id: 'chat-pagination',
@@ -1710,7 +1772,10 @@ export default function ChatHistoryExample() {
     >
       {/* Chat content area */}
       {currentChatId ? (
-        currentChatId === 'chat-pagination' ? (
+        currentChatId === 'chat-media' ? (
+          // Use MediaChatExample for media collaboration demo
+          <MediaChatExample />
+        ) : currentChatId === 'chat-pagination' ? (
           // Use ChatWithPagination for the large message demo
           <ChatWithPagination
             userId="current-user"
