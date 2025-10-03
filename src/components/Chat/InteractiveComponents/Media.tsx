@@ -101,8 +101,10 @@ export const Media: React.FC<MediaProps> = ({
   maxWidth,
   onMediaPress,
   onExpandPress,
+  onExpand,
   onDownload,
   onShare,
+  onAction,
   showMetadata = false,
   showCaption = true,
   aspectRatio = 'original',
@@ -111,6 +113,8 @@ export const Media: React.FC<MediaProps> = ({
   borderRadius: customBorderRadius,
   gallery,
 }) => {
+  // Use onExpand if provided, otherwise fall back to onExpandPress
+  const handleExpand = onExpand || onExpandPress;
   const screenWidth = Dimensions.get('window').width;
   const isMini = mode === 'mini';
   const isMediaGallery = isGallery(media);
@@ -314,14 +318,14 @@ export const Media: React.FC<MediaProps> = ({
         )}
 
         {/* Expand button for mini mode */}
-        {isMini && onExpandPress && (
+        {isMini && handleExpand && (
           <TouchableOpacity
             style={styles.expandButton}
-            onPress={onExpandPress}
+            onPress={handleExpand}
             accessibilityLabel="Expand media"
             accessibilityRole="button"
           >
-            <Text style={styles.expandButtonText}>⛶</Text>
+            <Text style={styles.expandButtonText}>👁️ Expand</Text>
           </TouchableOpacity>
         )}
       </TouchableOpacity>
@@ -499,6 +503,29 @@ export const Media: React.FC<MediaProps> = ({
       </View>
     );
   };
+
+  // Early return if no media data
+  if (!currentMedia) {
+    return (
+      <View style={[styles.container, isMini && styles.containerMini]}>
+        <View style={[
+          styles.mediaContainer,
+          {
+            width: containerWidth,
+            height: containerHeight,
+            backgroundColor: backgroundColor || colors.surface.secondary,
+            borderRadius: customBorderRadius || borderRadius.lg,
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
+        ]}>
+          <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
+            Media not available
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, isMini && styles.containerMini]}>
@@ -701,12 +728,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: spacing[2],
     right: spacing[2],
-    padding: spacing[2],
+    paddingVertical: spacing[1],
+    paddingHorizontal: spacing[2],
     borderRadius: borderRadius.base,
     backgroundColor: colors.accent[500],
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   expandButtonText: {
-    fontSize: typography.fontSize.lg,
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
     color: colors.text.inverse,
   },
   captionContainer: {
