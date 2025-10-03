@@ -14,6 +14,8 @@ import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { TypingIndicator } from './TypingIndicator';
 import { ConnectionStatus } from './ConnectionStatus';
+import { ChatControlBar } from './ChatControlBar';
+import { PresentationCompletionDialog } from './PresentationCompletionDialog';
 import { WebSocketChatService, ConnectionState } from './WebSocketChatService';
 import { HTTPChatService } from './HTTPChatService';
 import { Message, ChatType, TypingIndicator as TypingIndicatorType, ChatTheme } from './types';
@@ -52,6 +54,9 @@ export interface ChatProps {
   presentationMode?: boolean; // Display messages one at a time like stories
   onPresentationComplete?: () => void; // Called when reaching the end in presentation mode
   onExitPresentation?: () => void; // Called when user exits presentation mode
+  onEnterPresentation?: () => void; // Called when user wants to enter presentation mode
+  onCopyHistory?: (json: string) => void; // Called when chat history is copied
+  showControlBar?: boolean; // Show the control bar with actions (default: true in non-presentation mode)
 }
 
 export const Chat: React.FC<ChatProps> = ({
@@ -80,6 +85,9 @@ export const Chat: React.FC<ChatProps> = ({
   presentationMode = false,
   onPresentationComplete,
   onExitPresentation,
+  onEnterPresentation,
+  onCopyHistory,
+  showControlBar = true,
 }) => {
   const [messages, setMessages] = useState<Message[]>(externalMessages);
   const [inputText, setInputText] = useState('');
@@ -87,6 +95,7 @@ export const Chat: React.FC<ChatProps> = ({
   const [connectionState, setConnectionState] = useState<ConnectionState>(ConnectionState.Disconnected);
   const [typingUsers, setTypingUsers] = useState<TypingIndicatorType[]>([]);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+  const [showCompletionDialog, setShowCompletionDialog] = useState(false);
 
   const flatListRef = useRef<FlatList>(null);
   const wsServiceRef = useRef<WebSocketChatService | null>(null);
@@ -301,6 +310,7 @@ export const Chat: React.FC<ChatProps> = ({
     if (currentMessageIndex < messages.length - 1) {
       setCurrentMessageIndex(prev => prev + 1);
     } else {
+      setShowCompletionDialog(true);
       onPresentationComplete?.();
     }
   };
@@ -309,6 +319,16 @@ export const Chat: React.FC<ChatProps> = ({
     if (currentMessageIndex > 0) {
       setCurrentMessageIndex(prev => prev - 1);
     }
+  };
+
+  const handleRestartPresentation = () => {
+    setShowCompletionDialog(false);
+    setCurrentMessageIndex(0);
+  };
+
+  const handleExitPresentation = () => {
+    setShowCompletionDialog(false);
+    onExitPresentation?.();
   };
 
   const handleKeyPress = (event: any) => {
@@ -469,6 +489,18 @@ export const Chat: React.FC<ChatProps> = ({
 
   return (
     <View style={[styles.container, style]}>
+      {/* Control Bar - only show when not in presentation mode */}
+      {!presentationMode && showControlBar && (
+        <ChatControlBar
+          theme={theme}
+          messages={messages}
+          onEnterPresentation={onEnterPresentation}
+          onCopyHistory={onCopyHistory}
+          showPresentationButton={!!onEnterPresentation}
+          showCopyButton={true}
+        />
+      )}
+
       <KeyboardAvoidingView
         style={styles.keyboardAvoid}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -502,6 +534,14 @@ export const Chat: React.FC<ChatProps> = ({
           onTyping={showTypingIndicator ? handleTyping : undefined}
         />
       </KeyboardAvoidingView>
+
+      {/* Presentation Completion Dialog */}
+      <PresentationCompletionDialog
+        visible={showCompletionDialog}
+        theme={theme}
+        onExitPresentation={handleExitPresentation}
+        onRestartPresentation={handleRestartPresentation}
+      />
     </View>
   );
 };
@@ -589,7 +629,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingLeft: 8,
+    paddingRight: 16,
   },
   presentationMessageWrapper: {
     width: '100%',
