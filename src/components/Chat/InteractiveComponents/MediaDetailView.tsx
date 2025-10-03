@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,10 @@ import {
   SafeAreaView,
   Image,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
+import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
+import { Audio } from 'expo-av';
 import { useModalNavigation } from '../hooks';
 import type { MediaDetailViewProps, MediaItem } from './Media.types';
 import {
@@ -51,6 +54,11 @@ export const MediaDetailView: React.FC<MediaDetailViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'media' | 'details'>('media');
 
+  // Video/Audio playback state
+  const videoRef = useRef<Video>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   // Handle cross-platform navigation
   useModalNavigation({ visible, onClose });
 
@@ -61,18 +69,44 @@ export const MediaDetailView: React.FC<MediaDetailViewProps> = ({
   const handlePrevious = () => {
     const newIndex = Math.max(0, currentIndex - 1);
     setCurrentIndex(newIndex);
+    setIsPlaying(false);
     onMediaPress?.(mediaArray[newIndex], newIndex);
   };
 
   const handleNext = () => {
     const newIndex = Math.min(mediaArray.length - 1, currentIndex + 1);
     setCurrentIndex(newIndex);
+    setIsPlaying(false);
     onMediaPress?.(mediaArray[newIndex], newIndex);
   };
 
   const handleThumbnailPress = (index: number) => {
     setCurrentIndex(index);
+    setIsPlaying(false);
     onMediaPress?.(mediaArray[index], index);
+  };
+
+  const handlePlayPause = async () => {
+    if (!videoRef.current) return;
+
+    try {
+      if (isPlaying) {
+        await videoRef.current.pauseAsync();
+        setIsPlaying(false);
+      } else {
+        await videoRef.current.playAsync();
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.error('Error playing/pausing video:', error);
+    }
+  };
+
+  const onPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
+    if (status.isLoaded) {
+      setIsPlaying(status.isPlaying);
+      setIsLoading(false);
+    }
   };
 
   // Filtered media for search
@@ -146,8 +180,9 @@ export const MediaDetailView: React.FC<MediaDetailViewProps> = ({
         {/* Video */}
         {currentMedia.type === 'video' && (
           <View style={styles.videoContainer}>
-            <Image
-              source={{ uri: currentMedia.thumbnailUrl || currentMedia.url }}
+            <Video
+              ref={videoRef}
+              source={{ uri: currentMedia.url }}
               style={[
                 styles.mediaImage,
                 {
@@ -155,12 +190,47 @@ export const MediaDetailView: React.FC<MediaDetailViewProps> = ({
                   height: mediaDimensions.height,
                 },
               ]}
-              resizeMode="contain"
+              resizeMode={ResizeMode.CONTAIN}
+              useNativeControls={false}
+              isLooping={currentMedia.loop || false}
+              isMuted={currentMedia.isMuted || false}
+              shouldPlay={false}
+              onPlaybackStatusUpdate={onPlaybackStatusUpdate}
+              onLoadStart={() => setIsLoading(true)}
+              onLoad={() => setIsLoading(false)}
             />
-            <TouchableOpacity style={styles.playButton}>
-              <Text style={styles.playButtonText}>▶</Text>
-            </TouchableOpacity>
-            {currentMedia.metadata?.duration && (
+
+            {/* Play/Pause Button Overlay */}
+            {!isPlaying && (
+              <TouchableOpacity
+                style={styles.playButton}
+                onPress={handlePlayPause}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.playButtonText}>▶</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Pause button when playing */}
+            {isPlaying && (
+              <TouchableOpacity
+                style={styles.pauseButton}
+                onPress={handlePlayPause}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.pauseButtonText}>⏸</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Loading indicator */}
+            {isLoading && (
+              <View style={styles.loadingOverlay}>
+                <ActivityIndicator size="large" color="#FFFFFF" />
+              </View>
+            )}
+
+            {/* Duration badge */}
+            {currentMedia.metadata?.duration && !isPlaying && (
               <View style={styles.durationBadge}>
                 <Text style={styles.durationText}>{formatDuration(currentMedia.metadata.duration)}</Text>
               </View>
@@ -601,6 +671,27 @@ const styles = StyleSheet.create({
     fontSize: 32,
     color: '#FFFFFF',
     marginLeft: 6,
+  },
+  pauseButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pauseButtonText: {
+    fontSize: 24,
+    color: '#FFFFFF',
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   durationBadge: {
     position: 'absolute',

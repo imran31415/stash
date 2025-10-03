@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
 import InteractiveComponentsExample from './examples/InteractiveComponentsExample';
 import ChatHistoryExample from './examples/ChatHistoryExample';
+import MediaExample from './examples/MediaExample';
 import { LoadingState } from '../src/components/Chat/InteractiveComponents';
 
-type TabType = 'history' | 'interactive';
+type TabType = 'history' | 'interactive' | 'media';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('history');
@@ -37,10 +38,15 @@ export default function App() {
 
   const renderContent = () => {
     if (isLoadingTab) {
+      const loadingMessage =
+        activeTab === 'history' ? 'Chats' :
+        activeTab === 'media' ? 'Media Examples' :
+        'UI Components';
+
       return (
         <View style={styles.loadingContainer}>
           <LoadingState
-            message={`Loading ${activeTab === 'history' ? 'Chats' : 'UI Components'}...`}
+            message={`Loading ${loadingMessage}...`}
             size="large"
             height={400}
           />
@@ -53,6 +59,8 @@ export default function App() {
         return <InteractiveComponentsExample />;
       case 'history':
         return <ChatHistoryExample />;
+      case 'media':
+        return <MediaExample />;
       default:
         return null;
     }
@@ -87,6 +95,16 @@ export default function App() {
         >
           <Text style={[styles.tabText, activeTab === 'interactive' && styles.tabTextActive]}>
             📊 UI
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'media' && styles.tabActive]}
+          onPress={() => handleTabChange('media')}
+          disabled={isLoadingTab}
+        >
+          <Text style={[styles.tabText, activeTab === 'media' && styles.tabTextActive]}>
+            🖼️ Media
           </Text>
         </TouchableOpacity>
       </View>

@@ -2240,109 +2240,109 @@ const getLargeMessageHistory = (): Message[] => {
   return messages;
 };
 
-// Generate initial 100 chats
-const ALL_MOCK_CHATS = generateMockChats(100);
-
-// Insert the "What is Stash?" demo conversation
-ALL_MOCK_CHATS.unshift({
-  id: 'chat-demo',
-  title: '✨ What is Stash?',
-  type: 'ai',
-  participants: [
-    { id: 'user-demo', name: 'You', avatar: '👤' },
-    { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
-  ],
-  lastMessage: {
-    content: 'Getting Started is Easy: npm install @stash/react-native...',
-    timestamp: new Date(),
-    senderId: 'ai-demo',
-    senderName: 'Stash AI',
+// Core demo chats showcasing Stash capabilities
+const ALL_MOCK_CHATS: ChatPreview[] = [
+  // Philosophy conversation - presentation mode
+  {
+    id: 'chat-philosophy',
+    title: '💭 Why Chat Needs to Evolve',
+    type: 'ai',
+    participants: [
+      { id: 'user-phil', name: 'You', avatar: '👤' },
+      { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
+    ],
+    lastMessage: {
+      content: 'Welcome to Stash. Ready to build the future?',
+      timestamp: new Date(),
+      senderId: 'ai-phil',
+      senderName: 'Stash AI',
+    },
+    unreadCount: 0,
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    isPinned: true,
+    isMuted: false,
+    isArchived: false,
+    metadata: {
+      lastReadAt: new Date(),
+    },
   },
-  unreadCount: 0,
-  updatedAt: new Date(),
-  createdAt: new Date(),
-  isPinned: true,
-  isMuted: false,
-  isArchived: false,
-  metadata: {
-    lastReadAt: new Date(),
+  // Pagination demo - 1,200 messages
+  {
+    id: 'chat-pagination',
+    title: '📄 Pagination Demo: 1,200 Messages',
+    type: 'ai',
+    participants: [
+      { id: 'user-1', name: 'You', avatar: '👤' },
+      { id: 'ai-pagination', name: 'AI Assistant', avatar: '🤖' },
+    ],
+    lastMessage: {
+      content: 'AI response 1200: Acknowledged. The system is handling 1200 total messages efficiently...',
+      timestamp: new Date(),
+      senderId: 'ai-pagination',
+      senderName: 'AI Assistant',
+    },
+    unreadCount: 0,
+    updatedAt: new Date(),
+    createdAt: subDays(new Date(), 60),
+    isPinned: true,
+    isMuted: false,
+    isArchived: false,
+    metadata: {
+      lastReadAt: new Date(),
+    },
   },
-});
-
-// Insert pagination demo conversation
-ALL_MOCK_CHATS.unshift({
-  id: 'chat-pagination',
-  title: '📄 Pagination Demo: 1,200 Messages',
-  type: 'ai',
-  participants: [
-    { id: 'user-1', name: 'You', avatar: '👤' },
-    { id: 'ai-pagination', name: 'AI Assistant', avatar: '🤖' },
-  ],
-  lastMessage: {
-    content: 'AI response 1200: Acknowledged. The system is handling 1200 total messages efficiently...',
-    timestamp: new Date(),
-    senderId: 'ai-pagination',
-    senderName: 'AI Assistant',
+  // Getting started guide
+  {
+    id: 'chat-demo',
+    title: '✨ What is Stash?',
+    type: 'ai',
+    participants: [
+      { id: 'user-demo', name: 'You', avatar: '👤' },
+      { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
+    ],
+    lastMessage: {
+      content: 'Getting Started is Easy: npm install @stash/react-native...',
+      timestamp: new Date(),
+      senderId: 'ai-demo',
+      senderName: 'Stash AI',
+    },
+    unreadCount: 0,
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    isPinned: true,
+    isMuted: false,
+    isArchived: false,
+    metadata: {
+      lastReadAt: new Date(),
+    },
   },
-  unreadCount: 0,
-  updatedAt: new Date(),
-  createdAt: subDays(new Date(), 60),
-  isPinned: true,
-  isMuted: false,
-  isArchived: false,
-  metadata: {
-    lastReadAt: new Date(),
+  // Interactive components demo
+  {
+    id: 'chat-0',
+    title: 'Q1 Website Redesign',
+    type: 'group',
+    participants: [
+      { id: 'user1', name: 'Sarah Chen', avatar: undefined },
+      { id: 'user2', name: 'John Doe', avatar: undefined },
+      { id: 'user3', name: 'Mike Wilson', avatar: undefined },
+      { id: 'user4', name: 'Alex Kim', avatar: undefined },
+      { id: 'ai', name: 'AI Assistant', avatar: undefined },
+    ],
+    lastMessage: {
+      content: 'Absolutely! Here\'s an interactive knowledge graph visualization...',
+      timestamp: new Date(),
+      senderId: 'ai',
+      senderName: 'AI Assistant',
+    },
+    isPinned: true,
+    unreadCount: 0,
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    isMuted: false,
+    isArchived: false,
   },
-});
-
-// Insert the "Why Chat Needs to Evolve" philosophy conversation at the very top
-ALL_MOCK_CHATS.unshift({
-  id: 'chat-philosophy',
-  title: '💭 Why Chat Needs to Evolve',
-  type: 'ai',
-  participants: [
-    { id: 'user-phil', name: 'You', avatar: '👤' },
-    { id: 'ai-phil', name: 'Stash AI', avatar: '🤖' },
-  ],
-  lastMessage: {
-    content: 'Welcome to Stash. Ready to build the future?',
-    timestamp: new Date(),
-    senderId: 'ai-phil',
-    senderName: 'Stash AI',
-  },
-  unreadCount: 0,
-  updatedAt: new Date(),
-  createdAt: new Date(),
-  isPinned: true,
-  isMuted: false,
-  isArchived: false,
-  metadata: {
-    lastReadAt: new Date(),
-  },
-});
-
-// Update the fourth chat (originally first) to be the Project Management chat
-ALL_MOCK_CHATS[3] = {
-  ...ALL_MOCK_CHATS[3],
-  id: 'chat-0',
-  title: 'Q1 Website Redesign',
-  type: 'group',
-  participants: [
-    { id: 'user1', name: 'Sarah Chen', avatar: undefined },
-    { id: 'user2', name: 'John Doe', avatar: undefined },
-    { id: 'user3', name: 'Mike Wilson', avatar: undefined },
-    { id: 'user4', name: 'Alex Kim', avatar: undefined },
-    { id: 'ai', name: 'AI Assistant', avatar: undefined },
-  ],
-  lastMessage: {
-    content: 'Absolutely! Here\'s an interactive knowledge graph visualization...',
-    timestamp: new Date(),
-    senderId: 'ai',
-    senderName: 'AI Assistant',
-  },
-  isPinned: true,
-  unreadCount: 0,
-};
+];
 
 export default function ChatHistoryExample() {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);

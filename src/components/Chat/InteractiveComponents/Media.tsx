@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,10 @@ import {
   Dimensions,
   ScrollView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
+import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
+import { Audio } from 'expo-av';
 import type { MediaProps, MediaItem } from './Media.types';
 import {
   formatFileSize,
@@ -116,6 +119,11 @@ export const Media: React.FC<MediaProps> = ({
   // Gallery state
   const [currentIndex, setCurrentIndex] = useState(gallery?.initialIndex || 0);
 
+  // Video/Audio playback state
+  const videoRef = useRef<Video>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   // Calculate container dimensions
   const containerWidth = maxWidth || (isMini ? screenWidth - 32 : screenWidth - 32);
   const containerHeight = maxHeight || (isMini ? 200 : 400);
@@ -133,6 +141,30 @@ export const Media: React.FC<MediaProps> = ({
 
   const handleNext = () => {
     setCurrentIndex((prev) => Math.min(mediaArray.length - 1, prev + 1));
+    setIsPlaying(false);
+  };
+
+  const handlePlayPause = async () => {
+    if (!videoRef.current) return;
+
+    try {
+      if (isPlaying) {
+        await videoRef.current.pauseAsync();
+        setIsPlaying(false);
+      } else {
+        await videoRef.current.playAsync();
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.error('Error playing/pausing video:', error);
+    }
+  };
+
+  const onPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
+    if (status.isLoaded) {
+      setIsPlaying(status.isPlaying);
+      setIsLoading(false);
+    }
   };
 
   const renderMediaContent = (item: MediaItem, index: number) => {
@@ -204,24 +236,60 @@ export const Media: React.FC<MediaProps> = ({
           />
         )}
 
-        {/* Video Placeholder */}
+        {/* Video Player */}
         {item.type === 'video' && (
           <View style={styles.videoPlaceholder}>
-            <Image
-              source={{ uri: item.thumbnailUrl || item.url }}
+            <Video
+              ref={videoRef}
+              source={{ uri: item.url }}
               style={[
-                styles.image,
+                styles.video,
                 {
                   width: imageDimensions.width,
                   height: imageDimensions.height,
                 },
               ]}
-              resizeMode={fit}
+              resizeMode={ResizeMode.CONTAIN}
+              useNativeControls={false}
+              isLooping={item.loop || false}
+              isMuted={item.isMuted || false}
+              shouldPlay={false}
+              onPlaybackStatusUpdate={onPlaybackStatusUpdate}
+              onLoadStart={() => setIsLoading(true)}
+              onLoad={() => setIsLoading(false)}
             />
-            <View style={styles.playButton}>
-              <Text style={styles.playButtonText}>▶</Text>
-            </View>
-            {item.metadata?.duration && (
+
+            {/* Play/Pause Button Overlay */}
+            {!isPlaying && (
+              <TouchableOpacity
+                style={styles.playButton}
+                onPress={handlePlayPause}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.playButtonText}>▶</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Pause button when playing */}
+            {isPlaying && (
+              <TouchableOpacity
+                style={styles.pauseButton}
+                onPress={handlePlayPause}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.pauseButtonText}>⏸</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Loading indicator */}
+            {isLoading && (
+              <View style={styles.loadingOverlay}>
+                <ActivityIndicator size="large" color="#FFFFFF" />
+              </View>
+            )}
+
+            {/* Duration badge */}
+            {item.metadata?.duration && !isPlaying && (
               <View style={styles.durationBadge}>
                 <Text style={styles.durationText}>{formatDuration(item.metadata.duration)}</Text>
               </View>
@@ -532,6 +600,9 @@ const styles = StyleSheet.create({
   image: {
     backgroundColor: colors.surface.secondary,
   },
+  video: {
+    backgroundColor: '#000000',
+  },
   videoPlaceholder: {
     position: 'relative',
     alignItems: 'center',
@@ -550,6 +621,27 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: colors.text.inverse,
     marginLeft: 4,
+  },
+  pauseButton: {
+    position: 'absolute',
+    top: spacing[2],
+    right: spacing[2],
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pauseButtonText: {
+    fontSize: 18,
+    color: colors.text.inverse,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   durationBadge: {
     position: 'absolute',
