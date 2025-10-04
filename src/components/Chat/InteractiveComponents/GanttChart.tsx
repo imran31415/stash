@@ -455,8 +455,9 @@ export const GanttChart: React.FC<GanttChartProps> = ({
         isMini && styles.containerMini,
         {
           height: dimensions.chartHeight,
-          width: customWidth || (isMini ? 350 : '100%'),
-          alignSelf: isMini ? 'flex-start' : 'stretch'
+          width: customWidth || '100%',
+          maxWidth: isMini ? 350 : undefined,
+          alignSelf: 'stretch'
         }
       ]}
     >

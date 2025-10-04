@@ -283,8 +283,8 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
       const isHighlighted = isConnectedToFocus;
       const isSecondary = isConnectedToNeighbors && !isConnectedToFocus;
 
-      // Show labels for first few edges in mini mode
-      const isTopEdge = edgeIndex < 5;
+      // Show labels for first 2 edges in mini mode to avoid clutter
+      const isTopEdge = edgeIndex < 2;
 
       const color = isHighlighted ? '#3B82F6' : isSecondary ? '#10B981' : (edge.color || '#CBD5E1');
       const strokeWidth = isHighlighted ? 3 : isSecondary ? 2.5 : (edge.width || 1.5);
@@ -385,8 +385,8 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
       const isDimmed = focusedNodeId && !isFocused && !isNeighbor;
       const label = getNodeLabel(node);
 
-      // Show labels for first 10 nodes in mini mode to give users a feel for the data
-      const isTopNode = index < 10;
+      // Show labels for first 3 nodes in mini mode to avoid clutter
+      const isTopNode = index < 3;
 
       // Enhanced styling for focused node and neighbors
       const nodeOpacity = isDimmed ? 0.6 : 1;

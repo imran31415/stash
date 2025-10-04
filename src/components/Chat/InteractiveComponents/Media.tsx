@@ -742,7 +742,7 @@ export const Media: React.FC<MediaProps> = ({
       <View style={[
         styles.container,
         isMini && styles.containerMini,
-        { width: isMini ? 350 : '100%', alignSelf: isMini ? 'flex-start' : 'stretch' }
+        { width: '100%', maxWidth: isMini ? 350 : undefined, alignSelf: 'stretch' }
       ]}>
         <View style={[
           styles.mediaContainer,
@@ -767,7 +767,7 @@ export const Media: React.FC<MediaProps> = ({
     <View style={[
       styles.container,
       isMini && styles.containerMini,
-      { width: isMini ? 350 : '100%', alignSelf: isMini ? 'flex-start' : 'stretch' }
+      { width: '100%', maxWidth: isMini ? 350 : undefined, alignSelf: 'stretch' }
     ]}>
       {/* Header with title */}
       {!isMini && currentMedia && (

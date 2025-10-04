@@ -660,8 +660,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   messageBubbleInteractive: {
-    paddingHorizontal: 8,
-    paddingVertical: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
   },
   interactiveComponentContainer: {
     marginTop: 8,

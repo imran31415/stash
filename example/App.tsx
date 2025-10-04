@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Dimensions } from 'react-native';
 import InteractiveComponentsExample from './examples/InteractiveComponentsExample';
 import ChatHistoryExample from './examples/ChatHistoryExample';
 import MediaExample from './examples/MediaExample';
@@ -15,6 +15,18 @@ function AppContent() {
   const colors = useThemeColors();
   const [activeTab, setActiveTab] = useState<TabType>('history');
   const [isLoadingTab, setIsLoadingTab] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(Dimensions.get('window').width);
+
+  // Detect window resize
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener('change', ({ window }) => {
+      setWindowWidth(window.width);
+    });
+
+    return () => subscription?.remove();
+  }, []);
+
+  const isMobile = windowWidth < 768;
 
   // Handle tab switching with loading state
   const handleTabChange = (newTab: TabType) => {
@@ -82,19 +94,23 @@ function AppContent() {
       <StatusBar barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'} />
 
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, isMobile && styles.headerMobile, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={styles.headerTextContainer}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Stash Chat Examples</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>React Native Component Library</Text>
-        </View>
-        <TouchableOpacity
-          style={[styles.themeButton, { backgroundColor: colors.primary }]}
-          onPress={toggleTheme}
-        >
-          <Text style={[styles.themeButtonText, { color: colors.textOnPrimary }]}>
-            {themeMode === 'light' ? '🌙' : '☀️'}
+          <Text style={[styles.headerTitle, isMobile && styles.headerTitleMobile, { color: colors.text }]}>
+            {isMobile ? 'Stash Examples' : 'Stash Chat Examples'}
           </Text>
-        </TouchableOpacity>
+          {!isMobile && <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>React Native Component Library</Text>}
+        </View>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity
+            style={[styles.themeButton, { backgroundColor: colors.primary }]}
+            onPress={toggleTheme}
+          >
+            <Text style={[styles.themeButtonText, { color: colors.textOnPrimary }]}>
+              {themeMode === 'light' ? '🌙' : '☀️'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Tabs */}
@@ -173,11 +189,15 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  headerMobile: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
   headerTextContainer: {
     flex: 1,
@@ -187,19 +207,39 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 4,
   },
+  headerTitleMobile: {
+    fontSize: 16,
+    marginBottom: 0,
+  },
   headerSubtitle: {
     fontSize: 14,
   },
-  themeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  chatsButton: {
+    paddingHorizontal: 12,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 12,
+    flexDirection: 'row',
+  },
+  chatsButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  themeButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   themeButtonText: {
-    fontSize: 20,
+    fontSize: 18,
   },
   tabs: {
     flexDirection: 'row',
