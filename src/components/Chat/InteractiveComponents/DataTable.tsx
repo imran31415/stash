@@ -54,11 +54,19 @@ export const DataTable: React.FC<DataTableProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(defaultPageSize);
   const [selectedRows, setSelectedRows] = useState<Set<string | number>>(new Set());
+  const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
 
   const isMini = mode === 'mini';
   const isPreview = mode === 'preview';
   const screenWidth = Dimensions.get('window').width;
-  const containerWidth = (isMini || isPreview) ? Math.min(350, screenWidth - 32) : screenWidth;
+  const containerWidth = measuredWidth || ((isMini || isPreview) ? Math.min(350, screenWidth - 32) : screenWidth);
+
+  const handleLayout = (event: any) => {
+    const { width } = event.nativeEvent.layout;
+    if (width > 0 && width !== measuredWidth) {
+      setMeasuredWidth(width);
+    }
+  };
 
   // Determine screen breakpoint - treat mini/preview as small screen
   const isSmallScreen = (isMini || isPreview) || containerWidth < 400;
@@ -76,18 +84,15 @@ export const DataTable: React.FC<DataTableProps> = ({
 
   // Calculate responsive column width - fit to screen
   const getResponsiveWidth = (column: any) => {
-    // For mini/preview mode (400px), use compact widths
-    if (isMini || isPreview) {
-      const availableWidth = 400 - 40; // Account for padding
-      const numColumns = visibleColumns.length + (selectable ? 1 : 0);
-      const autoWidth = Math.floor(availableWidth / numColumns);
-      return Math.max(60, Math.min(autoWidth, 100)); // 60-100px for compact view
-    }
-
     // Calculate available width per column
     const availableWidth = containerWidth - 40; // Account for padding
     const numColumns = visibleColumns.length + (selectable ? 1 : 0);
     const autoWidth = Math.floor(availableWidth / numColumns);
+
+    // For mini/preview mode, use compact widths
+    if (isMini || isPreview) {
+      return Math.max(60, Math.min(autoWidth, 100)); // 60-100px for compact view
+    }
 
     // Use column width only on larger screens
     if (!isSmallScreen && !isMediumScreen && column.width) {
@@ -218,10 +223,12 @@ export const DataTable: React.FC<DataTableProps> = ({
         styles.container,
         {
           maxHeight,
-          width: (isMini || isPreview) ? 350 : '100%',
-          alignSelf: (isMini || isPreview) ? 'flex-start' : 'stretch'
+          width: '100%',
+          maxWidth: (isMini || isPreview) ? 350 : undefined,
+          alignSelf: 'stretch'
         }
       ]}
+      onLayout={handleLayout}
     >
       {/* Header */}
       <View style={styles.header}>

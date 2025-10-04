@@ -526,8 +526,9 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
       style={[
         styles.container,
         {
-          width: customWidth || (isMiniOrPreview ? 350 : '100%'),
-          alignSelf: isMiniOrPreview ? 'flex-start' : 'stretch'
+          width: customWidth || '100%',
+          maxWidth: isMiniOrPreview ? 350 : undefined,
+          alignSelf: 'stretch'
         }
       ]}
       onLayout={handleLayout}
