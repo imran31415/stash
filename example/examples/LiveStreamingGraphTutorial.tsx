@@ -173,12 +173,95 @@ npm install socket.io-client`,
       },
     },
 
-    // Phase 2: Import Components
+    // Phase 2: Project Structure
     {
       id: 'tutorial-graph-6',
-      content: '## Phase 2: Import Required Components\n\nImport the TimeSeriesChart and streaming utilities:',
+      content: '## Phase 2: Set Up Project Structure\n\nFirst, organize your project files for the live streaming dashboard:',
       sender: { id: 'ai-assistant', name: 'Stash AI', avatar: '🤖' },
       timestamp: addMinutes(new Date(), 5),
+      type: 'text',
+      isOwn: false,
+    },
+    {
+      id: 'tutorial-graph-6a',
+      content: '',
+      sender: { id: 'ai-assistant', name: 'Stash AI', avatar: '🤖' },
+      timestamp: addMinutes(new Date(), 5.5),
+      type: 'text',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'tree-view',
+        data: {
+          data: {
+            id: 'streaming-structure',
+            title: 'Live Streaming Dashboard Structure',
+            description: 'Recommended file organization',
+            roots: [
+              {
+                id: 'src',
+                label: 'src',
+                type: 'folder',
+                status: 'normal',
+                children: [
+                  {
+                    id: 'components',
+                    label: 'components',
+                    type: 'folder',
+                    status: 'normal',
+                    children: [
+                      { id: 'live-dashboard', label: 'LiveDashboard.tsx', type: 'file', status: 'highlighted', icon: '📊', badge: 'Main' },
+                      { id: 'metrics-chart', label: 'MetricsChart.tsx', type: 'file', status: 'normal', icon: '📈' },
+                    ],
+                  },
+                  {
+                    id: 'services',
+                    label: 'services',
+                    type: 'folder',
+                    status: 'normal',
+                    children: [
+                      { id: 'websocket', label: 'websocket.service.ts', type: 'file', status: 'highlighted', icon: '🔌', badge: 'Core' },
+                    ],
+                  },
+                  {
+                    id: 'hooks',
+                    label: 'hooks',
+                    type: 'folder',
+                    status: 'normal',
+                    children: [
+                      { id: 'use-streaming', label: 'useStreamingData.ts', type: 'file', status: 'normal', icon: '🪝' },
+                    ],
+                  },
+                  {
+                    id: 'types',
+                    label: 'types',
+                    type: 'folder',
+                    status: 'normal',
+                    children: [
+                      { id: 'metrics-types', label: 'metrics.types.ts', type: 'file', status: 'normal', icon: '📝' },
+                    ],
+                  },
+                  { id: 'app', label: 'App.tsx', type: 'file', status: 'normal', icon: '🚀' },
+                ],
+              },
+              {
+                id: 'server',
+                label: 'server',
+                type: 'folder',
+                status: 'normal',
+                children: [
+                  { id: 'server-js', label: 'server.js', type: 'file', status: 'highlighted', icon: '🔌', badge: 'Server' },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    },
+    {
+      id: 'tutorial-graph-6b',
+      content: 'Now let\'s import the required components:',
+      sender: { id: 'ai-assistant', name: 'Stash AI', avatar: '🤖' },
+      timestamp: addMinutes(new Date(), 5.7),
       type: 'text',
       isOwn: false,
     },

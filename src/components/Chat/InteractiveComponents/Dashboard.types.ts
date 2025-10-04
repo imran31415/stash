@@ -8,6 +8,7 @@ import type { MediaProps } from './Media.types';
 export type DashboardGridSize = '1x1' | '1x2' | '2x1' | '2x2' | '3x3' | '4x4' | 'custom';
 
 export type DashboardItemType =
+  | 'time-series'
   | 'time-series-chart'
   | 'gantt-chart'
   | 'graph-visualization'
@@ -16,6 +17,12 @@ export type DashboardItemType =
   | 'code-block'
   | 'media'
   | 'video'
+  | 'video-stream'
+  | 'live-camera-stream'
+  | 'tree-view'
+  | 'kanban-board'
+  | 'heatmap'
+  | 'workflow'
   | 'custom';
 
 export interface DashboardItemConfig {

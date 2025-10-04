@@ -283,8 +283,8 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
       const isHighlighted = isConnectedToFocus;
       const isSecondary = isConnectedToNeighbors && !isConnectedToFocus;
 
-      // Show labels for first 2 edges in mini mode to avoid clutter
-      const isTopEdge = edgeIndex < 2;
+      // Don't show edge labels in mini/preview mode to avoid clutter
+      const isTopEdge = edgeIndex < 0;
 
       const color = isHighlighted ? '#3B82F6' : isSecondary ? '#10B981' : (edge.color || '#CBD5E1');
       const strokeWidth = isHighlighted ? 3 : isSecondary ? 2.5 : (edge.width || 1.5);
@@ -328,12 +328,12 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
             />
           )}
           {/* Edge labels - uniform rendering logic:
-              - When focused: ALWAYS show labels for primary (connected) and secondary (between neighbors) edges
-              - When not focused: show based on mode (mini: first 5, full: showEdgeLabels prop)
+              - When focused: In mini/preview show only highlighted edges, in full show highlighted and secondary
+              - When not focused: show based on mode (mini/preview: first 1, full: showEdgeLabels prop)
           */}
           {(edge.label || edge.type) && (
             focusedNodeId
-              ? (isHighlighted || isSecondary)  // When focused, show labels for connected and neighbor edges
+              ? (isMiniOrPreview ? isHighlighted : (isHighlighted || isSecondary))  // When focused, limit labels in mini/preview
               : (isMiniOrPreview ? isTopEdge : showEdgeLabels)  // When not focused, use mode rules
           ) ? (
             <G>
@@ -385,8 +385,8 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
       const isDimmed = focusedNodeId && !isFocused && !isNeighbor;
       const label = getNodeLabel(node);
 
-      // Show labels for first 3 nodes in mini mode to avoid clutter
-      const isTopNode = index < 3;
+      // Show label for only the first node in mini/preview mode to avoid clutter
+      const isTopNode = index < 1;
 
       // Enhanced styling for focused node and neighbors
       const nodeOpacity = isDimmed ? 0.6 : 1;
@@ -462,14 +462,26 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
             opacity={nodeOpacity}
             stroke={strokeColor}
             strokeWidth={strokeWidth}
-            onPress={() => {
-              console.log('[GraphVisualization] Circle pressed:', node.id);
-              handleNodePress(node);
-            }}
+            {...(Platform.OS === 'web' ? {
+              onClick: () => {
+                console.log('[GraphVisualization] Circle pressed:', node.id);
+                handleNodePress(node);
+              }
+            } : {
+              onPress: () => {
+                console.log('[GraphVisualization] Circle pressed:', node.id);
+                handleNodePress(node);
+              }
+            })}
           />
 
           {/* Node label */}
-          {showLabels && (mode === 'full' || layoutNodes.length <= 20 || isFocused || isNeighbor || (isMiniOrPreview && isTopNode)) && (
+          {showLabels && (
+            (mode === 'full' && layoutNodes.length <= 20)  // Only show all labels in full mode with small graphs
+            || (isFocused && !isMiniOrPreview)  // Only show focused label in full mode
+            || (isNeighbor && !isMiniOrPreview)  // Only show neighbor labels in full mode
+            || (isMiniOrPreview && isTopNode)  // In mini/preview, only show top N nodes
+          ) && (
             <G pointerEvents="none">
               {/* Background for better readability */}
               {(isFocused || isNeighbor || (isMiniOrPreview && isTopNode)) && (

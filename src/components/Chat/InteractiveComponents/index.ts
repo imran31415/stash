@@ -105,6 +105,61 @@ export type {
   FlameGraphProps,
 } from './FlameGraph.types';
 
+export type {
+  StreamType,
+  StreamProtocol,
+  StreamQuality,
+  StreamStatus,
+  StreamMetadata,
+  HLSConfig,
+  DASHConfig,
+  WebSocketStreamConfig,
+  WebRTCConfig,
+  ProgressiveConfig,
+  StreamSource,
+  VideoStreamData,
+  VideoStreamProps,
+  VideoStreamDetailViewProps,
+  StreamState,
+  StreamControlsProps,
+  LiveStreamStats,
+  WebSocketStreamChunk,
+} from './VideoStream.types';
+
+export type {
+  TreeNode,
+  TreeViewData,
+  TreeViewMode,
+  TreeViewLayout,
+  TreeViewProps,
+  TreeViewDetailViewProps,
+  TreeViewStats,
+  TreeNodeType,
+  TreeNodeStatus,
+} from './TreeView.types';
+
+export type {
+  KanbanCard,
+  KanbanColumn,
+  KanbanSwimlane,
+  KanbanBoardData,
+  KanbanBoardMode,
+  KanbanBoardLayout,
+  KanbanBoardProps,
+  KanbanBoardDetailViewProps,
+  KanbanCardPriority,
+  KanbanCardStatus,
+  KanbanCardAssignee,
+  KanbanCardTag,
+  KanbanBoardStats,
+} from './KanbanBoard.types';
+
+export type {
+  SwipeableItemType,
+  SwipeableItem,
+  MultiSwipeableProps,
+} from './MultiSwipeable.types';
+
 export { TaskList } from './TaskList';
 export { TaskDetailModal } from './TaskDetailModal';
 export { TaskDetailBottomSheet } from './TaskDetailBottomSheet';
@@ -131,7 +186,16 @@ export { HeatmapDetailView } from './HeatmapDetailView';
 export { Workflow } from './Workflow';
 export { WorkflowDetailView } from './WorkflowDetailView';
 export { FlameGraph } from './FlameGraph';
+export { VideoStream } from './VideoStream';
+export { VideoStreamDetailView } from './VideoStreamDetailView';
+export { LiveCameraStream } from './LiveCameraStream';
+export type { LiveCameraStreamProps } from './LiveCameraStream';
+export { TreeView } from './TreeView';
+export { TreeViewDetailView } from './TreeViewDetailView';
+export { KanbanBoard } from './KanbanBoard';
+export { KanbanBoardDetailView } from './KanbanBoardDetailView';
 export { LoadingState } from './LoadingState';
 export type { LoadingStateProps } from './LoadingState';
+export { MultiSwipeable } from './MultiSwipeable';
 
 // All interactive chat components for rich, embedded visualizations

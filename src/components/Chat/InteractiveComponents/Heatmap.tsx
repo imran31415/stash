@@ -25,44 +25,14 @@ import {
   generateLegendGradient,
 } from './Heatmap.utils';
 import { streamingCallbackRegistry } from './StreamingCallbackRegistry';
-
-const borderRadius = {
-  sm: 4,
-  base: 8,
-  md: 12,
-  lg: 16,
-};
-
-const spacing = {
-  1: 4,
-  2: 8,
-  3: 12,
-  4: 16,
-};
-
-const typography = {
-  fontSize: {
-    xs: 12,
-    sm: 14,
-    base: 16,
-    lg: 18,
-  },
-  fontWeight: {
-    medium: '500' as const,
-    semibold: '600' as const,
-    bold: '700' as const,
-  },
-};
-
-const shadows = {
-  sm: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-};
+import {
+  borderRadius,
+  spacing,
+  typography,
+  shadows,
+  useResponsiveMode,
+  useLayoutMeasurement,
+} from './shared';
 
 export const Heatmap: React.FC<HeatmapProps> = ({
   data,
@@ -100,22 +70,10 @@ export const Heatmap: React.FC<HeatmapProps> = ({
   streamingPaused = false,
   streamingCallbackId,
 }) => {
-  const isMini = mode === 'mini';
+  const { isMini } = useResponsiveMode(mode);
+  const { width: containerWidth, handleLayout } = useLayoutMeasurement(customWidth, customHeight);
   const [selectedCell, setSelectedCell] = useState<any>(null);
   const [internalPaused, setInternalPaused] = useState(false);
-
-  // Track actual container width via onLayout
-  const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
-
-  // Calculate container width
-  const containerWidth = customWidth || measuredWidth;
-
-  const handleLayout = (event: LayoutChangeEvent) => {
-    const { width } = event.nativeEvent.layout;
-    if (width > 0 && !customWidth && width !== measuredWidth) {
-      setMeasuredWidth(width);
-    }
-  };
 
   // Use external paused state if provided, otherwise use internal
   const isPaused = streamingPaused !== undefined ? streamingPaused : internalPaused;

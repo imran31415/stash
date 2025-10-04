@@ -57,7 +57,7 @@ export const getChartDimensions = (
 ): ChartDimensions => {
   const isMini = mode === 'mini';
 
-  const width = isMini ? Math.min(350, screenWidth) : screenWidth;
+  const width = screenWidth; // Use available width, no 350px limit
   const height = customHeight || (isMini ? 200 : 400);
 
   const paddingTop = isMini ? 12 : 24;

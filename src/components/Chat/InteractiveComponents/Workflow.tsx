@@ -23,6 +23,13 @@ import {
   findCriticalPath,
   formatDuration,
 } from './Workflow.utils';
+import {
+  borderRadius,
+  shadows,
+  useResponsiveMode,
+  useLayoutMeasurement,
+  StatsBar,
+} from './shared';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -50,27 +57,21 @@ export const Workflow: React.FC<WorkflowProps> = ({
 }) => {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
-  const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
   const [zoom, setZoom] = useState(1);
   const [panX, setPanX] = useState(0);
   const [panY, setPanY] = useState(0);
 
-  const handleLayout = (event: LayoutChangeEvent) => {
-    const { width } = event.nativeEvent.layout;
-    if (width > 0 && !customWidth) {
-      setMeasuredWidth(width);
-    }
-  };
+  const { isMini } = useResponsiveMode(mode);
+  const { width, height, handleLayout, measuredWidth } = useLayoutMeasurement(
+    customWidth,
+    customHeight || (isMini ? 300 : 500)
+  );
 
-  // Determine dimensions based on mode
-  const isMini = mode === 'mini';
   const containerWidth = customWidth || measuredWidth || (isMini ? 350 : SCREEN_WIDTH - 32);
-  const width = containerWidth;
-  const height = customHeight || (isMini ? 250 : 500);
 
   // Node dimensions
-  const nodeWidth = isMini ? 100 : 140;
-  const nodeHeight = isMini ? 50 : 70;
+  const nodeWidth = isMini ? 100 : 160;
+  const nodeHeight = isMini ? 50 : 80;
   const horizontalSpacing = isMini ? 60 : nodeSpacing;
   const verticalSpacing = isMini ? 80 : layerSpacing;
 
@@ -106,15 +107,24 @@ export const Workflow: React.FC<WorkflowProps> = ({
 
   // Calculate SVG viewBox with pan support
   const viewBox = useMemo(() => {
-    if (positionedNodes.length === 0) return `${-panX} ${-panY} ${width} ${height}`;
+    if (positionedNodes.length === 0) return `0 0 ${width} ${height}`;
 
     const minX = Math.min(...positionedNodes.map((n) => n.x)) - 20;
     const minY = Math.min(...positionedNodes.map((n) => n.y)) - 20;
     const maxX = Math.max(...positionedNodes.map((n) => n.x + nodeWidth)) + 20;
     const maxY = Math.max(...positionedNodes.map((n) => n.y + nodeHeight)) + 20;
 
-    return `${minX - panX} ${minY - panY} ${maxX - minX} ${maxY - minY}`;
-  }, [positionedNodes, nodeWidth, nodeHeight, width, height, panX, panY]);
+    const contentWidth = maxX - minX;
+    const contentHeight = maxY - minY;
+
+    // In mini mode, always show the full content
+    if (isMini) {
+      return `${minX} ${minY} ${contentWidth} ${contentHeight}`;
+    }
+
+    // In full mode, allow pan
+    return `${minX - panX} ${minY - panY} ${contentWidth} ${contentHeight}`;
+  }, [positionedNodes, nodeWidth, nodeHeight, width, height, panX, panY, isMini]);
 
   const handleNodePress = useCallback(
     (node: WorkflowNode) => {
@@ -172,7 +182,7 @@ export const Workflow: React.FC<WorkflowProps> = ({
     const label = getNodeLabel(node, isMini ? 12 : 16);
 
     return (
-      <G key={node.id}>
+      <G key={node.id} onPress={() => handleNodePress(node)}>
         {/* Node background */}
         <Rect
           x={node.x}
@@ -185,7 +195,6 @@ export const Workflow: React.FC<WorkflowProps> = ({
           rx={8}
           ry={8}
           opacity={0.9}
-          onPress={() => handleNodePress(node)}
         />
 
         {/* Node icon */}
@@ -258,7 +267,6 @@ export const Workflow: React.FC<WorkflowProps> = ({
           markerEnd="url(#arrowhead)"
           strokeDasharray={strokeDashArray}
           opacity={0.8}
-          onPress={() => handleEdgePress(edge)}
         />
 
         {/* Edge label */}
@@ -321,7 +329,7 @@ export const Workflow: React.FC<WorkflowProps> = ({
   }
 
   return (
-    <View style={[styles.container, { height }]} onLayout={handleLayout}>
+    <View style={[styles.container, { height, width: '100%', maxWidth: '100%' }]} onLayout={handleLayout}>
       {/* Header */}
       {(title || subtitle) && (
         <View style={styles.header}>
@@ -332,45 +340,35 @@ export const Workflow: React.FC<WorkflowProps> = ({
 
       {/* Workflow Stats */}
       {mode === 'full' && (
-        <View style={styles.statsBar}>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Nodes</Text>
-            <Text style={styles.statValue}>{stats.totalNodes}</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Edges</Text>
-            <Text style={styles.statValue}>{stats.totalEdges}</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Layers</Text>
-            <Text style={styles.statValue}>{stats.layers}</Text>
-          </View>
-          {data.metadata?.successRate !== undefined && (
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Success Rate</Text>
-              <Text style={styles.statValue}>
-                {(data.metadata.successRate * 100).toFixed(0)}%
-              </Text>
-            </View>
-          )}
-        </View>
+        <StatsBar
+          stats={[
+            { value: stats.totalNodes, label: 'Nodes' },
+            { value: stats.totalEdges, label: 'Edges' },
+            { value: stats.layers, label: 'Layers' },
+            ...(data.metadata?.successRate !== undefined
+              ? [{ value: `${(data.metadata.successRate * 100).toFixed(0)}%`, label: 'Success Rate' }]
+              : []),
+          ]}
+        />
       )}
 
       {/* Workflow Visualization */}
       <ScrollView
-        horizontal
+        horizontal={!isMini}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
-        showsHorizontalScrollIndicator={true}
+        showsHorizontalScrollIndicator={!isMini}
         showsVerticalScrollIndicator={false}
         minimumZoomScale={0.5}
         maximumZoomScale={3}
-        pinchGestureEnabled={true}
+        pinchGestureEnabled={!isMini}
+        scrollEnabled={!isMini}
       >
         <Svg
-          width={width * zoom}
-          height={(height - (title || subtitle ? 60 : 0) - (mode === 'full' ? 60 : 0)) * zoom}
+          width={isMini ? width : width * zoom}
+          height={isMini ? (height - (title || subtitle ? 60 : 0)) : (height - (title || subtitle ? 60 : 0) - (mode === 'full' ? 60 : 0)) * zoom}
           viewBox={viewBox}
+          preserveAspectRatio="xMidYMid meet"
         >
           <Defs>
             {/* Arrow marker for directed edges */}
@@ -446,21 +444,11 @@ export const Workflow: React.FC<WorkflowProps> = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: borderRadius.md,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
+    ...shadows.md,
   },
   header: {
     padding: 16,
@@ -476,28 +464,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 13,
     color: '#6B7280',
-  },
-  statsBar: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#F9FAFB',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statLabel: {
-    fontSize: 11,
-    color: '#6B7280',
-    marginBottom: 2,
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1F2937',
   },
   scrollView: {
     flex: 1,
@@ -571,15 +537,14 @@ const styles = StyleSheet.create({
   },
   panControls: {
     position: 'absolute',
-    bottom: 12,
-    left: '50%',
-    marginLeft: -50,
+    top: 12,
+    right: 12,
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    padding: 4,
+    padding: 2,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -597,16 +562,16 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   panButton: {
-    width: 36,
-    height: 36,
+    width: 28,
+    height: 28,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#F9FAFB',
-    borderRadius: 8,
-    margin: 2,
+    borderRadius: 6,
+    margin: 1,
   },
   panButtonText: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '600',
     color: '#3B82F6',
   },

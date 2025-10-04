@@ -15,8 +15,10 @@ export interface ChatControlBarProps {
   messages: Message[];
   onEnterPresentation?: () => void;
   onCopyHistory?: (json: string) => void;
+  onToggleHistory?: () => void;
   showPresentationButton?: boolean;
   showCopyButton?: boolean;
+  showHistoryButton?: boolean;
 }
 
 export const ChatControlBar: React.FC<ChatControlBarProps> = ({
@@ -24,8 +26,10 @@ export const ChatControlBar: React.FC<ChatControlBarProps> = ({
   messages,
   onEnterPresentation,
   onCopyHistory,
+  onToggleHistory,
   showPresentationButton = true,
   showCopyButton = true,
+  showHistoryButton = false,
 }) => {
   const primaryColor = theme?.primaryColor || '#007AFF';
   const backgroundColor = theme?.backgroundColor || '#FFFFFF';
@@ -37,10 +41,10 @@ export const ChatControlBar: React.FC<ChatControlBarProps> = ({
 
       // Use Clipboard API
       if (Platform.OS === 'web') {
-        navigator.clipboard.writeText(json).then(() => {
+        (navigator as any).clipboard?.writeText(json).then(() => {
           onCopyHistory?.(json);
           Alert.alert('Success', 'Chat history copied to clipboard');
-        }).catch((err) => {
+        }).catch((err: any) => {
           console.error('Failed to copy:', err);
           Alert.alert('Error', 'Failed to copy chat history');
         });
@@ -66,9 +70,18 @@ export const ChatControlBar: React.FC<ChatControlBarProps> = ({
   return (
     <View style={[styles.container, { backgroundColor, borderBottomColor: theme?.borderColor || '#E5E5EA' }]}>
       <View style={styles.content}>
-        <Text style={[styles.title, { color: textColor }]}>Chat Controls</Text>
-
         <View style={styles.actions}>
+          {showHistoryButton && onToggleHistory && (
+            <TouchableOpacity
+              style={[styles.actionButton, { borderColor: primaryColor }]}
+              onPress={onToggleHistory}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.actionIcon]}>💬</Text>
+              <Text style={[styles.actionText, { color: primaryColor }]}>Chats</Text>
+            </TouchableOpacity>
+          )}
+
           {showPresentationButton && onEnterPresentation && (
             <TouchableOpacity
               style={[styles.actionButton, { borderColor: primaryColor }]}
@@ -124,18 +137,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  title: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#000000',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    justifyContent: 'flex-start',
   },
   actions: {
     flexDirection: 'row',
     gap: 8,
+    flex: 1,
   },
   actionButton: {
     flexDirection: 'row',

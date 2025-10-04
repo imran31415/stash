@@ -165,6 +165,11 @@ export interface FlameGraphProps {
   onSearch?: (query: string) => void;
 
   /**
+   * Callback when expand button is pressed
+   */
+  onExpandPress?: () => void;
+
+  /**
    * Height of the component (in pixels)
    */
   height?: number;

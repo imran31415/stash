@@ -14,6 +14,7 @@ import MediaChatExample from './MediaChatExample';
 import LiveStreamingChatExample from './LiveStreamingChatExample';
 import { getWebSocketTutorialMessages } from './WebSocketTutorialExample';
 import { getLiveStreamingGraphTutorialMessages } from './LiveStreamingGraphTutorial';
+import { getTreeViewChatMessages, treeViewChat } from './chatExamples';
 
 // Combined "What is Stash?" - Philosophy + Demo
 const getStashOverviewMessages = (): Message[] => {
@@ -98,6 +99,98 @@ const getStashOverviewMessages = (): Message[] => {
       content: "## Enter Stash\n\n**Stash** is a React Native component library that solves both problems:\n\n✅ **True Cross-Platform** - Write once, runs natively on iOS, Android, and Web\n\n✅ **Rich Interactive Components** - Task lists, Gantt charts, graphs, time series - all built for chat\n\n✅ **Built for Scale** - Handles thousands of items with smart pagination and virtualization\n\n✅ **AI-Native** - Components designed for AI-generated content (structured data, code, visualizations)\n\n✅ **Performance Obsessed** - Smooth 60fps interactions even with massive datasets\n\nLet me show you what this looks like in practice...",
       sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
       timestamp: addHours(new Date(), 0.02),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'demo-2c',
+      content: "First, how do I organize my Stash project?",
+      sender: { id: 'user-demo', name: 'You', avatar: '👤' },
+      timestamp: addHours(new Date(), 0.021),
+      status: 'delivered',
+      isOwn: true,
+    },
+    {
+      id: 'demo-2d',
+      content: "## Recommended Project Structure\n\nGreat question! Here's the recommended folder structure for a Stash-powered chat application:",
+      sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
+      timestamp: addHours(new Date(), 0.022),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'tree-view',
+        data: {
+          data: {
+            id: 'stash-structure',
+            title: 'Stash Project Structure',
+            description: 'Recommended organization for chat apps',
+            roots: [
+              {
+                id: 'src',
+                label: 'src',
+                type: 'folder',
+                status: 'normal',
+                children: [
+                  {
+                    id: 'screens',
+                    label: 'screens',
+                    type: 'folder',
+                    status: 'normal',
+                    children: [
+                      { id: 'chat-screen', label: 'ChatScreen.tsx', type: 'file', status: 'normal', icon: '💬' },
+                      { id: 'chat-list', label: 'ChatListScreen.tsx', type: 'file', status: 'normal', icon: '📋' },
+                    ],
+                  },
+                  {
+                    id: 'components',
+                    label: 'components',
+                    type: 'folder',
+                    status: 'normal',
+                    children: [
+                      { id: 'chat', label: 'Chat.tsx', type: 'file', status: 'highlighted', icon: '📱', badge: 'Core' },
+                      { id: 'interactive', label: 'InteractiveComponents/', type: 'folder', status: 'normal', icon: '🎨' },
+                    ],
+                  },
+                  {
+                    id: 'services',
+                    label: 'services',
+                    type: 'folder',
+                    status: 'normal',
+                    children: [
+                      { id: 'chat-service', label: 'ChatService.ts', type: 'file', status: 'highlighted', icon: '🔌', badge: 'Core' },
+                      { id: 'websocket', label: 'WebSocketService.ts', type: 'file', status: 'normal', icon: '📡' },
+                    ],
+                  },
+                  {
+                    id: 'types',
+                    label: 'types',
+                    type: 'folder',
+                    status: 'normal',
+                    children: [
+                      { id: 'message', label: 'message.types.ts', type: 'file', status: 'normal', icon: '📝' },
+                      { id: 'chat', label: 'chat.types.ts', type: 'file', status: 'normal', icon: '💬' },
+                    ],
+                  },
+                  { id: 'app', label: 'App.tsx', type: 'file', status: 'normal', icon: '🚀' },
+                ],
+              },
+              {
+                id: 'package',
+                label: 'package.json',
+                type: 'file',
+                status: 'normal',
+                icon: '📦',
+              },
+            ],
+          },
+        },
+      },
+    },
+    {
+      id: 'demo-2e',
+      content: "This structure keeps your code organized and makes it easy to integrate Stash's interactive components. Now let's see them in action...",
+      sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
+      timestamp: addHours(new Date(), 0.023),
       status: 'delivered',
       isOwn: false,
     },
@@ -358,55 +451,53 @@ const getStashOverviewMessages = (): Message[] => {
       status: 'delivered',
       isOwn: false,
       interactiveComponent: {
-        type: 'graph-visualization',
+        type: 'workflow',
         data: {
           data: {
+            id: 'ml-pipeline',
+            name: 'ML Training Pipeline',
+            description: 'Customer Churn Prediction Model',
             nodes: [
-              { id: 'start', labels: ['Start'], properties: { name: 'Trigger', type: 'scheduled' }, color: '#10B981', size: 16 },
-              { id: 'extract-s3', labels: ['Extract'], properties: { name: 'Extract from S3', status: 'success', duration: '45s' }, color: '#10B981' },
-              { id: 'extract-db', labels: ['Extract'], properties: { name: 'Extract from DB', status: 'success', duration: '32s' }, color: '#10B981' },
-              { id: 'validate', labels: ['Transform'], properties: { name: 'Validate Data', status: 'success', duration: '12s' }, color: '#10B981' },
-              { id: 'clean', labels: ['Transform'], properties: { name: 'Clean Data', status: 'success', duration: '28s' }, color: '#10B981' },
-              { id: 'feature-1', labels: ['Transform'], properties: { name: 'Feature: User Stats', status: 'success', duration: '18s' }, color: '#10B981' },
-              { id: 'feature-2', labels: ['Transform'], properties: { name: 'Feature: Embeddings', status: 'success', duration: '56s' }, color: '#10B981' },
-              { id: 'feature-3', labels: ['Transform'], properties: { name: 'Feature: Time Series', status: 'success', duration: '34s' }, color: '#10B981' },
-              { id: 'merge', labels: ['Transform'], properties: { name: 'Merge Features', status: 'success', duration: '9s' }, color: '#10B981' },
-              { id: 'split', labels: ['Transform'], properties: { name: 'Train/Test Split', status: 'success', duration: '5s' }, color: '#10B981' },
-              { id: 'train', labels: ['Model'], properties: { name: 'Train Model', status: 'running', progress: '67%' }, color: '#F59E0B', size: 18 },
-              { id: 'evaluate', labels: ['Model'], properties: { name: 'Evaluate Model', status: 'pending' }, color: '#94A3B8' },
-              { id: 'deploy', labels: ['Deploy'], properties: { name: 'Deploy to Production', status: 'pending' }, color: '#94A3B8' },
+              { id: 'start', type: 'start', label: 'Trigger', status: 'success', icon: '▶️' },
+              { id: 'extract-s3', type: 'database', label: 'Extract from S3', status: 'success', metadata: { duration: 45000 } },
+              { id: 'extract-db', type: 'database', label: 'Extract from DB', status: 'success', metadata: { duration: 32000 } },
+              { id: 'validate', type: 'transform', label: 'Validate Data', status: 'success', metadata: { duration: 12000 } },
+              { id: 'clean', type: 'transform', label: 'Clean Data', status: 'success', metadata: { duration: 28000 } },
+              { id: 'feature-1', type: 'transform', label: 'User Stats', status: 'success', metadata: { duration: 18000 } },
+              { id: 'feature-2', type: 'transform', label: 'Embeddings', status: 'success', metadata: { duration: 56000 } },
+              { id: 'feature-3', type: 'transform', label: 'Time Series', status: 'success', metadata: { duration: 34000 } },
+              { id: 'merge', type: 'merge', label: 'Merge Features', status: 'success', metadata: { duration: 9000 } },
+              { id: 'split', type: 'transform', label: 'Train/Test Split', status: 'success', metadata: { duration: 5000 } },
+              { id: 'train', type: 'task', label: 'Train Model', status: 'running', icon: '🔄' },
+              { id: 'evaluate', type: 'task', label: 'Evaluate Model', status: 'waiting' },
+              { id: 'deploy', type: 'end', label: 'Deploy', status: 'waiting', icon: '🚀' },
             ],
             edges: [
-              { id: 'e1', source: 'start', target: 'extract-s3', type: 'TRIGGERS', label: 'daily 2am' },
-              { id: 'e2', source: 'start', target: 'extract-db', type: 'TRIGGERS', label: 'daily 2am' },
-              { id: 'e3', source: 'extract-s3', target: 'validate', type: 'FLOWS_TO', label: '2.3GB' },
-              { id: 'e4', source: 'extract-db', target: 'validate', type: 'FLOWS_TO', label: '890MB' },
-              { id: 'e5', source: 'validate', target: 'clean', type: 'FLOWS_TO', label: '3.1GB' },
-              { id: 'e6', source: 'clean', target: 'feature-1', type: 'PARALLEL', label: '' },
-              { id: 'e7', source: 'clean', target: 'feature-2', type: 'PARALLEL', label: '' },
-              { id: 'e8', source: 'clean', target: 'feature-3', type: 'PARALLEL', label: '' },
-              { id: 'e9', source: 'feature-1', target: 'merge', type: 'FLOWS_TO', label: '' },
-              { id: 'e10', source: 'feature-2', target: 'merge', type: 'FLOWS_TO', label: '' },
-              { id: 'e11', source: 'feature-3', target: 'merge', type: 'FLOWS_TO', label: '' },
-              { id: 'e12', source: 'merge', target: 'split', type: 'FLOWS_TO', label: '1.8GB' },
-              { id: 'e13', source: 'split', target: 'train', type: 'FLOWS_TO', label: 'train set' },
-              { id: 'e14', source: 'train', target: 'evaluate', type: 'FLOWS_TO', label: 'model' },
-              { id: 'e15', source: 'split', target: 'evaluate', type: 'FLOWS_TO', label: 'test set' },
-              { id: 'e16', source: 'evaluate', target: 'deploy', type: 'CONDITIONAL', label: 'if accuracy > 0.95' },
+              { id: 'e1', source: 'start', target: 'extract-s3' },
+              { id: 'e2', source: 'start', target: 'extract-db' },
+              { id: 'e3', source: 'extract-s3', target: 'validate', label: '2.3GB' },
+              { id: 'e4', source: 'extract-db', target: 'validate', label: '890MB' },
+              { id: 'e5', source: 'validate', target: 'clean' },
+              { id: 'e6', source: 'clean', target: 'feature-1' },
+              { id: 'e7', source: 'clean', target: 'feature-2' },
+              { id: 'e8', source: 'clean', target: 'feature-3' },
+              { id: 'e9', source: 'feature-1', target: 'merge' },
+              { id: 'e10', source: 'feature-2', target: 'merge' },
+              { id: 'e11', source: 'feature-3', target: 'merge' },
+              { id: 'e12', source: 'merge', target: 'split' },
+              { id: 'e13', source: 'split', target: 'train', label: 'train set' },
+              { id: 'e14', source: 'train', target: 'evaluate' },
+              { id: 'e15', source: 'split', target: 'evaluate', label: 'test set' },
+              { id: 'e16', source: 'evaluate', target: 'deploy', conditionType: 'conditional', label: 'if acc > 0.95' },
             ],
-            metadata: {
-              name: 'ML Training Pipeline - Customer Churn Prediction',
-              description: 'Daily automated ML pipeline with parallel feature engineering',
-            },
           },
           title: 'ML Pipeline DAG Visualization',
-          subtitle: 'Data pipeline • Currently training model (67% complete)',
+          subtitle: 'Data pipeline • Currently training model',
           mode: 'mini',
-          layout: 'hierarchical',
-          direction: 'LR',
           showLabels: true,
           showEdgeLabels: true,
-          enablePhysics: false,
+          showStatus: true,
+          orientation: 'horizontal',
         },
       },
     },
@@ -428,97 +519,99 @@ const getStashOverviewMessages = (): Message[] => {
       interactiveComponent: {
         type: 'flamegraph',
         data: {
-          root: {
-            id: 'main',
-            name: 'main()',
-            value: 10000,
-            metadata: {
-              file: 'src/main.ts',
-              line: 1,
-              samples: 10000,
-              selfTime: 100,
-              totalTime: 10000,
+          data: {
+            root: {
+              id: 'main',
+              name: 'main()',
+              value: 10000,
+              metadata: {
+                file: 'src/main.ts',
+                line: 1,
+                samples: 10000,
+                selfTime: 100,
+                totalTime: 10000,
+              },
+              children: [
+                {
+                  id: 'app-init',
+                  name: 'initializeApp()',
+                  value: 2500,
+                  metadata: { file: 'src/app.ts', line: 45, samples: 2500, selfTime: 200, totalTime: 2500 },
+                  children: [
+                    {
+                      id: 'config',
+                      name: 'loadConfig()',
+                      value: 800,
+                      metadata: { file: 'src/config.ts', samples: 800 },
+                    },
+                    {
+                      id: 'db',
+                      name: 'connectDatabase()',
+                      value: 1200,
+                      metadata: { file: 'src/database.ts', samples: 1200 },
+                    },
+                  ],
+                },
+                {
+                  id: 'request',
+                  name: 'handleRequest()',
+                  value: 6500,
+                  metadata: { file: 'src/server.ts', line: 156, samples: 6500, selfTime: 400, totalTime: 6500 },
+                  children: [
+                    {
+                      id: 'auth',
+                      name: 'authenticateUser()',
+                      value: 1200,
+                      metadata: { file: 'src/auth.ts', samples: 1200 },
+                      children: [
+                        {
+                          id: 'jwt',
+                          name: 'jwt.verify()',
+                          value: 600,
+                          metadata: { samples: 600 },
+                        },
+                      ],
+                    },
+                    {
+                      id: 'controller',
+                      name: 'controller.execute()',
+                      value: 3500,
+                      metadata: { file: 'src/controllers/api.ts', line: 234, samples: 3500 },
+                      children: [
+                        {
+                          id: 'business',
+                          name: 'processBusinessLogic()',
+                          value: 2600,
+                          metadata: { file: 'src/services/business.ts', samples: 2600 },
+                          children: [
+                            {
+                              id: 'db-queries',
+                              name: 'fetchRelatedData()',
+                              value: 1800,
+                              metadata: { samples: 1800 },
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
             },
-            children: [
-              {
-                id: 'app-init',
-                name: 'initializeApp()',
-                value: 2500,
-                metadata: { file: 'src/app.ts', line: 45, samples: 2500, selfTime: 200, totalTime: 2500 },
-                children: [
-                  {
-                    id: 'config',
-                    name: 'loadConfig()',
-                    value: 800,
-                    metadata: { file: 'src/config.ts', samples: 800 },
-                  },
-                  {
-                    id: 'db',
-                    name: 'connectDatabase()',
-                    value: 1200,
-                    metadata: { file: 'src/database.ts', samples: 1200 },
-                  },
-                ],
-              },
-              {
-                id: 'request',
-                name: 'handleRequest()',
-                value: 6500,
-                metadata: { file: 'src/server.ts', line: 156, samples: 6500, selfTime: 400, totalTime: 6500 },
-                children: [
-                  {
-                    id: 'auth',
-                    name: 'authenticateUser()',
-                    value: 1200,
-                    metadata: { file: 'src/auth.ts', samples: 1200 },
-                    children: [
-                      {
-                        id: 'jwt',
-                        name: 'jwt.verify()',
-                        value: 600,
-                        metadata: { samples: 600 },
-                      },
-                    ],
-                  },
-                  {
-                    id: 'controller',
-                    name: 'controller.execute()',
-                    value: 3500,
-                    metadata: { file: 'src/controllers/api.ts', line: 234, samples: 3500 },
-                    children: [
-                      {
-                        id: 'business',
-                        name: 'processBusinessLogic()',
-                        value: 2600,
-                        metadata: { file: 'src/services/business.ts', samples: 2600 },
-                        children: [
-                          {
-                            id: 'db-queries',
-                            name: 'fetchRelatedData()',
-                            value: 1800,
-                            metadata: { samples: 1800 },
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
+            total: 10000,
+            unit: 'samples',
+            metadata: {
+              type: 'cpu',
+              duration: 10000,
+              application: 'API Server',
+            },
           },
-          total: 10000,
-          unit: 'samples',
-          metadata: {
-            type: 'cpu',
-            duration: 10000,
-            application: 'API Server',
-          },
+          title: 'API Server CPU Profile',
+          subtitle: '10,000 samples • pprof format • Tap 🔍 to explore',
+          mode: 'preview',
+          colorScheme: 'hot',
+          showSearch: true,
         },
-        title: 'API Server CPU Profile',
-        subtitle: '10,000 samples • pprof format • Tap 🔍 to explore',
-        mode: 'preview',
-        colorScheme: 'hot',
-        showSearch: true,
       },
     },
     {
@@ -3309,6 +3402,370 @@ const getWorkflowChatMessages = (): Message[] => {
   ];
 };
 
+// Component Showcase - Comprehensive Dashboard with ALL Components
+const getComponentShowcaseMessages = (): Message[] => {
+  const mockTasks = generateMockTasks(6);
+  const mockGanttTasks = generateMockGanttTasks(8);
+  const mockTimeSeries = generateMockTimeSeriesData();
+  const mockGraph = generateLargeGraph(8, 12);
+
+  return [
+    {
+      id: 'showcase-1',
+      content: "Show me all the Stash components in a single dashboard!",
+      sender: { id: 'user-demo', name: 'You', avatar: '👤' },
+      timestamp: addHours(new Date(), -0.1),
+      status: 'delivered',
+      isOwn: true,
+    },
+    {
+      id: 'showcase-2',
+      content: "## 🎨 Stash Component Showcase Dashboard\n\nHere's a comprehensive dashboard featuring **every interactive component** available in Stash! This demonstrates the library's full capabilities in one place.\n\nClick **Expand** to see the full dashboard with all components in detail!",
+      sender: { id: 'ai-showcase', name: 'Stash AI', avatar: '🤖' },
+      timestamp: addHours(new Date(), -0.09),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'dashboard',
+        data: {
+          config: {
+            title: 'Stash Component Library Showcase',
+            description: 'Every interactive component in one dashboard - 2 row grid layout',
+            gridSize: { rows: 2, cols: 6 },
+            items: [
+              // Row 1
+              {
+                id: 'task-list',
+                type: 'task-list',
+                gridPosition: { row: 0, col: 0, rowSpan: 1, colSpan: 1 },
+                data: {
+                  tasks: mockTasks.slice(0, 6),
+                  title: 'Task List',
+                  mode: 'mini',
+                },
+              },
+              {
+                id: 'gantt',
+                type: 'gantt-chart',
+                gridPosition: { row: 0, col: 1, rowSpan: 1, colSpan: 1 },
+                data: {
+                  tasks: mockGanttTasks.slice(0, 6),
+                  title: 'Gantt Chart',
+                  mode: 'mini',
+                },
+              },
+              {
+                id: 'timeseries',
+                type: 'time-series-chart',
+                gridPosition: { row: 0, col: 2, rowSpan: 1, colSpan: 1 },
+                data: mockTimeSeries,
+              },
+              {
+                id: 'graph',
+                type: 'graph-visualization',
+                gridPosition: { row: 0, col: 3, rowSpan: 1, colSpan: 1 },
+                data: {
+                  data: mockGraph,
+                  title: 'Graph Viz',
+                  mode: 'mini',
+                },
+              },
+              {
+                id: 'workflow',
+                type: 'workflow',
+                gridPosition: { row: 0, col: 4, rowSpan: 1, colSpan: 1 },
+                data: {
+                  data: {
+                    id: 'mini-workflow',
+                    name: 'Simple Pipeline',
+                    nodes: [
+                      { id: 'start', type: 'start', label: 'Start', status: 'success' },
+                      { id: 'process', type: 'task', label: 'Process', status: 'running' },
+                      { id: 'end', type: 'end', label: 'End', status: 'idle' },
+                    ],
+                    edges: [
+                      { id: 'e1', source: 'start', target: 'process' },
+                      { id: 'e2', source: 'process', target: 'end' },
+                    ],
+                  },
+                  title: 'Workflow',
+                  mode: 'mini',
+                },
+              },
+              {
+                id: 'heatmap',
+                type: 'heatmap',
+                gridPosition: { row: 0, col: 5, rowSpan: 1, colSpan: 1 },
+                data: {
+                  data: Array.from({ length: 10 }, (_, i) =>
+                    Array.from({ length: 8 }, (_, j) => ({
+                      x: j,
+                      y: i,
+                      value: Math.random() * 100,
+                      label: `${j},${i}`,
+                    }))
+                  ).flat(),
+                  xLabels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Sun'],
+                  yLabels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00', '24:00', '24:00'],
+                  title: 'Heatmap',
+                  mode: 'mini',
+                },
+              },
+              // Row 2
+              {
+                id: 'tree-view',
+                type: 'tree-view',
+                gridPosition: { row: 1, col: 0, rowSpan: 1, colSpan: 1 },
+                data: {
+                  data: {
+                    id: 'file-tree',
+                    title: 'Tree View',
+                    roots: [
+                      {
+                        id: 'src',
+                        label: 'src',
+                        type: 'folder',
+                        status: 'normal',
+                        children: [
+                          { id: 'app', label: 'App.tsx', type: 'file', status: 'normal' },
+                          { id: 'index', label: 'index.ts', type: 'file', status: 'normal' },
+                        ]
+                      },
+                      {
+                        id: 'tests',
+                        label: 'tests',
+                        type: 'folder',
+                        status: 'highlighted',
+                        children: [
+                          { id: 'test1', label: 'app.test.ts', type: 'file', status: 'highlighted' },
+                        ]
+                      },
+                    ],
+                  },
+                  mode: 'mini',
+                },
+              },
+              {
+                id: 'kanban',
+                type: 'kanban-board',
+                gridPosition: { row: 1, col: 1, rowSpan: 1, colSpan: 1 },
+                data: {
+                  data: {
+                    id: 'kanban-1',
+                    name: 'Sprint Board',
+                    columns: [
+                      {
+                        id: 'todo',
+                        title: 'To Do',
+                        cards: [
+                          { id: 'card-1', title: 'Design UI', priority: 'high', tags: [{ id: 't1', label: 'Design', color: '#3B82F6' }] },
+                          { id: 'card-2', title: 'Write Tests', priority: 'medium', tags: [{ id: 't2', label: 'Testing', color: '#10B981' }] },
+                        ],
+                      },
+                      {
+                        id: 'doing',
+                        title: 'In Progress',
+                        cards: [
+                          { id: 'card-3', title: 'Implement API', priority: 'high', tags: [{ id: 't3', label: 'Backend', color: '#EF4444' }] },
+                        ],
+                      },
+                      {
+                        id: 'done',
+                        title: 'Done',
+                        cards: [
+                          { id: 'card-4', title: 'Setup Project', priority: 'low', tags: [] },
+                        ],
+                      },
+                    ],
+                  },
+                  title: 'Kanban',
+                  mode: 'mini',
+                },
+              },
+              {
+                id: 'data-table',
+                type: 'data-table',
+                gridPosition: { row: 1, col: 2, rowSpan: 1, colSpan: 1 },
+                data: {
+                  columns: [
+                    { id: 'name', header: 'Name', accessorKey: 'name', type: 'string' },
+                    { id: 'value', header: 'Value', accessorKey: 'value', type: 'number' },
+                    { id: 'status', header: 'Status', accessorKey: 'status', type: 'string' },
+                  ],
+                  data: [
+                    { id: '1', name: 'Item 1', value: 100, status: 'Active' },
+                    { id: '2', name: 'Item 2', value: 200, status: 'Pending' },
+                    { id: '3', name: 'Item 3', value: 150, status: 'Active' },
+                  ],
+                  title: 'Data Table',
+                  mode: 'preview',
+                },
+              },
+              {
+                id: 'code',
+                type: 'code-block',
+                gridPosition: { row: 1, col: 3, rowSpan: 1, colSpan: 1 },
+                data: {
+                  code: `function hello() {\n  console.log("Stash!");\n  return true;\n}`,
+                  language: 'typescript',
+                  title: 'Code Block',
+                  mode: 'preview',
+                },
+              },
+              {
+                id: 'resource',
+                type: 'resource-list',
+                gridPosition: { row: 1, col: 4, rowSpan: 1, colSpan: 1 },
+                data: {
+                  resources: [
+                    { id: 'r1', name: 'API Server', type: 'server', status: 'healthy', utilization: 45 },
+                    { id: 'r2', name: 'Database', type: 'database', status: 'warning', utilization: 78 },
+                    { id: 'r3', name: 'Cache', type: 'cache', status: 'healthy', utilization: 32 },
+                  ],
+                  title: 'Resources',
+                  mode: 'mini',
+                },
+              },
+              {
+                id: 'media',
+                type: 'media',
+                gridPosition: { row: 1, col: 5, rowSpan: 1, colSpan: 1 },
+                data: {
+                  media: [
+                    {
+                      id: 'm1',
+                      type: 'image',
+                      url: 'https://picsum.photos/400/300',
+                      thumbnail: 'https://picsum.photos/100/75',
+                      caption: 'Sample Image',
+                    },
+                  ],
+                  title: 'Media',
+                  mode: 'mini',
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+  ];
+};
+
+//Multi Swipeable Gallery - Interactive Component Carousel
+const getMultiSwipeableMessages = (): Message[] => {
+  const mockTasks = generateMockTasks(20);
+  const mockGanttTasks = generateMockGanttTasks(15);
+  const mockTimeSeries = generateMockTimeSeriesData();
+  const mockGraph = generateLargeGraph(25, 35);
+
+  return [
+    {
+      id: 'multi-swipe-1',
+      content: "Can you show me a summary of our Q1 metrics across different views?",
+      sender: { id: 'user-demo', name: 'Product Manager', avatar: '👤' },
+      timestamp: addHours(new Date(), -0.1),
+      status: 'delivered',
+      isOwn: true,
+    },
+    {
+      id: 'multi-swipe-2',
+      content: "## 📊 Q1 Multi-View Dashboard\n\nHere's a **swipeable gallery** of all your Q1 metrics! Use the arrows or swipe to navigate through different visualizations:\n\n• **Timeline View**: Project milestones and deadlines\n• **Network View**: Team collaboration and dependencies \n• **Performance View**: Revenue and growth trends\n• **Task View**: Sprint progress and priorities\n\nEach slide can be expanded for detailed analysis.",
+      sender: { id: 'ai-demo', name: 'Analytics AI', avatar: '📈' },
+      timestamp: addHours(new Date(), -0.09),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'multi-swipeable',
+        data: {
+          items: [
+            {
+              id: 'gantt-view',
+              type: 'gantt-chart',
+              title: 'Q1 Project Timeline',
+              subtitle: 'Key milestones and deliverables',
+              data: {
+                tasks: mockGanttTasks,
+                mode: 'preview',
+                title: 'Q1 Development Roadmap',
+                subtitle: `${mockGanttTasks.length} tasks across 3 teams`,
+                showProgress: true,
+                showMilestones: true,
+                showToday: true,
+                timeScale: 'week',
+              },
+            },
+            {
+              id: 'network-view',
+              type: 'graph-visualization',
+              title: 'Team Collaboration Network',
+              subtitle: 'Cross-functional dependencies',
+              data: {
+                data: mockGraph,
+                mode: 'preview',
+                title: 'Q1 Team Collaboration',
+                subtitle: `${mockGraph.nodes.length} team members • ${mockGraph.edges.length} collaborations`,
+                showLabels: true,
+                enablePhysics: true,
+              },
+            },
+            {
+              id: 'metrics-view',
+              type: 'time-series-chart',
+              title: 'Performance Metrics',
+              subtitle: 'Revenue and growth trends',
+              data: {
+                series: mockTimeSeries,
+                mode: 'preview',
+                title: 'Q1 Financial Performance',
+                subtitle: 'Revenue, expenses, and profit margins',
+                showLegend: true,
+                showGrid: true,
+                xAxisLabel: 'Week',
+                yAxisLabel: 'Revenue ($K)',
+              },
+            },
+            {
+              id: 'tasks-view',
+              type: 'task-list',
+              title: 'Sprint Progress',
+              subtitle: 'Active tasks and priorities',
+              data: {
+                tasks: mockTasks.slice(0, 10),
+                mode: 'preview',
+                title: 'Current Sprint Tasks',
+                subtitle: `${mockTasks.length} total tasks`,
+                showStatus: true,
+                showPriority: true,
+              },
+            },
+          ],
+          mode: 'preview',
+          showDots: true,
+          showArrows: true,
+          initialIndex: 0,
+        },
+      },
+    },
+    {
+      id: 'multi-swipe-3',
+      content: "This is perfect! I can swipe through all the different views without leaving the chat. The Gantt chart shows we're on track, and the network graph helps me see where teams are collaborating.",
+      sender: { id: 'user-demo', name: 'Product Manager', avatar: '👤' },
+      timestamp: addHours(new Date(), -0.08),
+      status: 'delivered',
+      isOwn: true,
+    },
+    {
+      id: 'multi-swipe-4',
+      content: "Exactly! The **MultiSwipeable** component is perfect for:\n\n✅ **Executive summaries** - Multiple views in one compact space\n✅ **Data exploration** - Easy navigation between related visualizations\n✅ **Mobile-first** - Swipe gestures feel natural on touch devices\n✅ **Context retention** - View different perspectives without losing your place in the conversation\n\nYou can also expand any individual slide to see it in full detail!",
+      sender: { id: 'ai-demo', name: 'Analytics AI', avatar: '📈' },
+      timestamp: addHours(new Date(), -0.07),
+      status: 'delivered',
+      isOwn: false,
+    },
+  ];
+};
+
 // Core demo chats showcasing Stash capabilities
 const ALL_MOCK_CHATS: ChatPreview[] = [
   // Combined overview - what is Stash and why it exists
@@ -3416,6 +3873,32 @@ const ALL_MOCK_CHATS: ChatPreview[] = [
       lastReadAt: new Date(),
     },
   },
+  // Component Showcase Dashboard
+  {
+    id: 'chat-component-showcase',
+    title: '🎨 Component Showcase - All Interactive Components',
+    type: 'ai',
+    groupId: 'examples',
+    participants: [
+      { id: 'user-demo', name: 'You', avatar: '👤' },
+      { id: 'ai-showcase', name: 'Stash AI', avatar: '🤖' },
+    ],
+    lastMessage: {
+      content: 'Check out this comprehensive dashboard showcasing ALL Stash interactive components!',
+      timestamp: new Date(Date.now() - 90000),
+      senderId: 'ai-showcase',
+      senderName: 'Stash AI',
+    },
+    unreadCount: 0,
+    updatedAt: new Date(Date.now() - 90000),
+    createdAt: new Date(Date.now() - 190000),
+    isPinned: true,
+    isMuted: false,
+    isArchived: false,
+    metadata: {
+      lastReadAt: new Date(),
+    },
+  },
   // Live Streaming Graph Tutorial
   {
     id: 'chat-graph-tutorial',
@@ -3494,6 +3977,34 @@ const ALL_MOCK_CHATS: ChatPreview[] = [
       lastReadAt: new Date(),
     },
   },
+  // Multi-Swipeable Gallery Demo
+  {
+    id: 'chat-multi-swipeable',
+    title: '🎠 Multi-View Dashboard Gallery',
+    type: 'ai',
+    groupId: 'examples',
+    participants: [
+      { id: 'user-demo', name: 'Product Manager', avatar: '👤' },
+      { id: 'ai-demo', name: 'Analytics AI', avatar: '📈' },
+    ],
+    lastMessage: {
+      content: 'Swipeable gallery of Q1 metrics - Timeline, Network, Performance, and Tasks',
+      timestamp: new Date(),
+      senderId: 'ai-demo',
+      senderName: 'Analytics AI',
+    },
+    unreadCount: 0,
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    isPinned: true,
+    isMuted: false,
+    isArchived: false,
+    metadata: {
+      lastReadAt: new Date(),
+    },
+  },
+  // TreeView demo
+  treeViewChat,
   // CI/CD Workflow demo
   {
     id: 'chat-workflow',
@@ -3623,6 +4134,9 @@ export default function ChatHistoryExample() {
 
   const heatmapMessages = useMemo(() => getHeatmapChatMessages(), []);
   const workflowMessages = useMemo(() => getWorkflowChatMessages(), []);
+  const treeViewMessages = useMemo(() => getTreeViewChatMessages(), []);
+  const componentShowcaseMessages = useMemo(() => getComponentShowcaseMessages(), []);
+  const multiSwipeableMessages = useMemo(() => getMultiSwipeableMessages(), []);
 
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>({
     'chat-overview': overviewMessages,
@@ -3630,7 +4144,10 @@ export default function ChatHistoryExample() {
     'chat-graph-tutorial': graphTutorialMessages,
     'chat-data-table': dataTableMessages,
     'chat-heatmap': heatmapMessages,
+    'chat-tree-view': treeViewMessages,
     'chat-workflow': workflowMessages,
+    'chat-component-showcase': componentShowcaseMessages,
+    'chat-multi-swipeable': multiSwipeableMessages,
     'chat-incident': incidentMessages,
     'chat-0': initialMessages,
   });

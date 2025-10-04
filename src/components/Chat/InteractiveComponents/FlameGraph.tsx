@@ -27,18 +27,35 @@ export const FlameGraph: React.FC<FlameGraphProps> = ({
   minPercentage = 0.1,
   onNodeClick,
   onSearch,
+  onExpandPress,
   height: customHeight,
   style,
 }) => {
+  // Early return if data is invalid
+  if (!data || !data.root) {
+    return (
+      <View style={[styles.container, style]}>
+        <Text style={styles.errorText}>Invalid flame graph data</Text>
+      </View>
+    );
+  }
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedNode, setSelectedNode] = useState<FlameGraphNode | null>(null);
   const [focusedNode, setFocusedNode] = useState<FlameGraphNode>(data.root);
+  const [containerWidth, setContainerWidth] = useState(0);
 
   const screenWidth = Dimensions.get('window').width;
 
-  // Calculate heights based on mode
-  const containerHeight = customHeight || (mode === 'mini' ? 200 : mode === 'preview' ? 350 : 500);
-  const graphHeight = mode === 'mini' ? 150 : mode === 'preview' ? 280 : 400;
+  // Calculate dimensions based on mode - similar to other components
+  const isMini = mode === 'mini';
+  const isPreview = mode === 'preview';
+  const containerHeight = customHeight || (isMini ? 200 : isPreview ? 300 : 500);
+  const graphHeight = isMini ? 150 : isPreview ? 240 : 400;
+
+  // Use measured container width, fallback to safe defaults
+  const measuredWidth = containerWidth > 0 ? containerWidth : ((isMini || isPreview) ? 350 : screenWidth);
+  const graphWidth = measuredWidth - 32;
 
   // Color schemes
   const colorSchemes = {
@@ -58,14 +75,16 @@ export const FlameGraph: React.FC<FlameGraphProps> = ({
 
   // Calculate percentage
   const getPercentage = (value: number) => {
-    return (value / data.total) * 100;
+    const total = data?.total || 1;
+    return (value / total) * 100;
   };
 
   // Format value with unit
   const formatValue = (value: number) => {
-    if (data.unit === 'ms') {
+    const unit = data?.unit;
+    if (unit === 'ms') {
       return `${value.toFixed(2)}ms`;
-    } else if (data.unit === 'bytes') {
+    } else if (unit === 'bytes') {
       if (value > 1024 * 1024) {
         return `${(value / (1024 * 1024)).toFixed(2)}MB`;
       } else if (value > 1024) {
@@ -163,8 +182,8 @@ export const FlameGraph: React.FC<FlameGraphProps> = ({
     const isSelected = selectedNode?.id === node.id;
     const isSearchMatch = searchQuery && node.name.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const nodeWidth = (width / 100) * (screenWidth - 40);
-    const nodeLeft = (x / 100) * (screenWidth - 40);
+    const nodeWidth = (width / 100) * graphWidth;
+    const nodeLeft = (x / 100) * graphWidth;
 
     // Only render if width is sufficient
     if (nodeWidth < 2) return null;
@@ -275,7 +294,15 @@ export const FlameGraph: React.FC<FlameGraphProps> = ({
   };
 
   return (
-    <View style={[styles.container, { height: containerHeight }, style]}>
+    <View
+      style={[styles.container, { height: containerHeight, width: '100%', maxWidth: '100%' }, style]}
+      onLayout={(event) => {
+        const { width } = event.nativeEvent.layout;
+        if (width > 0 && width !== containerWidth) {
+          setContainerWidth(width);
+        }
+      }}
+    >
       {/* Header */}
       {(title || subtitle) && (
         <View style={styles.header}>
@@ -325,10 +352,11 @@ export const FlameGraph: React.FC<FlameGraphProps> = ({
       {/* Flame graph */}
       <ScrollView
         style={[styles.graphContainer, { height: graphHeight }]}
-        horizontal
+        horizontal={mode === 'detail'}
         showsHorizontalScrollIndicator={mode === 'detail'}
+        scrollEnabled={mode === 'detail'}
       >
-        <View style={{ height: (maxDepth + 1) * nodeHeight, width: screenWidth - 40 }}>
+        <View style={{ height: (maxDepth + 1) * nodeHeight, width: graphWidth }}>
           {filteredNodes.map(renderNode)}
         </View>
       </ScrollView>
@@ -343,6 +371,13 @@ export const FlameGraph: React.FC<FlameGraphProps> = ({
             {data.root.name} • {formatValue(data.total)} total
           </Text>
         </View>
+      )}
+
+      {/* Expand button for mini and preview modes */}
+      {(mode === 'mini' || mode === 'preview') && onExpandPress && (
+        <TouchableOpacity style={styles.expandButton} onPress={onExpandPress}>
+          <Text style={styles.expandButtonText}>⛶ Expand</Text>
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -520,5 +555,30 @@ const styles = StyleSheet.create({
   miniText: {
     fontSize: 13,
     color: '#6B7280',
+  },
+  expandButton: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  expandButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#EF4444',
+    textAlign: 'center',
+    padding: 20,
   },
 });

@@ -60,10 +60,10 @@ export class WebSocketChatService {
       const wsUrl = `${this.baseUrl}/ws?token=${encodeURIComponent(token)}`;
       this.ws = new WebSocket(wsUrl);
 
-      this.ws.onopen = this.handleOpen.bind(this);
-      this.ws.onmessage = this.handleMessage.bind(this);
-      this.ws.onclose = this.handleClose.bind(this);
-      this.ws.onerror = this.handleError.bind(this);
+      this.ws.onopen = this.handleOpen.bind(this) as any;
+      this.ws.onmessage = this.handleMessage.bind(this) as any;
+      this.ws.onclose = this.handleClose.bind(this) as any;
+      this.ws.onerror = this.handleError.bind(this) as any;
 
     } catch (error) {
       console.error('Failed to connect to WebSocket:', error);
@@ -186,7 +186,7 @@ export class WebSocketChatService {
   private handleMessage(event: MessageEvent): void {
     try {
       const data = event.data.toString();
-      const messages = data.trim().split('\n').filter(line => line.trim());
+      const messages = data.trim().split('\n').filter((line: string) => line.trim());
 
       for (const messageStr of messages) {
         try {

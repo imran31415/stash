@@ -19,6 +19,10 @@ import { CodeBlock } from './CodeBlock';
 import { Media } from './Media';
 import { Heatmap } from './Heatmap';
 import { Workflow } from './Workflow';
+import { TreeView } from './TreeView';
+import { KanbanBoard } from './KanbanBoard';
+import { VideoStream } from './VideoStream';
+import { LiveCameraStream } from './LiveCameraStream';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -152,7 +156,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   );
 
   const gridSpacing = config.spacing ?? spacing[3];
-  const gridPadding = config.padding ?? spacing[4];
+  const gridPadding = config.padding ?? spacing[2]; // Reduced from spacing[4] (16px) to spacing[2] (8px)
 
   // Account for header height - use actual measured heights
   // Mini header with expand button: ~50px, Full header: ~70px, with description: ~110px
@@ -282,12 +286,51 @@ export const Dashboard: React.FC<DashboardProps> = ({
         );
         break;
 
-      case 'video':
+      case 'tree-view':
         content = (
-          <View style={styles.videoPlaceholder}>
-            <Text style={styles.videoPlaceholderText}>🎥</Text>
-            <Text style={styles.videoPlaceholderTitle}>{item.data.title || 'Video'}</Text>
-          </View>
+          <TreeView
+            {...(item.data as any)}
+            mode={itemMode}
+            height={itemDimensions.height}
+            width={itemDimensions.width}
+            onExpandPress={undefined}
+          />
+        );
+        break;
+
+      case 'kanban-board':
+        content = (
+          <KanbanBoard
+            {...(item.data as any)}
+            mode={itemMode}
+            height={itemDimensions.height}
+            width={itemDimensions.width}
+            onExpandPress={undefined}
+          />
+        );
+        break;
+
+      case 'video':
+      case 'video-stream':
+        content = (
+          <VideoStream
+            {...(item.data as any)}
+            mode={itemMode}
+            height={itemDimensions.height}
+            width={itemDimensions.width}
+            onExpandPress={undefined}
+          />
+        );
+        break;
+
+      case 'live-camera-stream':
+        content = (
+          <LiveCameraStream
+            {...(item.data as any)}
+            mode={itemMode}
+            maxHeight={itemDimensions.height}
+            maxWidth={itemDimensions.width}
+          />
         );
         break;
 

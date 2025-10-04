@@ -1,0 +1,19 @@
+{
+  "name": "streaming-room-server",
+  "version": "1.0.0",
+  "description": "WebSocket server for multi-user video streaming rooms",
+  "main": "streaming-room-server.js",
+  "scripts": {
+    "start": "node streaming-room-server.js",
+    "dev": "nodemon streaming-room-server.js"
+  },
+  "keywords": ["websocket", "streaming", "video", "chat"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

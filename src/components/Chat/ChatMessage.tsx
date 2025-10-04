@@ -31,8 +31,17 @@ import {
   DashboardPreview,
   DataTable,
   DataTableDetailView,
+  Workflow,
+  WorkflowDetailView,
+  FlameGraph,
+  VideoStream,
+  VideoStreamDetailView,
+  LiveCameraStream,
+  TreeView,
+  TreeViewDetailView,
+  MultiSwipeable,
 } from './InteractiveComponents';
-import type { Task, TimeSeriesSeries, GraphData, SupportedLanguage, MediaItem, DashboardConfig, ColumnDefinition, RowData } from './InteractiveComponents';
+import type { Task, TimeSeriesSeries, GraphData, SupportedLanguage, MediaItem, DashboardConfig, ColumnDefinition, RowData, VideoStreamData, TreeViewData, SwipeableItem } from './InteractiveComponents';
 import { MarkdownText } from './MarkdownText';
 
 export interface ChatMessageProps {
@@ -68,7 +77,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   const shouldUseFullWidth = presentationMode && (
     message?.type === 'image' ||
     (message?.interactiveComponent &&
-      ['gantt-chart', 'task-list', 'time-series-chart', 'graph-visualization', 'code-block', 'media', 'dashboard', 'data-table'].includes(
+      ['gantt-chart', 'task-list', 'time-series-chart', 'graph-visualization', 'code-block', 'media', 'dashboard', 'data-table', 'multi-swipeable'].includes(
         message.interactiveComponent.type
       ))
   );
@@ -114,6 +123,14 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     title?: string;
     subtitle?: string;
   } | null>(null);
+  const [showWorkflowDetail, setShowWorkflowDetail] = useState(false);
+  const [workflowData, setWorkflowData] = useState<any>(null);
+  const [showFlameGraphDetail, setShowFlameGraphDetail] = useState(false);
+  const [flameGraphData, setFlameGraphData] = useState<any>(null);
+  const [showVideoStreamDetail, setShowVideoStreamDetail] = useState(false);
+  const [videoStreamData, setVideoStreamData] = useState<VideoStreamData | null>(null);
+  const [showTreeViewDetail, setShowTreeViewDetail] = useState(false);
+  const [treeViewData, setTreeViewData] = useState<TreeViewData | null>(null);
 
   // Loading state for AI messages
   if (isLoading) {
@@ -202,6 +219,26 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   ) => {
     setDataTableData({ columns, data, title, subtitle });
     setShowDataTableDetail(true);
+  };
+
+  const handleWorkflowExpand = (workflowData: any) => {
+    setWorkflowData(workflowData);
+    setShowWorkflowDetail(true);
+  };
+
+  const handleFlameGraphExpand = (flameGraphData: any) => {
+    setFlameGraphData(flameGraphData);
+    setShowFlameGraphDetail(true);
+  };
+
+  const handleVideoStreamExpand = (videoStreamData: VideoStreamData) => {
+    setVideoStreamData(videoStreamData);
+    setShowVideoStreamDetail(true);
+  };
+
+  const handleTreeViewExpand = (treeViewData: TreeViewData) => {
+    setTreeViewData(treeViewData);
+    setShowTreeViewDetail(true);
   };
 
   const renderInteractiveComponent = () => {
@@ -344,6 +381,73 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
               onRowPress={(row) => onAction?.('row-press', row)}
             />
           </Pressable>
+        );
+      case 'workflow':
+      case 'dag':
+        return (
+          <Workflow
+            {...data}
+            mode={data.mode || 'mini'}
+            onNodePress={(node) => onAction?.('node-press', node)}
+            onExpandPress={() => handleWorkflowExpand(data)}
+          />
+        );
+      case 'flamegraph':
+      case 'flame-graph':
+        return (
+          <FlameGraph
+            {...data}
+            mode={data.mode || 'preview'}
+            onNodeClick={(node) => onAction?.('node-press', node)}
+            onExpandPress={() => handleFlameGraphExpand(data)}
+          />
+        );
+      case 'tree-view':
+        return (
+          <TreeView
+            data={data.data}
+            mode={data.mode || 'mini'}
+            onNodePress={(node, path) => onAction?.('node-press', { node, path })}
+            onExpandPress={() => handleTreeViewExpand(data.data)}
+          />
+        );
+      case 'video-stream':
+        return (
+          <VideoStream
+            data={data}
+            mode={presentationMode ? 'full' : (data.mode || 'mini')}
+            onPlay={() => onAction?.('play', data)}
+            onPause={() => onAction?.('pause', data)}
+            onEnded={() => onAction?.('ended', data)}
+            onError={(error) => onAction?.('error', error)}
+            onExpandPress={() => handleVideoStreamExpand(data)}
+          />
+        );
+      case 'live-camera-stream':
+        return (
+          <LiveCameraStream
+            mode={presentationMode ? 'full' : (data.mode || 'mini')}
+            autoStart={data.autoStart}
+            showControls={data.showControls !== false}
+            enableFlip={data.enableFlip !== false}
+            onStreamStart={() => onAction?.('stream-start', data)}
+            onStreamStop={() => onAction?.('stream-stop', data)}
+            onError={(error) => onAction?.('error', error)}
+          />
+        );
+      case 'multi-swipeable':
+        return (
+          <MultiSwipeable
+            items={data.items || []}
+            mode={presentationMode ? 'full' : (data.mode || 'preview')}
+            initialIndex={data.initialIndex}
+            showDots={data.showDots}
+            showArrows={data.showArrows}
+            autoAdvanceInterval={data.autoAdvanceInterval}
+            onItemChange={(index, item) => onAction?.('item-change', { index, item })}
+            onExpandPress={(item, index) => onAction?.('expand-press', { item, index })}
+            onItemAction={(action, actionData, itemIndex) => onAction?.('item-action', { action, data: actionData, itemIndex })}
+          />
         );
       default:
         return null;
@@ -602,6 +706,59 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           onRowPress={(row) => console.log('Row pressed in detail:', row)}
         />
       )}
+
+      {/* Workflow Detail View */}
+      {workflowData && (
+        <WorkflowDetailView
+          visible={showWorkflowDetail}
+          data={workflowData.data}
+          title={workflowData.title}
+          subtitle={workflowData.subtitle}
+          onClose={() => setShowWorkflowDetail(false)}
+          onNodePress={(node) => console.log('Node pressed in detail:', node)}
+          showLabels={true}
+          showEdgeLabels={true}
+          showStatus={true}
+        />
+      )}
+
+      {/* FlameGraph Detail View - Use full mode FlameGraph */}
+      {flameGraphData && showFlameGraphDetail && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <FlameGraph
+              {...flameGraphData}
+              mode="detail"
+              onNodeClick={(node) => console.log('Node clicked in detail:', node)}
+            />
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowFlameGraphDetail(false)}
+            >
+              <Text style={styles.modalCloseText}>✕ Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* VideoStream Detail View */}
+      {videoStreamData && (
+        <VideoStreamDetailView
+          visible={showVideoStreamDetail}
+          data={videoStreamData}
+          onClose={() => setShowVideoStreamDetail(false)}
+          showMetadata={true}
+        />
+      )}
+
+      {/* TreeView Detail View */}
+      {showTreeViewDetail && treeViewData && (
+        <TreeViewDetailView
+          data={treeViewData}
+          visible={showTreeViewDetail}
+          onClose={() => setShowTreeViewDetail(false)}
+        />
+      )}
     </View>
   );
 };
@@ -610,8 +767,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     marginVertical: 4,
-    paddingLeft: 12,
-    paddingRight: 16,
+    paddingLeft: 4,
+    paddingRight: 4,
   },
   ownContainer: {
     justifyContent: 'flex-end',
@@ -639,7 +796,7 @@ const styles = StyleSheet.create({
     width: 44,
   },
   messageWrapper: {
-    maxWidth: '85%',
+    maxWidth: '95%',
     minWidth: '30%',
   },
   ownMessageWrapper: {
@@ -745,6 +902,38 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   enterPresentationText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  modalContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    width: '90%',
+    maxWidth: 800,
+    maxHeight: '90%',
+  },
+  modalCloseButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: '#EF4444',
+    borderRadius: 8,
+    alignSelf: 'center',
+  },
+  modalCloseText: {
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },

@@ -57,7 +57,9 @@ export interface ChatProps {
   onExitPresentation?: () => void; // Called when user exits presentation mode
   onEnterPresentation?: () => void; // Called when user wants to enter presentation mode
   onCopyHistory?: (json: string) => void; // Called when chat history is copied
+  onToggleHistory?: () => void; // Called when user wants to toggle chat history sidebar
   showControlBar?: boolean; // Show the control bar with actions (default: true in non-presentation mode)
+  showHistoryButton?: boolean; // Show the history/chats button in control bar (default: false)
   initialScrollPosition?: 'top' | 'bottom'; // Initial scroll position when messages load (default: 'bottom')
 }
 
@@ -89,7 +91,9 @@ export const Chat: React.FC<ChatProps> = ({
   onExitPresentation,
   onEnterPresentation,
   onCopyHistory,
+  onToggleHistory,
   showControlBar = true,
+  showHistoryButton = false,
   initialScrollPosition = 'bottom',
 }) => {
   const [messages, setMessages] = useState<Message[]>(externalMessages);
@@ -414,7 +418,7 @@ export const Chat: React.FC<ChatProps> = ({
   useEffect(() => {
     if (!presentationMode || Platform.OS !== 'web') return;
 
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: any) => {
       if (e.key === 'ArrowRight' || e.key === ' ') {
         e.preventDefault();
         handleNextMessage();
@@ -424,8 +428,11 @@ export const Chat: React.FC<ChatProps> = ({
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    const win = global as any;
+    if (typeof win !== 'undefined' && win.addEventListener) {
+      win.addEventListener('keydown', handleKeyDown);
+      return () => win.removeEventListener('keydown', handleKeyDown);
+    }
   }, [presentationMode, currentMessageIndex, messages.length]);
 
   // Presentation mode view
@@ -596,8 +603,10 @@ export const Chat: React.FC<ChatProps> = ({
           messages={messages}
           onEnterPresentation={onEnterPresentation}
           onCopyHistory={onCopyHistory}
+          onToggleHistory={onToggleHistory}
           showPresentationButton={!!onEnterPresentation}
           showCopyButton={true}
+          showHistoryButton={showHistoryButton}
         />
       )}
 

@@ -66,8 +66,7 @@ export const DashboardDetailView: React.FC<DashboardDetailViewProps> = ({
             title={expandedItem.data.title}
             subtitle={expandedItem.data.subtitle}
             onClose={handleCloseExpanded}
-            onTaskPress={(task) => console.log('Task pressed:', task)}
-            onMilestonePress={(milestone, task) => console.log('Milestone pressed:', milestone, task)}
+            onTaskPress={(task: any) => console.log('Task pressed:', task)}
           />
         )}
 

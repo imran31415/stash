@@ -493,7 +493,7 @@ npx expo install react-native-svg expo-av`,
       type: 'text',
 
       id: 'ws-tutorial-10',
-      content: "## Step 3: Import Stash Components\n\nNow let's import the components you'll need:",
+      content: "## Step 3: Project Structure Setup\n\nFirst, let's set up the recommended folder structure for your WebSocket chat integration:",
       sender: { id: 'ai-tutorial', name: 'Stash Tutorial', avatar: '📚' },
       timestamp: addHours(new Date(), 0.09),
       status: 'delivered',
@@ -513,9 +513,109 @@ npx expo install react-native-svg expo-av`,
             assignee: 'You',
           }],
           title: 'Current Step',
-          subtitle: 'Importing Components',
+          subtitle: 'Setting up project structure',
         },
       },
+    },
+    {
+      type: 'text',
+
+      id: 'ws-tutorial-10a',
+      content: "Here's the recommended project structure for organizing your WebSocket chat implementation:",
+      sender: { id: 'ai-tutorial', name: 'Stash Tutorial', avatar: '📚' },
+      timestamp: addHours(new Date(), 0.091),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'tree-view',
+        data: {
+          data: {
+            id: 'websocket-structure',
+            title: 'WebSocket Chat Project Structure',
+            description: 'Recommended folder organization',
+            roots: [
+              {
+                id: 'src',
+                label: 'src',
+                type: 'folder',
+                status: 'normal',
+                children: [
+                  {
+                    id: 'screens',
+                    label: 'screens',
+                    type: 'folder',
+                    status: 'normal',
+                    children: [
+                      { id: 'chat-screen', label: 'ChatScreen.tsx', type: 'file', status: 'normal', icon: '📱' },
+                    ],
+                  },
+                  {
+                    id: 'services',
+                    label: 'services',
+                    type: 'folder',
+                    status: 'normal',
+                    children: [
+                      { id: 'websocket-service', label: 'CustomWebSocketService.ts', type: 'file', status: 'highlighted', icon: '🔌', badge: 'Core' },
+                      { id: 'auth-service', label: 'AuthService.ts', type: 'file', status: 'normal', icon: '🔐' },
+                    ],
+                  },
+                  {
+                    id: 'context',
+                    label: 'context',
+                    type: 'folder',
+                    status: 'normal',
+                    children: [
+                      { id: 'chat-context', label: 'ChatContext.tsx', type: 'file', status: 'highlighted', icon: '🗄️', badge: 'State' },
+                    ],
+                  },
+                  {
+                    id: 'types',
+                    label: 'types',
+                    type: 'folder',
+                    status: 'normal',
+                    children: [
+                      { id: 'message-types', label: 'message.types.ts', type: 'file', status: 'normal', icon: '📝' },
+                      { id: 'user-types', label: 'user.types.ts', type: 'file', status: 'normal', icon: '👤' },
+                    ],
+                  },
+                  {
+                    id: 'hooks',
+                    label: 'hooks',
+                    type: 'folder',
+                    status: 'normal',
+                    children: [
+                      { id: 'use-websocket', label: 'useWebSocket.ts', type: 'file', status: 'normal', icon: '🪝' },
+                      { id: 'use-chat', label: 'useChat.ts', type: 'file', status: 'normal', icon: '💬' },
+                    ],
+                  },
+                  { id: 'app', label: 'App.tsx', type: 'file', status: 'normal', icon: '🚀' },
+                ],
+              },
+              {
+                id: 'backend',
+                label: 'backend',
+                type: 'folder',
+                status: 'normal',
+                children: [
+                  { id: 'server', label: 'websocket-server.ts', type: 'file', status: 'highlighted', icon: '🔌', badge: 'Server' },
+                  { id: 'redis-config', label: 'redis.config.ts', type: 'file', status: 'normal', icon: '⚡' },
+                  { id: 'db-schema', label: 'schema.sql', type: 'file', status: 'normal', icon: '💾' },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    },
+    {
+      type: 'text',
+
+      id: 'ws-tutorial-10b',
+      content: "Now let's create the files. Start with importing the Stash components:",
+      sender: { id: 'ai-tutorial', name: 'Stash Tutorial', avatar: '📚' },
+      timestamp: addHours(new Date(), 0.092),
+      status: 'delivered',
+      isOwn: false,
     },
     {
       type: 'text',

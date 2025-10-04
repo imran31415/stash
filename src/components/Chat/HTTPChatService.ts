@@ -34,7 +34,7 @@ export class HTTPChatService {
           ...(this.config.apiKey ? { 'Authorization': `Bearer ${this.config.apiKey}` } : {}),
         },
         body: JSON.stringify({ userId, messages }),
-        signal: AbortSignal.timeout(this.config.timeout!),
+        signal: (AbortSignal as any).timeout(this.config.timeout!),
       });
 
       if (!response.ok) {
@@ -68,7 +68,7 @@ export class HTTPChatService {
             'Content-Type': 'application/json',
             ...(this.config.apiKey ? { 'Authorization': `Bearer ${this.config.apiKey}` } : {}),
           },
-          signal: AbortSignal.timeout(this.config.timeout!),
+          signal: (AbortSignal as any).timeout(this.config.timeout!),
         }
       );
 
@@ -114,7 +114,7 @@ export class HTTPChatService {
           ...(this.config.apiKey ? { 'Authorization': `Bearer ${this.config.apiKey}` } : {}),
         },
         body: JSON.stringify({ userId, messageIds }),
-        signal: AbortSignal.timeout(this.config.timeout!),
+        signal: (AbortSignal as any).timeout(this.config.timeout!),
       });
 
       if (!response.ok) {
@@ -147,7 +147,7 @@ export class HTTPChatService {
           ...(this.config.apiKey ? { 'Authorization': `Bearer ${this.config.apiKey}` } : {}),
         },
         body: JSON.stringify({ userId, message }),
-        signal: AbortSignal.timeout(this.config.timeout!),
+        signal: (AbortSignal as any).timeout(this.config.timeout!),
       });
 
       if (!response.ok) {

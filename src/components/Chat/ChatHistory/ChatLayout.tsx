@@ -152,11 +152,17 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({
 
       {/* Main Chat Area */}
       <View style={styles.chatArea}>
-        {children}
+        {React.isValidElement(children)
+          ? React.cloneElement(children as React.ReactElement<any>, {
+              onToggleHistory: toggleHistory,
+              showHistoryButton: !isSidebarVisible || (isMobile && !isModalVisible),
+            })
+          : children
+        }
       </View>
 
-      {/* Floating Menu Button */}
-      {renderMenuButton()}
+      {/* Floating Menu Button - hide it now since we have the button in control bar */}
+      {false && renderMenuButton()}
     </View>
   );
 };

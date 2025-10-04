@@ -97,7 +97,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
 }) => {
   const screenWidth = Dimensions.get('window').width;
   const scrollViewRef = useRef<ScrollView>(null);
-  const isMini = mode === 'mini' || mode === 'preview';
+  const isMini = mode === 'mini';
 
   // Pagination state
   const [currentPage, setCurrentPage] = React.useState(1);

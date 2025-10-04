@@ -18,6 +18,10 @@ import {
   formatCellValue,
   validatePageNumber,
 } from './DataTable.utils';
+import {
+  useResponsiveMode,
+  useLayoutMeasurement,
+} from './shared';
 
 export const DataTable: React.FC<DataTableProps> = ({
   columns,
@@ -54,19 +58,11 @@ export const DataTable: React.FC<DataTableProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(defaultPageSize);
   const [selectedRows, setSelectedRows] = useState<Set<string | number>>(new Set());
-  const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
 
-  const isMini = mode === 'mini';
-  const isPreview = mode === 'preview';
+  const { isMini, isPreview } = useResponsiveMode(mode);
   const screenWidth = Dimensions.get('window').width;
+  const { width: measuredWidth, handleLayout } = useLayoutMeasurement();
   const containerWidth = measuredWidth || ((isMini || isPreview) ? Math.min(350, screenWidth - 32) : screenWidth);
-
-  const handleLayout = (event: any) => {
-    const { width } = event.nativeEvent.layout;
-    if (width > 0 && width !== measuredWidth) {
-      setMeasuredWidth(width);
-    }
-  };
 
   // Determine screen breakpoint - treat mini/preview as small screen
   const isSmallScreen = (isMini || isPreview) || containerWidth < 400;

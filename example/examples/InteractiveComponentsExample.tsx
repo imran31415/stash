@@ -19,6 +19,9 @@ import {
   Workflow,
   WorkflowDetailView,
   FlameGraph,
+  TreeView,
+  TreeViewDetailView,
+  MultiSwipeable,
   type Task,
   type Resource,
   type GanttTask,
@@ -36,6 +39,9 @@ import {
   type WorkflowEdge,
   type FlameGraphData,
   type FlameGraphNode,
+  type TreeViewData,
+  type TreeNode,
+  type SwipeableItem,
 } from '../../src/components/Chat/InteractiveComponents';
 import { addDays, addWeeks, addHours, subDays } from 'date-fns';
 import {
@@ -55,6 +61,7 @@ const InteractiveComponentsExample: React.FC = () => {
   const [heatmapDetailVisible, setHeatmapDetailVisible] = useState(false);
   const [workflowDetailVisible, setWorkflowDetailVisible] = useState(false);
   const [flameGraphDetailVisible, setFlameGraphDetailVisible] = useState(false);
+  const [treeViewDetailVisible, setTreeViewDetailVisible] = useState(false);
   const [currentCodeBlock, setCurrentCodeBlock] = useState<{
     code: string;
     language: SupportedLanguage;
@@ -557,6 +564,218 @@ const InteractiveComponentsExample: React.FC = () => {
 
   const sampleFlameGraphData = useMemo(() => generateFlameGraphData(), []);
 
+  // TreeView mock data - File System
+  const generateTreeViewData = (): TreeViewData => {
+    const roots: TreeNode[] = [
+      {
+        id: 'src',
+        label: 'src',
+        type: 'folder',
+        expanded: true,
+        children: [
+          {
+            id: 'src-components',
+            label: 'components',
+            type: 'folder',
+            expanded: true,
+            metadata: { count: 5 },
+            children: [
+              {
+                id: 'src-components-button',
+                label: 'Button.tsx',
+                type: 'file',
+                metadata: {
+                  size: 2048,
+                  modified: new Date(2024, 2, 15),
+                  description: 'Reusable button component',
+                },
+              },
+              {
+                id: 'src-components-input',
+                label: 'Input.tsx',
+                type: 'file',
+                metadata: {
+                  size: 3072,
+                  modified: new Date(2024, 2, 14),
+                  description: 'Text input component with validation',
+                },
+              },
+              {
+                id: 'src-components-modal',
+                label: 'Modal.tsx',
+                type: 'file',
+                status: 'highlighted',
+                metadata: {
+                  size: 4096,
+                  modified: new Date(2024, 2, 16),
+                  description: 'Modal dialog component',
+                },
+              },
+              {
+                id: 'src-components-chat',
+                label: 'Chat',
+                type: 'folder',
+                metadata: { count: 3 },
+                children: [
+                  {
+                    id: 'src-components-chat-message',
+                    label: 'Message.tsx',
+                    type: 'file',
+                    metadata: { size: 1536 },
+                  },
+                  {
+                    id: 'src-components-chat-input',
+                    label: 'ChatInput.tsx',
+                    type: 'file',
+                    metadata: { size: 2560 },
+                  },
+                  {
+                    id: 'src-components-chat-list',
+                    label: 'MessageList.tsx',
+                    type: 'file',
+                    metadata: { size: 3584 },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'src-utils',
+            label: 'utils',
+            type: 'folder',
+            metadata: { count: 3 },
+            children: [
+              {
+                id: 'src-utils-format',
+                label: 'formatters.ts',
+                type: 'file',
+                metadata: { size: 1024 },
+              },
+              {
+                id: 'src-utils-validate',
+                label: 'validators.ts',
+                type: 'file',
+                metadata: { size: 2048 },
+              },
+              {
+                id: 'src-utils-api',
+                label: 'api.ts',
+                type: 'file',
+                status: 'selected',
+                metadata: { size: 5120 },
+              },
+            ],
+          },
+          {
+            id: 'src-hooks',
+            label: 'hooks',
+            type: 'folder',
+            metadata: { count: 4 },
+            children: [
+              {
+                id: 'src-hooks-auth',
+                label: 'useAuth.ts',
+                type: 'file',
+                badge: 'new',
+                metadata: { size: 2048 },
+              },
+              {
+                id: 'src-hooks-theme',
+                label: 'useTheme.ts',
+                type: 'file',
+                metadata: { size: 1536 },
+              },
+              {
+                id: 'src-hooks-data',
+                label: 'useData.ts',
+                type: 'file',
+                metadata: { size: 3072 },
+              },
+            ],
+          },
+          {
+            id: 'src-types',
+            label: 'types',
+            type: 'folder',
+            metadata: { count: 2 },
+            children: [
+              {
+                id: 'src-types-global',
+                label: 'global.d.ts',
+                type: 'file',
+                metadata: { size: 512 },
+              },
+              {
+                id: 'src-types-models',
+                label: 'models.ts',
+                type: 'file',
+                metadata: { size: 4096 },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'public',
+        label: 'public',
+        type: 'folder',
+        metadata: { count: 3 },
+        children: [
+          {
+            id: 'public-index',
+            label: 'index.html',
+            type: 'file',
+            metadata: { size: 1024 },
+          },
+          {
+            id: 'public-favicon',
+            label: 'favicon.ico',
+            type: 'file',
+            metadata: { size: 4096 },
+          },
+          {
+            id: 'public-manifest',
+            label: 'manifest.json',
+            type: 'file',
+            metadata: { size: 512 },
+          },
+        ],
+      },
+      {
+        id: 'config',
+        label: 'config',
+        type: 'folder',
+        children: [
+          {
+            id: 'config-webpack',
+            label: 'webpack.config.js',
+            type: 'file',
+            metadata: { size: 8192 },
+          },
+          {
+            id: 'config-babel',
+            label: '.babelrc',
+            type: 'file',
+            metadata: { size: 256 },
+          },
+        ],
+      },
+    ];
+
+    return {
+      id: 'project-tree',
+      title: 'Project Structure',
+      description: 'React Native application file tree',
+      roots,
+      metadata: {
+        totalNodes: 25,
+        maxDepth: 4,
+      },
+    };
+  };
+
+  const sampleTreeViewData = useMemo(() => generateTreeViewData(), []);
+
   // Sample task data (kept for reference but using large dataset in examples)
   const sampleTasks: Task[] = [
     {
@@ -919,6 +1138,80 @@ const InteractiveComponentsExample: React.FC = () => {
       edgeCount: 11,
     },
   };
+
+  // MultiSwipeable gallery items
+  const swipeableItems: SwipeableItem[] = useMemo(() => [
+    {
+      id: 'gantt-slide',
+      type: 'gantt-chart',
+      title: 'Project Timeline',
+      subtitle: 'Development roadmap with milestones',
+      data: {
+        tasks: largeGanttTasks.slice(0, 15),
+        mode: 'preview',
+        title: 'Q1 Development Roadmap',
+        subtitle: `${largeGanttTasks.length} total tasks`,
+        showProgress: true,
+        showMilestones: true,
+        showToday: true,
+      },
+    },
+    {
+      id: 'graph-slide',
+      type: 'graph-visualization',
+      title: 'Network Graph',
+      subtitle: 'Organizational relationships',
+      data: {
+        data: largeGraphData,
+        mode: 'preview',
+        title: 'Organizational Network',
+        subtitle: `${largeGraphData.nodes.length} nodes • ${largeGraphData.edges.length} relationships`,
+        showLabels: true,
+        enablePhysics: true,
+      },
+    },
+    {
+      id: 'timeseries-slide',
+      type: 'time-series-chart',
+      title: 'Financial Metrics',
+      subtitle: 'Revenue & expenses over time',
+      data: {
+        series: sampleTimeSeriesData,
+        mode: 'preview',
+        title: 'Financial Performance',
+        subtitle: 'Last 6 months',
+        showLegend: true,
+        showGrid: true,
+        xAxisLabel: 'Time',
+        yAxisLabel: 'Amount ($)',
+      },
+    },
+    {
+      id: 'flamegraph-slide',
+      type: 'flamegraph',
+      title: 'Performance Profile',
+      subtitle: 'CPU usage breakdown',
+      data: {
+        data: sampleFlameGraphData,
+        mode: 'preview',
+        title: 'API Server CPU Profile',
+        subtitle: 'Top functions by execution time',
+      },
+    },
+    {
+      id: 'workflow-slide',
+      type: 'workflow',
+      title: 'Deployment Pipeline',
+      subtitle: 'CI/CD workflow steps',
+      data: {
+        data: sampleWorkflowData,
+        mode: 'preview',
+        orientation: 'horizontal',
+        showLabels: true,
+        showStatus: true,
+      },
+    },
+  ], [largeGanttTasks, largeGraphData, sampleTimeSeriesData, sampleFlameGraphData, sampleWorkflowData]);
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -1457,6 +1750,67 @@ yarn add stash
       </View>
 
       <View style={styles.section}>
+        <Text style={styles.sectionTitle}>TreeView Component (Mini)</Text>
+        <Text style={styles.sectionDescription}>
+          Hierarchical tree visualization for file systems and nested data (tap to expand)
+        </Text>
+        <TreeView
+          data={sampleTreeViewData}
+          mode="mini"
+          showIcons={true}
+          showLines={true}
+          initialExpandedDepth={1}
+          onNodePress={(node, path) => console.log('Node pressed:', node.label, 'Path:', path.map(n => n.label).join('/'))}
+          onExpandPress={() => setTreeViewDetailVisible(true)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>TreeView Component (Full)</Text>
+        <Text style={styles.sectionDescription}>
+          Full-featured tree with expandable nodes, badges, and metadata display
+        </Text>
+        <TreeView
+          data={sampleTreeViewData}
+          mode="full"
+          showIcons={true}
+          showLines={true}
+          initialExpandedDepth={2}
+          onNodePress={(node, path) => console.log('Full - Node pressed:', node.label)}
+          onNodeExpand={(node, expanded) => console.log('Node expanded:', node.label, expanded)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <TouchableOpacity
+          style={styles.detailViewButton}
+          onPress={() => setTreeViewDetailVisible(true)}
+        >
+          <Text style={styles.detailViewButtonText}>
+            🌳 Open TreeView Detail View
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>MultiSwipeable Component</Text>
+        <Text style={styles.sectionDescription}>
+          Swipeable gallery that displays multiple interactive components as slides. Perfect for presenting
+          multiple visualizations in a compact, browsable format. Swipe or use arrows to navigate.
+        </Text>
+
+        <MultiSwipeable
+          items={swipeableItems}
+          mode="preview"
+          showDots={true}
+          showArrows={true}
+          onItemChange={(index, item) => console.log('Swiped to:', item.title)}
+          onExpandPress={(item, index) => console.log('Expand pressed for:', item.title)}
+          onItemAction={(action, data, itemIndex) => console.log('Item action:', action, 'at index:', itemIndex)}
+        />
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>LoadingState Component</Text>
         <Text style={styles.sectionDescription}>
           Beautiful loading indicators with smooth animations. Supports inline and overlay modes.
@@ -1604,6 +1958,14 @@ yarn add stash
       />
 
       {/* Workflow Detail View Modal */}
+      <TreeViewDetailView
+        visible={treeViewDetailVisible}
+        data={sampleTreeViewData}
+        onClose={() => setTreeViewDetailVisible(false)}
+        onNodePress={(node, path) => console.log('Detail view - Node pressed:', node.label, 'Path:', path.map(n => n.label).join('/'))}
+        onNodeExpand={(node, expanded) => console.log('Detail view - Node expanded:', node.label, expanded)}
+      />
+
       <WorkflowDetailView
         visible={workflowDetailVisible}
         data={sampleWorkflowData}

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import {
   TimeSeriesChart,
+  CodeBlock,
   type TimeSeriesSeries,
   type TimeSeriesDataPoint,
 } from '../../src/components/Chat/InteractiveComponents';
@@ -386,9 +387,8 @@ const LiveStreamingSalesExample: React.FC = () => {
       {/* Integration Example */}
       <View style={styles.codeSection}>
         <Text style={styles.sectionTitle}>Integration Example</Text>
-        <View style={styles.codeBlock}>
-          <Text style={styles.codeText}>
-{`// WebSocket Integration
+        <CodeBlock
+          code={`// WebSocket Integration
 const [salesData, setSalesData] = useState([]);
 
 useEffect(() => {
@@ -413,8 +413,11 @@ useEffect(() => {
   maxDataPoints={100}
   streamingWindowSize={50}
 />`}
-          </Text>
-        </View>
+          language="typescript"
+          mode="preview"
+          fileName="integration-example.tsx"
+          showLineNumbers={true}
+        />
       </View>
 
       <View style={styles.bottomPadding} />

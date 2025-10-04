@@ -149,14 +149,14 @@ export const Media: React.FC<MediaProps> = ({
 
   const handleNext = async () => {
     // Stop any audio playback when navigating
-    if (htmlAudioRef.current) {
-      htmlAudioRef.current.pause();
-      htmlAudioRef.current.src = '';
-      htmlAudioRef.current = null;
+    if ((htmlAudioRef.current as any)) {
+      (htmlAudioRef.current as any).pause();
+      (htmlAudioRef.current as any).src = '';
+      (htmlAudioRef.current as any) = null;
     }
     if (audioRef.current) {
-      await audioRef.current.stopAsync();
-      await audioRef.current.unloadAsync();
+      await (audioRef.current as any)?.stopAsync();
+      await (audioRef.current as any)?.unloadAsync();
       audioRef.current = null;
     }
     setCurrentIndex((prev) => Math.min(mediaArray.length - 1, prev + 1));
@@ -192,10 +192,10 @@ export const Media: React.FC<MediaProps> = ({
     try {
       if (Platform.OS === 'web') {
         // Web: Use HTML5 Audio
-        if (!htmlAudioRef.current) {
+        if (!(htmlAudioRef.current as any)) {
           setIsLoading(true);
-          const audio = new window.Audio(currentMedia.url);
-          htmlAudioRef.current = audio;
+          const audio = new (global as any).Audio(currentMedia.url);
+          (htmlAudioRef.current as any) = audio;
 
           // Set up event listeners
           audio.addEventListener('loadedmetadata', () => {
@@ -207,13 +207,13 @@ export const Media: React.FC<MediaProps> = ({
             setAudioPosition(audio.currentTime * 1000);
           });
 
-          audio.addEventListener('ended', () => {
+          audio.addEventListener('ended', (e: any) => {
             setIsPlaying(false);
             setAudioPosition(0);
             audio.currentTime = 0;
           });
 
-          audio.addEventListener('error', (e) => {
+          audio.addEventListener('error', (e: any) => {
             console.error('Audio playback error:', e);
             setIsLoading(false);
           });
@@ -224,11 +224,11 @@ export const Media: React.FC<MediaProps> = ({
           setIsLoading(false);
         } else {
           // Toggle play/pause
-          if (htmlAudioRef.current.paused) {
-            await htmlAudioRef.current.play();
+          if ((htmlAudioRef.current as any).paused) {
+            await (htmlAudioRef.current as any).play();
             setIsPlaying(true);
           } else {
-            htmlAudioRef.current.pause();
+            (htmlAudioRef.current as any).pause();
             setIsPlaying(false);
           }
         }
@@ -252,13 +252,13 @@ export const Media: React.FC<MediaProps> = ({
           setIsPlaying(true);
           setIsLoading(false);
         } else {
-          const status = await audioRef.current.getStatusAsync();
+          const status = await (audioRef.current as any)?.getStatusAsync();
           if (status.isLoaded) {
             if (status.isPlaying) {
-              await audioRef.current.pauseAsync();
+              await (audioRef.current as any)?.pauseAsync();
               setIsPlaying(false);
             } else {
-              await audioRef.current.playAsync();
+              await (audioRef.current as any)?.playAsync();
               setIsPlaying(true);
             }
           }
@@ -287,13 +287,13 @@ export const Media: React.FC<MediaProps> = ({
   const handleAudioSeek = async (position: number) => {
     try {
       if (Platform.OS === 'web') {
-        if (htmlAudioRef.current) {
-          htmlAudioRef.current.currentTime = position / 1000;
+        if ((htmlAudioRef.current as any)) {
+          (htmlAudioRef.current as any).currentTime = position / 1000;
           setAudioPosition(position);
         }
       } else {
         if (audioRef.current) {
-          await audioRef.current.setPositionAsync(position);
+          await (audioRef.current as any)?.setPositionAsync(position);
           setAudioPosition(position);
         }
       }
@@ -306,14 +306,14 @@ export const Media: React.FC<MediaProps> = ({
   React.useEffect(() => {
     return () => {
       // Cleanup HTML audio
-      if (htmlAudioRef.current) {
-        htmlAudioRef.current.pause();
-        htmlAudioRef.current.src = '';
-        htmlAudioRef.current = null;
+      if ((htmlAudioRef.current as any)) {
+        (htmlAudioRef.current as any).pause();
+        (htmlAudioRef.current as any).src = '';
+        (htmlAudioRef.current as any) = null;
       }
       // Cleanup expo-av audio
       if (audioRef.current) {
-        audioRef.current.unloadAsync();
+        (audioRef.current as any)?.unloadAsync();
       }
     };
   }, []);
@@ -322,15 +322,15 @@ export const Media: React.FC<MediaProps> = ({
     // Cleanup audio when media changes
     const cleanup = async () => {
       // Cleanup HTML audio
-      if (htmlAudioRef.current) {
-        htmlAudioRef.current.pause();
-        htmlAudioRef.current.src = '';
-        htmlAudioRef.current = null;
+      if ((htmlAudioRef.current as any)) {
+        (htmlAudioRef.current as any).pause();
+        (htmlAudioRef.current as any).src = '';
+        (htmlAudioRef.current as any) = null;
       }
       // Cleanup expo-av audio
       if (audioRef.current) {
-        await audioRef.current.stopAsync();
-        await audioRef.current.unloadAsync();
+        await (audioRef.current as any)?.stopAsync();
+        await (audioRef.current as any)?.unloadAsync();
         audioRef.current = null;
       }
       setIsPlaying(false);
@@ -355,7 +355,7 @@ export const Media: React.FC<MediaProps> = ({
         item.metadata.height,
         containerWidth,
         containerHeight,
-        fit
+        fit === 'scale-down' ? 'contain' : fit
       );
       imageDimensions = {
         width: fitted.width,
@@ -412,7 +412,7 @@ export const Media: React.FC<MediaProps> = ({
                 height: imageDimensions.height,
               },
             ]}
-            resizeMode={fit}
+            resizeMode={fit === 'scale-down' ? 'contain' : fit as any}
             accessibilityLabel={item.alt || getMediaTitle(item)}
           />
         )}

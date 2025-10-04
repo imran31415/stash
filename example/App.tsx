@@ -5,6 +5,8 @@ import ChatHistoryExample from './examples/ChatHistoryExample';
 import MediaExample from './examples/MediaExample';
 import LiveStreamingSalesExample from './examples/LiveStreamingSalesExample';
 import DashboardExample from './examples/DashboardExample';
+import VideoStreamExample from './examples/VideoStreamExample';
+import MultiUserStreamingExample from './examples/MultiUserStreamingExample';
 import { LoadingState } from './components/LoadingState';
 import { ThemeProvider, useTheme, useThemeColors } from '../src/theme';
 
@@ -58,7 +60,7 @@ function AppContent() {
       const loadingMessage =
         activeTab === 'history' ? 'Chats' :
         activeTab === 'media' ? 'Media Examples' :
-        activeTab === 'streaming' ? 'Live Streaming' :
+        activeTab === 'streaming' ? 'Streaming' :
         activeTab === 'dashboard' ? 'Dashboards' :
         'UI Components';
 
@@ -81,7 +83,7 @@ function AppContent() {
       case 'media':
         return <MediaExample />;
       case 'streaming':
-        return <LiveStreamingSalesExample />;
+        return <MultiUserStreamingExample />;
       case 'dashboard':
         return <DashboardExample />;
       default:
@@ -151,7 +153,7 @@ function AppContent() {
           disabled={isLoadingTab}
         >
           <Text style={[styles.tabText, { color: activeTab === 'streaming' ? colors.primary : colors.textSecondary }]}>
-            📈 Live
+            🎥 Streaming
           </Text>
         </TouchableOpacity>
 
