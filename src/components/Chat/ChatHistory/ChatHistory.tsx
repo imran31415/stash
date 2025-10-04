@@ -12,7 +12,7 @@ import {
 import { usePaginatedList } from '../hooks/usePaginatedList';
 import type { ChatPreview, ChatHistoryProps, ChatGroup } from './types';
 import { ChatGroupHeader } from './ChatGroupHeader';
-import { colors, spacing, borderRadius, shadows } from './styles';
+import { useChatHistoryColors, spacing, borderRadius, shadows } from './styles';
 
 export const ChatHistory: React.FC<ChatHistoryProps> = ({
   userId,
@@ -38,6 +38,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
   enableGrouping = false,
   onGroupToggle,
 }) => {
+  const colors = useChatHistoryColors();
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
@@ -193,14 +194,18 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
 
     return (
       <TouchableOpacity
-        style={[styles.chatItem, isSelected && styles.chatItemSelected]}
+        style={[
+          styles.chatItem,
+          { backgroundColor: colors.background, borderBottomColor: colors.border },
+          isSelected && { backgroundColor: colors.primaryLight }
+        ]}
         onPress={() => onChatSelect(chat)}
         activeOpacity={0.7}
       >
-        <View style={styles.chatIcon}>
+        <View style={[styles.chatIcon, { backgroundColor: colors.backgroundSecondary }]}>
           <Text style={styles.chatIconText}>{getChatIcon()}</Text>
           {chat.unreadCount > 0 && (
-            <View style={styles.unreadBadge}>
+            <View style={[styles.unreadBadge, { backgroundColor: colors.primary }]}>
               <Text style={styles.unreadText}>
                 {chat.unreadCount > 99 ? '99+' : chat.unreadCount}
               </Text>
@@ -210,18 +215,18 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
 
         <View style={styles.chatContent}>
           <View style={styles.chatHeader}>
-            <Text style={styles.chatTitle} numberOfLines={1}>
+            <Text style={[styles.chatTitle, { color: colors.text }]} numberOfLines={1}>
               {chat.title}
             </Text>
             {chat.lastMessage && (
-              <Text style={styles.chatTime}>
+              <Text style={[styles.chatTime, { color: colors.textSecondary }]}>
                 {formatTimestamp(chat.lastMessage.timestamp)}
               </Text>
             )}
           </View>
 
           {chat.lastMessage && (
-            <Text style={styles.chatLastMessage} numberOfLines={2}>
+            <Text style={[styles.chatLastMessage, { color: colors.textSecondary }]} numberOfLines={2}>
               {chat.lastMessage.senderName}: {chat.lastMessage.content}
             </Text>
           )}
@@ -262,28 +267,28 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
     <>
       {showCreateButton && (
         <TouchableOpacity
-          style={styles.createButton}
+          style={[styles.createButton, { backgroundColor: colors.primary }]}
           onPress={onCreateNewChat}
           activeOpacity={0.7}
         >
           <Text style={styles.createButtonIcon}>✏️</Text>
-          <Text style={styles.createButtonText}>New Chat</Text>
+          <Text style={[styles.createButtonText, { color: colors.background }]}>New Chat</Text>
         </TouchableOpacity>
       )}
 
       {showSearch && (
-        <View style={styles.searchContainer}>
+        <View style={[styles.searchContainer, { backgroundColor: colors.backgroundSecondary }]}>
           <Text style={styles.searchIcon}>🔍</Text>
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text }]}
             placeholder="Search chats..."
-            placeholderTextColor="#8E8E93"
+            placeholderTextColor={colors.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Text style={styles.searchClear}>✕</Text>
+              <Text style={[styles.searchClear, { color: colors.textSecondary }]}>✕</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -310,12 +315,12 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
   const ListEmptyComponent = () => (
     <View style={styles.emptyState}>
       <Text style={styles.emptyStateIcon}>💬</Text>
-      <Text style={styles.emptyStateText}>{emptyStateMessage}</Text>
+      <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>{emptyStateMessage}</Text>
     </View>
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <FlatList
         data={groupedChatData}
         renderItem={renderItem}
@@ -352,7 +357,6 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   list: {
     flex: 1,
@@ -364,7 +368,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
     marginHorizontal: spacing.md,
     marginVertical: spacing.md,
     paddingVertical: spacing.md,
@@ -378,12 +381,10 @@ const styles = StyleSheet.create({
   createButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.background,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.backgroundTertiary,
     marginHorizontal: spacing.md,
     marginBottom: spacing.sm,
     paddingHorizontal: spacing.md,
@@ -397,12 +398,10 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: colors.text,
     paddingVertical: 4,
   },
   searchClear: {
     fontSize: 16,
-    color: colors.textSecondary,
     paddingLeft: spacing.sm,
   },
   loadingIndicator: {
@@ -414,17 +413,11 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.backgroundTertiary,
-    backgroundColor: colors.background,
-  },
-  chatItemSelected: {
-    backgroundColor: colors.primaryLight,
   },
   chatIcon: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: colors.backgroundTertiary,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
@@ -437,7 +430,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -4,
     right: -4,
-    backgroundColor: colors.error,
     borderRadius: borderRadius.sm,
     minWidth: 20,
     height: 20,
@@ -448,7 +440,7 @@ const styles = StyleSheet.create({
   unreadText: {
     fontSize: 10,
     fontWeight: '700',
-    color: colors.background,
+    color: '#FFFFFF',
   },
   chatContent: {
     flex: 1,
@@ -463,17 +455,14 @@ const styles = StyleSheet.create({
   chatTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.text,
     flex: 1,
     marginRight: spacing.sm,
   },
   chatTime: {
     fontSize: 12,
-    color: colors.textSecondary,
   },
   chatLastMessage: {
     fontSize: 14,
-    color: colors.textSecondary,
     lineHeight: 18,
   },
   chatMeta: {
@@ -497,7 +486,6 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: colors.textSecondary,
     textAlign: 'center',
   },
 });

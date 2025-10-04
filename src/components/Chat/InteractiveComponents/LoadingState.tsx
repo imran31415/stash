@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, Animated, Easing, Platform } from 'react-native';
 
 export interface LoadingStateProps {
   /**
@@ -69,7 +69,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 300,
-      useNativeDriver: true,
+      useNativeDriver: Platform.OS !== 'web',
     }).start();
 
     // Pulse animation for dots
@@ -79,13 +79,13 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
           toValue: 1.3,
           duration: 600,
           easing: Easing.ease,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(pulseAnim, {
           toValue: 1,
           duration: 600,
           easing: Easing.ease,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
       ])
     );
@@ -96,7 +96,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
         toValue: 1,
         duration: 1200,
         easing: Easing.linear,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       })
     );
 

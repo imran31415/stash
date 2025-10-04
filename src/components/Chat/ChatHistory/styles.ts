@@ -1,6 +1,29 @@
 import { StyleSheet, Platform } from 'react-native';
+import { useThemeColors } from '../../../theme';
 
-// Shared color palette
+/**
+ * Hook to get theme-aware colors for ChatHistory components
+ * This replaces the old hardcoded colors object
+ */
+export const useChatHistoryColors = () => {
+  const colors = useThemeColors();
+  return {
+    primary: colors.primary,
+    primaryLight: colors.surface,
+    background: colors.background,
+    backgroundSecondary: colors.surface,
+    backgroundTertiary: colors.surface,
+    border: colors.border,
+    text: colors.text,
+    textSecondary: colors.textSecondary,
+    textTertiary: colors.textTertiary,
+    error: colors.error,
+    shadow: colors.text,
+    full: 999, // For borderRadius
+  };
+};
+
+// For backward compatibility (deprecated - use useChatHistoryColors hook instead)
 export const colors = {
   primary: '#007AFF',
   primaryLight: '#E5F1FF',

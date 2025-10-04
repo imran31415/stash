@@ -8,21 +8,7 @@ import {
 } from 'react-native';
 import { Task, TaskListProps } from './types';
 import { TaskDetailBottomSheet } from './TaskDetailBottomSheet';
-
-const getStatusColor = (status: Task['status']) => {
-  switch (status) {
-    case 'completed':
-      return '#10B981';
-    case 'in-progress':
-      return '#3B82F6';
-    case 'blocked':
-      return '#EF4444';
-    case 'cancelled':
-      return '#6B7280';
-    default:
-      return '#F59E0B';
-  }
-};
+import { useComponentColors } from '../../../theme';
 
 const getStatusIcon = (status: Task['status']) => {
   switch (status) {
@@ -39,19 +25,6 @@ const getStatusIcon = (status: Task['status']) => {
   }
 };
 
-const getPriorityColor = (priority: Task['priority']) => {
-  switch (priority) {
-    case 'critical':
-      return '#DC2626';
-    case 'high':
-      return '#F59E0B';
-    case 'medium':
-      return '#3B82F6';
-    default:
-      return '#6B7280';
-  }
-};
-
 export const TaskList: React.FC<TaskListProps> = ({
   title = 'Tasks',
   subtitle,
@@ -61,6 +34,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   onExpandPress,
   showExpandButton = false,
 }) => {
+  const colors = useComponentColors();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -83,26 +57,26 @@ export const TaskList: React.FC<TaskListProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.surface }]}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerTop}>
-            <Text style={styles.title}>{title}</Text>
-            <View style={styles.badge}>
+            <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+            <View style={[styles.badge, { backgroundColor: colors.primary }]}>
               <Text style={styles.badgeText}>{tasks.length}</Text>
             </View>
           </View>
-          {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+          {subtitle && <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>}
         </View>
         {showExpandButton && onExpandPress && (
           <TouchableOpacity
-            style={styles.expandButton}
+            style={[styles.expandButton, { backgroundColor: colors.primary }]}
             onPress={onExpandPress}
             accessibilityLabel="Expand task list"
             accessibilityRole="button"
           >
-            <Text style={styles.expandButtonText}>👁️ Expand</Text>
+            <Text style={[styles.expandButtonText, { color: colors.textOnPrimary }]}>👁️ Expand</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -115,13 +89,13 @@ export const TaskList: React.FC<TaskListProps> = ({
         nestedScrollEnabled={true}
       >
         {tasks.map((task) => {
-          const statusColor = getStatusColor(task.status);
-          const priorityColor = getPriorityColor(task.priority);
+          const statusColor = colors.getStatusColor(task.status);
+          const priorityColor = colors.getPriorityColor(task.priority);
 
           return (
             <TouchableOpacity
               key={task.id}
-              style={[styles.taskCard, { borderLeftColor: statusColor }]}
+              style={[styles.taskCard, { borderLeftColor: statusColor, backgroundColor: colors.background }]}
               onPress={() => handleTaskPress(task)}
               activeOpacity={0.7}
             >
@@ -130,7 +104,7 @@ export const TaskList: React.FC<TaskListProps> = ({
                   <Text style={[styles.statusIcon, { color: statusColor }]}>
                     {getStatusIcon(task.status)}
                   </Text>
-                  <Text style={styles.taskTitle} numberOfLines={2}>
+                  <Text style={[styles.taskTitle, { color: colors.text }]} numberOfLines={2}>
                     {task.title}
                   </Text>
                 </View>
@@ -140,17 +114,17 @@ export const TaskList: React.FC<TaskListProps> = ({
               </View>
 
               <View style={styles.taskFooter}>
-                <Text style={styles.dateText}>
+                <Text style={[styles.dateText, { color: colors.textSecondary }]}>
                   {formatDate(task.startDate)} - {formatDate(task.endDate)}
                 </Text>
                 {task.assignee && (
-                  <Text style={styles.assigneeText}>👤 {task.assignee}</Text>
+                  <Text style={[styles.assigneeText, { color: colors.textSecondary }]}>👤 {task.assignee}</Text>
                 )}
               </View>
 
               {task.progress > 0 && (
                 <View style={styles.progressContainer}>
-                  <View style={styles.progressBar}>
+                  <View style={[styles.progressBar, { backgroundColor: colors.divider }]}>
                     <View
                       style={[
                         styles.progressFill,
@@ -161,7 +135,7 @@ export const TaskList: React.FC<TaskListProps> = ({
                       ]}
                     />
                   </View>
-                  <Text style={styles.progressText}>{task.progress}%</Text>
+                  <Text style={[styles.progressText, { color: colors.textSecondary }]}>{task.progress}%</Text>
                 </View>
               )}
             </TouchableOpacity>

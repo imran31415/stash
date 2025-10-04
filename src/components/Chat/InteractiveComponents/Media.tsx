@@ -556,7 +556,6 @@ export const Media: React.FC<MediaProps> = ({
             style={styles.expandButton}
             onPress={handleExpand}
             accessibilityLabel="Expand media"
-            accessibilityRole="button"
           >
             <Text style={styles.expandButtonText}>👁️ Expand</Text>
           </TouchableOpacity>

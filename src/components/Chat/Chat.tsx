@@ -143,7 +143,7 @@ export const Chat: React.FC<ChatProps> = ({
     Animated.timing(dimOpacity, {
       toValue: presentationMode ? 0.6 : 0,
       duration: 400,
-      useNativeDriver: true,
+      useNativeDriver: Platform.OS !== 'web',
     }).start();
   }, [presentationMode, dimOpacity]);
 

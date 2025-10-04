@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import type { ChatGroup } from './types';
-import { colors, spacing, borderRadius } from './styles';
+import { useChatHistoryColors, spacing, borderRadius } from './styles';
 
 export interface ChatGroupHeaderProps {
   group: ChatGroup;
@@ -16,17 +16,18 @@ export const ChatGroupHeader: React.FC<ChatGroupHeaderProps> = ({
   unreadCount = 0,
   onToggle,
 }) => {
+  const colors = useChatHistoryColors();
   const isCollapsed = group.collapsed ?? false;
 
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.backgroundSecondary, borderBottomColor: colors.border }]}
       onPress={onToggle}
       activeOpacity={0.7}
     >
       <View style={styles.content}>
         {/* Chevron icon */}
-        <Text style={styles.chevron}>
+        <Text style={[styles.chevron, { color: colors.textSecondary }]}>
           {isCollapsed ? '›' : '⌄'}
         </Text>
 
@@ -36,14 +37,14 @@ export const ChatGroupHeader: React.FC<ChatGroupHeaderProps> = ({
         )}
 
         {/* Group title */}
-        <Text style={styles.title}>{group.title}</Text>
+        <Text style={[styles.title, { color: colors.textSecondary }]}>{group.title}</Text>
 
         {/* Chat count */}
-        <Text style={styles.count}>({chatCount})</Text>
+        <Text style={[styles.count, { color: colors.textTertiary }]}>({chatCount})</Text>
 
         {/* Unread badge */}
         {unreadCount > 0 && (
-          <View style={styles.unreadBadge}>
+          <View style={[styles.unreadBadge, { backgroundColor: colors.primary, borderRadius: colors.full }]}>
             <Text style={styles.unreadText}>
               {unreadCount > 99 ? '99+' : unreadCount}
             </Text>
@@ -58,9 +59,7 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.backgroundSecondary,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   content: {
     flexDirection: 'row',
@@ -68,7 +67,6 @@ const styles = StyleSheet.create({
   },
   chevron: {
     fontSize: 16,
-    color: colors.textSecondary,
     marginRight: spacing.sm,
     fontWeight: '600',
   },
@@ -79,19 +77,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     flex: 1,
   },
   count: {
     fontSize: 12,
-    color: colors.textTertiary,
     marginLeft: spacing.xs,
   },
   unreadBadge: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.full,
     minWidth: 20,
     height: 20,
     paddingHorizontal: 6,
@@ -100,7 +94,7 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
   unreadText: {
-    color: colors.background,
+    color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '700',
   },

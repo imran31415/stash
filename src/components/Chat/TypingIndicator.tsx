@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import { TypingIndicator as TypingIndicatorType } from './types';
 
 export interface TypingIndicatorProps {
@@ -19,12 +19,12 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({ users }) => {
           Animated.timing(dot, {
             toValue: -8,
             duration: 400,
-            useNativeDriver: true,
+            useNativeDriver: Platform.OS !== 'web',
           }),
           Animated.timing(dot, {
             toValue: 0,
             duration: 400,
-            useNativeDriver: true,
+            useNativeDriver: Platform.OS !== 'web',
           }),
         ])
       );

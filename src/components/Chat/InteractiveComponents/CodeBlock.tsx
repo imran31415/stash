@@ -17,20 +17,7 @@ import {
   tokenizeCode,
   getTokenColor,
 } from './CodeBlock.utils';
-
-const THEME = {
-  background: '#282C34',
-  lineNumberBackground: '#21252B',
-  lineNumberText: '#5C6370',
-  border: '#21252B',
-  headerBackground: '#21252B',
-  headerText: '#ABB2BF',
-  languageBadge: '#3E4451',
-  buttonBackground: '#3E4451',
-  buttonText: '#ABB2BF',
-  codeText: '#ABB2BF',
-  highlightLine: '#2C313A',
-};
+import { useComponentColors } from '../../../theme';
 
 export const CodeBlock: React.FC<CodeBlockProps> = ({
   code,
@@ -46,8 +33,9 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
   onCopy,
   style,
 }) => {
+  const colors = useComponentColors();
   const [copied, setCopied] = useState(false);
-  
+
   const langInfo = useMemo(() => getLanguageInfo(language), [language]);
   const lines = useMemo(() => getCodeLines(code), [code]);
   
@@ -73,36 +61,36 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
   };
 
   const renderHeader = () => (
-    <View style={styles.header}>
+    <View style={[styles.header, { backgroundColor: colors.codeBlock.headerBackground }]}>
       <View style={styles.headerLeft}>
         <View style={[styles.languageBadge, { backgroundColor: langInfo.color }]}>
           <Text style={styles.languageBadgeText}>{langInfo.icon}</Text>
         </View>
         {(fileName || title) && (
-          <Text style={styles.headerTitle} numberOfLines={1}>
+          <Text style={[styles.headerTitle, { color: colors.codeBlock.headerText }]} numberOfLines={1}>
             {fileName || title}
           </Text>
         )}
         {!fileName && !title && (
-          <Text style={styles.headerTitle}>{langInfo.name}</Text>
+          <Text style={[styles.headerTitle, { color: colors.codeBlock.headerText }]}>{langInfo.name}</Text>
         )}
       </View>
-      
+
       <View style={styles.headerRight}>
         <TouchableOpacity
-          style={styles.button}
+          style={[styles.button, { backgroundColor: colors.divider }]}
           onPress={handleCopy}
           accessibilityLabel="Copy code"
           accessibilityRole="button"
         >
-          <Text style={styles.buttonText}>{copied ? '✓ Copied' : '📋 Copy'}</Text>
+          <Text style={[styles.buttonText, { color: colors.codeBlock.headerText }]}>{copied ? '✓ Copied' : '📋 Copy'}</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
   const renderLineNumber = (lineNumber: number) => (
-    <Text style={styles.lineNumber}>
+    <Text style={[styles.lineNumber, { color: colors.codeBlock.lineNumberText }]}>
       {formatLineNumber(lineNumber)}
     </Text>
   );
@@ -119,11 +107,11 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
         key={index}
         style={[
           styles.codeLine,
-          isHighlighted && styles.highlightedLine,
+          isHighlighted && { backgroundColor: colors.codeBlock.highlightLine },
         ]}
       >
         {showLineNumbers && (
-          <View style={styles.lineNumberContainer}>
+          <View style={[styles.lineNumberContainer, { backgroundColor: colors.codeBlock.lineNumberBackground }]}>
             {renderLineNumber(lineNumber)}
           </View>
         )}
@@ -140,7 +128,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
                 {token.value || ' '}
               </Text>
             ))}
-            {tokens.length === 0 && <Text style={styles.codeText}> </Text>}
+            {tokens.length === 0 && <Text style={[styles.codeText, { color: colors.codeBlock.text }]}> </Text>}
           </Text>
         </View>
       </View>
@@ -151,22 +139,22 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
     if (!hasMore && !onViewFullFile) return null;
 
     return (
-      <View style={styles.footer}>
+      <View style={[styles.footer, { backgroundColor: colors.codeBlock.headerBackground, borderTopColor: colors.codeBlock.border }]}>
         {hasMore && (
           <View style={styles.footerInfo}>
-            <Text style={styles.footerText}>
+            <Text style={[styles.footerText, { color: colors.codeBlock.headerText }]}>
               Showing {displayLines.length} of {lines.length} lines
             </Text>
           </View>
         )}
         {onViewFullFile && (
           <TouchableOpacity
-            style={styles.viewFullButton}
+            style={[styles.viewFullButton, { backgroundColor: colors.primary }]}
             onPress={onViewFullFile}
             accessibilityLabel="View full file"
             accessibilityRole="button"
           >
-            <Text style={styles.viewFullButtonText}>
+            <Text style={[styles.viewFullButtonText, { color: colors.textOnPrimary }]}>
               {hasMore ? '👁️ View Full File' : '👁️ Expand'}
             </Text>
           </TouchableOpacity>
@@ -176,9 +164,16 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
   };
 
   return (
-    <View style={[styles.container, style]}>
+    <View style={[
+      styles.container,
+      {
+        backgroundColor: colors.codeBlock.background,
+        borderColor: colors.codeBlock.border,
+      },
+      style
+    ]}>
       {renderHeader()}
-      
+
       <ScrollView
         style={styles.codeContainer}
         horizontal
@@ -197,11 +192,9 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: THEME.background,
     borderRadius: 8,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: THEME.border,
     marginVertical: 8,
   },
   header: {
@@ -210,9 +203,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: THEME.headerBackground,
     borderBottomWidth: 1,
-    borderBottomColor: THEME.border,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -236,7 +227,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   headerTitle: {
-    color: THEME.headerText,
     fontSize: 13,
     fontWeight: '600',
     flex: 1,
@@ -244,12 +234,10 @@ const styles = StyleSheet.create({
   button: {
     paddingHorizontal: 10,
     paddingVertical: 6,
-    backgroundColor: THEME.buttonBackground,
     borderRadius: 4,
     marginLeft: 8,
   },
   buttonText: {
-    color: THEME.buttonText,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -264,11 +252,7 @@ const styles = StyleSheet.create({
     paddingRight: 12,
     minHeight: 20,
   },
-  highlightedLine: {
-    backgroundColor: THEME.highlightLine,
-  },
   lineNumberContainer: {
-    backgroundColor: THEME.lineNumberBackground,
     paddingHorizontal: 12,
     paddingVertical: 2,
     minWidth: 50,
@@ -276,7 +260,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   lineNumber: {
-    color: THEME.lineNumberText,
     fontSize: 12,
     fontFamily: Platform.select({
       ios: 'Menlo',
@@ -291,7 +274,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   codeText: {
-    color: THEME.codeText,
     fontSize: 13,
     fontFamily: Platform.select({
       ios: 'Menlo',
@@ -306,25 +288,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: THEME.headerBackground,
     borderTopWidth: 1,
-    borderTopColor: THEME.border,
   },
   footerInfo: {
     flex: 1,
   },
   footerText: {
-    color: THEME.headerText,
     fontSize: 12,
   },
   viewFullButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: THEME.buttonBackground,
     borderRadius: 4,
   },
   viewFullButtonText: {
-    color: THEME.buttonText,
     fontSize: 12,
     fontWeight: '600',
   },
