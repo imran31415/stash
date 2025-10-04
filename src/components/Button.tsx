@@ -7,6 +7,7 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
+import { useThemeColors } from '../theme';
 
 export interface ButtonProps extends TouchableOpacityProps {
   title: string;
@@ -23,18 +24,35 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   ...props
 }) => {
+  const colors = useThemeColors();
+
+  const buttonStyles = [
+    styles.button,
+    styles[size],
+    variant === 'primary' && { backgroundColor: colors.primary },
+    variant === 'secondary' && { backgroundColor: colors.secondary },
+    variant === 'outline' && {
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      borderColor: colors.primary,
+    },
+    style,
+  ];
+
+  const textStyles = [
+    styles.text,
+    variant === 'outline'
+      ? { color: colors.primary }
+      : { color: colors.textOnPrimary },
+  ];
+
   return (
     <TouchableOpacity
-      style={[
-        styles.button,
-        styles[variant],
-        styles[size],
-        style,
-      ]}
+      style={buttonStyles}
       onPress={onPress}
       {...props}
     >
-      <Text style={[styles.text, styles[`${variant}Text`]]}>{title}</Text>
+      <Text style={textStyles}>{title}</Text>
     </TouchableOpacity>
   );
 };
@@ -44,17 +62,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  primary: {
-    backgroundColor: '#007AFF',
-  },
-  secondary: {
-    backgroundColor: '#5856D6',
-  },
-  outline: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: '#007AFF',
   },
   small: {
     paddingVertical: 8,
@@ -71,14 +78,5 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     fontWeight: '600',
-  },
-  primaryText: {
-    color: '#FFFFFF',
-  },
-  secondaryText: {
-    color: '#FFFFFF',
-  },
-  outlineText: {
-    color: '#007AFF',
   },
 });

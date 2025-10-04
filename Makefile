@@ -31,7 +31,7 @@ version: ## Display current version
 .PHONY: build
 build: ## Build Docker image
 	@echo "Building Docker image: $(FULL_IMAGE)"
-	docker build -f example/Dockerfile -t $(FULL_IMAGE) -t $(LATEST_IMAGE) .
+	docker buildx build --platform linux/amd64 -f example/Dockerfile -t $(FULL_IMAGE) -t $(LATEST_IMAGE) --load .
 	@echo "✅ Image built successfully"
 
 .PHONY: push
@@ -138,5 +138,5 @@ test-local: build ## Build and run locally for testing
 .PHONY: test-build
 test-build: ## Test build without pushing
 	@echo "Testing Docker build..."
-	docker build -f example/Dockerfile -t stash-example:test .
+	docker buildx build --platform linux/amd64 -f example/Dockerfile -t stash-example:test .
 	@echo "✅ Test build successful"

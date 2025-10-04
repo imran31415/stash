@@ -10,6 +10,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Message, ChatTheme } from './types';
+import { useThemeColors } from '../../theme';
 import {
   TaskList,
   ResourceList,
@@ -59,6 +60,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   presentationMode = false,
   onEnterPresentation,
 }) => {
+  const colors = useThemeColors();
   const isOwn = message?.isOwn ?? false;
   const isSystem = message?.type === 'system';
 
@@ -118,13 +120,13 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     return (
       <View style={[styles.container, styles.otherContainer]}>
         {showAvatar && (
-          <View style={[styles.avatar, styles.avatarPlaceholder, { backgroundColor: '#007AFF' }]}>
-            <Text style={styles.avatarText}>AI</Text>
+          <View style={[styles.avatar, styles.avatarPlaceholder, { backgroundColor: colors.avatarBackground }]}>
+            <Text style={[styles.avatarText, { color: colors.textOnPrimary }]}>AI</Text>
           </View>
         )}
         <View style={styles.messageWrapper}>
-          <View style={[styles.messageBubble, { backgroundColor: '#E5E5EA' }]}>
-            <ActivityIndicator size="small" color="#007AFF" />
+          <View style={[styles.messageBubble, { backgroundColor: colors.messageBubbleOther }]}>
+            <ActivityIndicator size="small" color={colors.primary} />
           </View>
         </View>
       </View>
@@ -134,7 +136,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   if (isSystem) {
     return (
       <View style={styles.systemMessageContainer}>
-        <Text style={styles.systemMessageText}>{message.content}</Text>
+        <Text style={[styles.systemMessageText, { color: colors.systemMessageText, backgroundColor: colors.systemMessageBackground }]}>{message.content}</Text>
       </View>
     );
   }
@@ -364,7 +366,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
               <MarkdownText
                 content={message.content}
                 style={styles.messageText}
-                color={isOwn ? theme?.textColorOwn || '#FFFFFF' : theme?.textColorOther || '#000000'}
+                color={isOwn ? theme?.textColorOwn || colors.messageTextOwn : theme?.textColorOther || colors.messageTextOther}
               />
             )}
           </View>
@@ -377,13 +379,13 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
               <Text
                 style={[
                   styles.fileName,
-                  { color: isOwn ? theme?.textColorOwn || '#FFFFFF' : theme?.textColorOther || '#000000' },
+                  { color: isOwn ? theme?.textColorOwn || colors.messageTextOwn : theme?.textColorOther || colors.messageTextOther },
                 ]}
               >
                 {message.metadata?.fileName || 'File'}
               </Text>
               {message.metadata?.fileSize && (
-                <Text style={styles.fileSize}>
+                <Text style={[styles.fileSize, { color: colors.textTertiary }]}>
                   {(message.metadata.fileSize / 1024).toFixed(2)} KB
                 </Text>
               )}
@@ -395,7 +397,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           <MarkdownText
             content={message.content || ''}
             style={styles.messageText}
-            color={isOwn ? theme?.textColorOwn || '#FFFFFF' : theme?.textColorOther || '#000000'}
+            color={isOwn ? theme?.textColorOwn || colors.messageTextOwn : theme?.textColorOther || colors.messageTextOther}
           />
         );
     }
@@ -411,8 +413,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           {message.sender.avatar ? (
             <Image source={{ uri: message.sender.avatar }} style={styles.avatar} />
           ) : (
-            <View style={[styles.avatar, styles.avatarPlaceholder]}>
-              <Text style={styles.avatarText}>
+            <View style={[styles.avatar, styles.avatarPlaceholder, { backgroundColor: colors.avatarBackground }]}>
+              <Text style={[styles.avatarText, { color: colors.textOnPrimary }]}>
                 {message.sender.name.charAt(0).toUpperCase()}
               </Text>
             </View>
@@ -426,12 +428,12 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         shouldUseFullWidth && styles.fullWidthWrapper,
       ]}>
         {!isOwn && (
-          <Text style={styles.senderName}>{message.sender.name}</Text>
+          <Text style={[styles.senderName, { color: colors.textSecondary }]}>{message.sender.name}</Text>
         )}
 
         {message.replyTo && (
-          <View style={styles.replyContainer}>
-            <Text style={styles.replyText} numberOfLines={1}>
+          <View style={[styles.replyContainer, { borderLeftColor: colors.replyBorder }]}>
+            <Text style={[styles.replyText, { color: colors.textSecondary }]} numberOfLines={1}>
               {message.replyTo.sender.name}: {message.replyTo.content}
             </Text>
           </View>
@@ -443,8 +445,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           style={[
             styles.messageBubble,
             isOwn
-              ? { backgroundColor: theme?.messageBackgroundOwn || '#007AFF' }
-              : { backgroundColor: theme?.messageBackgroundOther || '#E5E5EA' },
+              ? { backgroundColor: theme?.messageBackgroundOwn || colors.messageBubbleOwn }
+              : { backgroundColor: theme?.messageBackgroundOther || colors.messageBubbleOther },
             message.interactiveComponent && styles.messageBubbleInteractive,
           ]}
         >
@@ -458,11 +460,11 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             {/* Enter Presentation Mode Button */}
             {!presentationMode && onEnterPresentation && shouldUseFullWidth && (
               <TouchableOpacity
-                style={styles.enterPresentationButton}
+                style={[styles.enterPresentationButton, { backgroundColor: colors.primary }]}
                 onPress={() => onEnterPresentation(message)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.enterPresentationText}>👁️ Expand</Text>
+                <Text style={[styles.enterPresentationText, { color: colors.textOnPrimary }]}>👁️ Expand</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -470,7 +472,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
 
         <View style={[styles.messageFooter, isOwn && styles.ownMessageFooter]}>
           {showTimestamp && (
-            <Text style={styles.timestamp}>
+            <Text style={[styles.timestamp, { color: colors.textTertiary }]}>
               {message.timestamp.toLocaleTimeString([], {
                 hour: '2-digit',
                 minute: '2-digit',
@@ -478,7 +480,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             </Text>
           )}
           {isOwn && message.status && (
-            <Text style={styles.status}>
+            <Text style={[styles.status, { color: colors.primary }]}>
               {message.status === 'read' && '✓✓'}
               {message.status === 'delivered' && '✓✓'}
               {message.status === 'sent' && '✓'}
@@ -626,12 +628,10 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   avatarPlaceholder: {
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -651,7 +651,6 @@ const styles = StyleSheet.create({
   },
   senderName: {
     fontSize: 12,
-    color: '#666666',
     marginBottom: 2,
     marginLeft: 12,
   },
@@ -697,13 +696,11 @@ const styles = StyleSheet.create({
   },
   fileSize: {
     fontSize: 12,
-    color: '#999999',
     marginTop: 2,
   },
   replyContainer: {
     backgroundColor: 'rgba(0, 0, 0, 0.1)',
     borderLeftWidth: 3,
-    borderLeftColor: '#007AFF',
     borderRadius: 8,
     padding: 8,
     marginBottom: 4,
@@ -711,7 +708,6 @@ const styles = StyleSheet.create({
   },
   replyText: {
     fontSize: 13,
-    color: '#666666',
   },
   messageFooter: {
     flexDirection: 'row',
@@ -724,12 +720,10 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     fontSize: 11,
-    color: '#999999',
     marginRight: 4,
   },
   status: {
     fontSize: 11,
-    color: '#007AFF',
   },
   systemMessageContainer: {
     alignItems: 'center',
@@ -738,8 +732,6 @@ const styles = StyleSheet.create({
   },
   systemMessageText: {
     fontSize: 13,
-    color: '#999999',
-    backgroundColor: '#F0F0F0',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
@@ -748,13 +740,11 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingVertical: 8,
     paddingHorizontal: 16,
-    backgroundColor: '#007AFF',
     borderRadius: 8,
     alignItems: 'center',
     alignSelf: 'center',
   },
   enterPresentationText: {
-    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },

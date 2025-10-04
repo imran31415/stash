@@ -8,6 +8,7 @@ import {
   Keyboard,
   Animated,
 } from 'react-native';
+import { useThemeColors } from '../../theme';
 
 export interface ChatInputProps {
   value: string;
@@ -46,6 +47,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   renderAttachButton,
   renderMicButton,
 }) => {
+  const colors = useThemeColors();
   const [inputHeight, setInputHeight] = useState<number>(40);
   const textInputRef = useRef<TextInput>(null);
   const sendButtonScale = useRef(new Animated.Value(1)).current;
@@ -147,8 +149,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       <TouchableOpacity
         style={[
           styles.sendButton,
-          canSend && styles.sendButtonActive,
-          loading && styles.sendButtonLoading,
+          { backgroundColor: canSend ? colors.buttonBackgroundActive : colors.buttonBackground },
+          loading && { opacity: 0.7 },
         ]}
         onPress={onPress}
         disabled={!canSend && !loading}
@@ -160,43 +162,43 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   const defaultAttachButton = (onPress: () => void) => (
     <TouchableOpacity
-      style={styles.actionButton}
+      style={[styles.actionButton, { backgroundColor: colors.surface }]}
       onPress={onPress}
       disabled={disabled}
     >
-      <View style={styles.attachIcon} />
+      <View style={[styles.attachIcon, { backgroundColor: colors.textTertiary }]} />
     </TouchableOpacity>
   );
 
   const defaultMicButton = (onPress: () => void) => (
     <TouchableOpacity
-      style={styles.actionButton}
+      style={[styles.actionButton, { backgroundColor: colors.surface }]}
       onPress={onPress}
       disabled={disabled}
     >
-      <View style={styles.micIcon} />
+      <View style={[styles.micIcon, { backgroundColor: colors.textTertiary }]} />
     </TouchableOpacity>
   );
 
   return (
-    <View style={[styles.container, style]}>
+    <View style={[styles.container, { backgroundColor: colors.background, borderTopColor: colors.border }, style]}>
       <View style={styles.inputRow}>
         {showAttachButton && (renderAttachButton ? renderAttachButton(onAttachPress!) : defaultAttachButton(onAttachPress!))}
 
-        <View style={[styles.inputWrapper, { minHeight: Math.max(40, inputHeight) }]}>
+        <View style={[styles.inputWrapper, { minHeight: Math.max(40, inputHeight), backgroundColor: colors.surface }]}>
           <TextInput
             ref={textInputRef}
             value={value}
             onChangeText={handleChangeText}
             placeholder={placeholder}
-            placeholderTextColor="#999999"
+            placeholderTextColor={colors.textTertiary}
             multiline
             maxLength={maxLength}
             editable={!disabled}
             autoFocus={false}
             style={[
               styles.textInput,
-              { height: Math.max(40, inputHeight) },
+              { height: Math.max(40, inputHeight), color: colors.text },
               disabled && { opacity: 0.6 },
             ]}
             onContentSizeChange={handleContentSizeChange}
@@ -220,9 +222,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
     paddingHorizontal: 12,
     paddingTop: 8,
     paddingBottom: 8,
@@ -234,7 +234,6 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -242,7 +241,6 @@ const styles = StyleSheet.create({
   },
   textInput: {
     fontSize: 16,
-    color: '#000000',
     lineHeight: 20,
     padding: 0,
     margin: 0,
@@ -265,7 +263,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F2F2F7',
   },
   sendButton: {
     width: 40,
@@ -273,14 +270,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#D1D1D6',
-  },
-  sendButtonActive: {
-    backgroundColor: '#007AFF',
-  },
-  sendButtonLoading: {
-    backgroundColor: '#C7C7CC',
-    opacity: 0.7,
   },
   sendIcon: {
     width: 0,
@@ -296,12 +285,10 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 2,
-    backgroundColor: '#8E8E93',
   },
   micIcon: {
     width: 14,
     height: 18,
     borderRadius: 7,
-    backgroundColor: '#8E8E93',
   },
 });

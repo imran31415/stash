@@ -104,17 +104,17 @@ export const Workflow: React.FC<WorkflowProps> = ({
     return calculatePositionedEdges(data.edges, positionedNodes, nodeWidth, nodeHeight, orientation);
   }, [data.edges, positionedNodes, nodeWidth, nodeHeight, orientation]);
 
-  // Calculate SVG viewBox
+  // Calculate SVG viewBox with pan support
   const viewBox = useMemo(() => {
-    if (positionedNodes.length === 0) return `0 0 ${width} ${height}`;
+    if (positionedNodes.length === 0) return `${-panX} ${-panY} ${width} ${height}`;
 
     const minX = Math.min(...positionedNodes.map((n) => n.x)) - 20;
     const minY = Math.min(...positionedNodes.map((n) => n.y)) - 20;
     const maxX = Math.max(...positionedNodes.map((n) => n.x + nodeWidth)) + 20;
     const maxY = Math.max(...positionedNodes.map((n) => n.y + nodeHeight)) + 20;
 
-    return `${minX} ${minY} ${maxX - minX} ${maxY - minY}`;
-  }, [positionedNodes, nodeWidth, nodeHeight, width, height]);
+    return `${minX - panX} ${minY - panY} ${maxX - minX} ${maxY - minY}`;
+  }, [positionedNodes, nodeWidth, nodeHeight, width, height, panX, panY]);
 
   const handleNodePress = useCallback(
     (node: WorkflowNode) => {
@@ -146,6 +146,22 @@ export const Workflow: React.FC<WorkflowProps> = ({
     setZoom(1);
     setPanX(0);
     setPanY(0);
+  }, []);
+
+  const handlePanLeft = useCallback(() => {
+    setPanX((prev) => prev - 50);
+  }, []);
+
+  const handlePanRight = useCallback(() => {
+    setPanX((prev) => prev + 50);
+  }, []);
+
+  const handlePanUp = useCallback(() => {
+    setPanY((prev) => prev - 50);
+  }, []);
+
+  const handlePanDown = useCallback(() => {
+    setPanY((prev) => prev + 50);
   }, []);
 
   const renderNode = (node: PositionedNode) => {
@@ -394,6 +410,26 @@ export const Workflow: React.FC<WorkflowProps> = ({
         </View>
       )}
 
+      {/* Pan Controls */}
+      {mode === 'full' && (
+        <View style={styles.panControls}>
+          <TouchableOpacity style={styles.panButton} onPress={handlePanUp}>
+            <Text style={styles.panButtonText}>↑</Text>
+          </TouchableOpacity>
+          <View style={styles.panHorizontal}>
+            <TouchableOpacity style={styles.panButton} onPress={handlePanLeft}>
+              <Text style={styles.panButtonText}>←</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.panButton} onPress={handlePanRight}>
+              <Text style={styles.panButtonText}>→</Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity style={styles.panButton} onPress={handlePanDown}>
+            <Text style={styles.panButtonText}>↓</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Selected node details */}
       {renderSelectedNodeDetails()}
 
@@ -532,6 +568,47 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#6B7280',
+  },
+  panControls: {
+    position: 'absolute',
+    bottom: 12,
+    left: '50%',
+    marginLeft: -50,
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    padding: 4,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  panHorizontal: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  panButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    margin: 2,
+  },
+  panButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#3B82F6',
   },
   expandButton: {
     position: 'absolute',

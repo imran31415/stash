@@ -6,10 +6,13 @@ import MediaExample from './examples/MediaExample';
 import LiveStreamingSalesExample from './examples/LiveStreamingSalesExample';
 import DashboardExample from './examples/DashboardExample';
 import { LoadingState } from './components/LoadingState';
+import { ThemeProvider, useTheme, useThemeColors } from '../src/theme';
 
 type TabType = 'history' | 'interactive' | 'media' | 'streaming' | 'dashboard';
 
-export default function App() {
+function AppContent() {
+  const { themeMode, toggleTheme } = useTheme();
+  const colors = useThemeColors();
   const [activeTab, setActiveTab] = useState<TabType>('history');
   const [isLoadingTab, setIsLoadingTab] = useState(false);
 
@@ -75,63 +78,73 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'} />
 
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Stash Chat Examples</Text>
-        <Text style={styles.headerSubtitle}>React Native Component Library</Text>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <View style={styles.headerTextContainer}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Stash Chat Examples</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>React Native Component Library</Text>
+        </View>
+        <TouchableOpacity
+          style={[styles.themeButton, { backgroundColor: colors.primary }]}
+          onPress={toggleTheme}
+        >
+          <Text style={[styles.themeButtonText, { color: colors.textOnPrimary }]}>
+            {themeMode === 'light' ? '🌙' : '☀️'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Tabs */}
-      <View style={styles.tabs}>
+      <View style={[styles.tabs, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'history' && styles.tabActive]}
+          style={[styles.tab, activeTab === 'history' && { borderBottomColor: colors.primary }]}
           onPress={() => handleTabChange('history')}
           disabled={isLoadingTab}
         >
-          <Text style={[styles.tabText, activeTab === 'history' && styles.tabTextActive]}>
+          <Text style={[styles.tabText, { color: activeTab === 'history' ? colors.primary : colors.textSecondary }]}>
             💬 Chats
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'interactive' && styles.tabActive]}
+          style={[styles.tab, activeTab === 'interactive' && { borderBottomColor: colors.primary }]}
           onPress={() => handleTabChange('interactive')}
           disabled={isLoadingTab}
         >
-          <Text style={[styles.tabText, activeTab === 'interactive' && styles.tabTextActive]}>
+          <Text style={[styles.tabText, { color: activeTab === 'interactive' ? colors.primary : colors.textSecondary }]}>
             📊 UI
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'dashboard' && styles.tabActive]}
+          style={[styles.tab, activeTab === 'dashboard' && { borderBottomColor: colors.primary }]}
           onPress={() => handleTabChange('dashboard')}
           disabled={isLoadingTab}
         >
-          <Text style={[styles.tabText, activeTab === 'dashboard' && styles.tabTextActive]}>
+          <Text style={[styles.tabText, { color: activeTab === 'dashboard' ? colors.primary : colors.textSecondary }]}>
             📋 Dash
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'streaming' && styles.tabActive]}
+          style={[styles.tab, activeTab === 'streaming' && { borderBottomColor: colors.primary }]}
           onPress={() => handleTabChange('streaming')}
           disabled={isLoadingTab}
         >
-          <Text style={[styles.tabText, activeTab === 'streaming' && styles.tabTextActive]}>
+          <Text style={[styles.tabText, { color: activeTab === 'streaming' ? colors.primary : colors.textSecondary }]}>
             📈 Live
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'media' && styles.tabActive]}
+          style={[styles.tab, activeTab === 'media' && { borderBottomColor: colors.primary }]}
           onPress={() => handleTabChange('media')}
           disabled={isLoadingTab}
         >
-          <Text style={[styles.tabText, activeTab === 'media' && styles.tabTextActive]}>
+          <Text style={[styles.tabText, { color: activeTab === 'media' ? colors.primary : colors.textSecondary }]}>
             🖼️ Media
           </Text>
         </TouchableOpacity>
@@ -145,33 +158,52 @@ export default function App() {
   );
 }
 
+// Wrapper component with ThemeProvider
+export default function App() {
+  return (
+    <ThemeProvider initialTheme="light">
+      <AppContent />
+    </ThemeProvider>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
   },
   header: {
-    backgroundColor: '#FFFFFF',
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#000000',
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#8E8E93',
+  },
+  themeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
+  },
+  themeButtonText: {
+    fontSize: 20,
   },
   tabs: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
   },
   tab: {
     flex: 1,
@@ -181,16 +213,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
-  tabActive: {
-    borderBottomColor: '#007AFF',
-  },
   tabText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#8E8E93',
-  },
-  tabTextActive: {
-    color: '#007AFF',
   },
   content: {
     flex: 1,
@@ -199,6 +224,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F2F2F7',
   },
 });
