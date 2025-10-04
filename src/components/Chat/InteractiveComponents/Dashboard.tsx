@@ -17,6 +17,8 @@ import { TaskList } from './TaskList';
 import { ResourceList } from './ResourceList';
 import { CodeBlock } from './CodeBlock';
 import { Media } from './Media';
+import { Heatmap } from './Heatmap';
+import { Workflow } from './Workflow';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -134,7 +136,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
 
   // Calculate dimensions
-  const containerWidth = customWidth || measuredWidth || (isMini ? 400 : SCREEN_WIDTH - 32);
+  const containerWidth = customWidth || measuredWidth || (isMini ? 350 : SCREEN_WIDTH - 32);
   const containerHeight = customHeight || (isMini ? 400 : 600);
 
   const handleLayout = (event: LayoutChangeEvent) => {
@@ -176,9 +178,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
     let content: React.ReactNode = null;
 
     switch (item.type) {
+      case 'time-series':
       case 'time-series-chart':
+        // Force re-render when series data changes by including data length in key
+        const seriesDataLength = (item.data as any).series?.[0]?.data?.length || 0;
         content = (
           <TimeSeriesChart
+            key={`${item.id}-${seriesDataLength}`}
             {...(item.data as any)}
             mode={itemMode}
             height={itemDimensions.height}
@@ -245,6 +251,33 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <Media
             {...(item.data as any)}
             mode={itemMode}
+          />
+        );
+        break;
+
+      case 'heatmap':
+        // Force re-render when data changes by including data length in key
+        const heatmapDataLength = (item.data as any).data?.length || 0;
+        content = (
+          <Heatmap
+            key={`${item.id}-${heatmapDataLength}`}
+            {...(item.data as any)}
+            mode={itemMode}
+            height={itemDimensions.height}
+            width={itemDimensions.width}
+            onExpandPress={undefined}
+          />
+        );
+        break;
+
+      case 'workflow':
+        content = (
+          <Workflow
+            {...(item.data as any)}
+            mode={itemMode}
+            height={itemDimensions.height}
+            width={itemDimensions.width}
+            onExpandPress={undefined}
           />
         );
         break;
@@ -385,7 +418,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         styles.container,
         {
           height: containerHeight,
-          width: customWidth || (isMini ? 400 : '100%'),
+          width: customWidth || (isMini ? 350 : '100%'),
           alignSelf: isMini ? 'flex-start' : 'stretch'
         },
       ]}

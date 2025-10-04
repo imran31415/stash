@@ -77,6 +77,34 @@ export type {
   DataTableState,
 } from './DataTable.types';
 
+export type {
+  HeatmapDataPoint,
+  HeatmapProps,
+  HeatmapDimensions,
+  HeatmapCell,
+} from './Heatmap.types';
+
+export type {
+  WorkflowNode,
+  WorkflowEdge,
+  WorkflowData,
+  WorkflowProps,
+  WorkflowDetailViewProps,
+  WorkflowNodeType,
+  WorkflowNodeStatus,
+  WorkflowLayout,
+  WorkflowStats,
+  DAGLayoutParams,
+  PositionedNode,
+  PositionedEdge,
+} from './Workflow.types';
+
+export type {
+  FlameGraphNode,
+  FlameGraphData,
+  FlameGraphProps,
+} from './FlameGraph.types';
+
 export { TaskList } from './TaskList';
 export { TaskDetailModal } from './TaskDetailModal';
 export { TaskDetailBottomSheet } from './TaskDetailBottomSheet';
@@ -98,6 +126,11 @@ export { DashboardDetailView } from './DashboardDetailView';
 export { DashboardPreview } from './DashboardPreview';
 export { DataTable } from './DataTable';
 export { DataTableDetailView } from './DataTableDetailView';
+export { Heatmap } from './Heatmap';
+export { HeatmapDetailView } from './HeatmapDetailView';
+export { Workflow } from './Workflow';
+export { WorkflowDetailView } from './WorkflowDetailView';
+export { FlameGraph } from './FlameGraph';
 export { LoadingState } from './LoadingState';
 export type { LoadingStateProps } from './LoadingState';
 

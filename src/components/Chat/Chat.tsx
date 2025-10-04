@@ -665,7 +665,8 @@ const styles = StyleSheet.create({
   },
   messagesContent: {
     flexGrow: 1,
-    paddingVertical: 8,
+    paddingTop: 8,
+    paddingBottom: 80,
   },
   emptyState: {
     flex: 1,

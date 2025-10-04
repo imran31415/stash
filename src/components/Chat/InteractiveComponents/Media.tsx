@@ -133,7 +133,7 @@ export const Media: React.FC<MediaProps> = ({
   const [audioDuration, setAudioDuration] = useState(0);
 
   // Calculate container dimensions
-  const containerWidth = maxWidth || (isMini ? 400 : screenWidth - 32);
+  const containerWidth = maxWidth || (isMini ? 350 : screenWidth - 32);
   const containerHeight = maxHeight || (isMini ? 200 : 400);
 
   // Current media item
@@ -743,7 +743,7 @@ export const Media: React.FC<MediaProps> = ({
       <View style={[
         styles.container,
         isMini && styles.containerMini,
-        { width: isMini ? 400 : '100%', alignSelf: isMini ? 'flex-start' : 'stretch' }
+        { width: isMini ? 350 : '100%', alignSelf: isMini ? 'flex-start' : 'stretch' }
       ]}>
         <View style={[
           styles.mediaContainer,
@@ -768,7 +768,7 @@ export const Media: React.FC<MediaProps> = ({
     <View style={[
       styles.container,
       isMini && styles.containerMini,
-      { width: isMini ? 400 : '100%', alignSelf: isMini ? 'flex-start' : 'stretch' }
+      { width: isMini ? 350 : '100%', alignSelf: isMini ? 'flex-start' : 'stretch' }
     ]}>
       {/* Header with title */}
       {!isMini && currentMedia && (

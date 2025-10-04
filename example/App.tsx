@@ -5,7 +5,7 @@ import ChatHistoryExample from './examples/ChatHistoryExample';
 import MediaExample from './examples/MediaExample';
 import LiveStreamingSalesExample from './examples/LiveStreamingSalesExample';
 import DashboardExample from './examples/DashboardExample';
-import { LoadingState } from '../src/components/Chat/InteractiveComponents';
+import { LoadingState } from './components/LoadingState';
 
 type TabType = 'history' | 'interactive' | 'media' | 'streaming' | 'dashboard';
 

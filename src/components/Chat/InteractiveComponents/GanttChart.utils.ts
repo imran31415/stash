@@ -284,7 +284,7 @@ export const getChartDimensions = (
     cellWidth: isMini ? 20 : 60,
     headerHeight: isMini ? 36 : 56,
     sidebarWidth: isMini ? 100 : 180,
-    chartWidth: isMini ? 400 : containerWidth,
+    chartWidth: isMini ? Math.min(350, containerWidth) : containerWidth,
     chartHeight: customHeight || (isMini ? 200 : Math.min(600, taskCount * 48 + 56)),
     padding: isMini ? 6 : 12,
   };

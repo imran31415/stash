@@ -566,7 +566,7 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
         styles.container,
         isMini && styles.containerMini,
         {
-          width: customWidth || (isMini ? 400 : '100%'),
+          width: customWidth || (isMini ? 350 : '100%'),
           alignSelf: isMini ? 'flex-start' : 'stretch'
         }
       ]}

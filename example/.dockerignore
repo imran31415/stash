@@ -1,0 +1,69 @@
+# Dependencies
+node_modules/
+server/node_modules/
+
+# Build artifacts
+dist/
+build/
+.expo/
+.expo-shared/
+
+# Environment files
+.env
+.env.*
+*.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Documentation
+README.md
+*.md
+!server/README.md
+
+# Config
+.prettierrc
+.eslintrc*
+.editorconfig
+
+# Kubernetes
+k8/
+*.yaml
+*.yml
+
+# Secrets and credentials
+*.key
+*.pem
+*.crt
+secrets/
+credentials/

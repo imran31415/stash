@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { ChatLayout, Chat, ChatWithPagination } from '../../src/components/Chat';
-import type { ChatPreview, Message, GraphData } from '../../src/components/Chat';
+import type { ChatPreview, Message, GraphData, ChatGroup } from '../../src/components/Chat';
 import { addDays, addWeeks, addHours, addMinutes, subDays } from 'date-fns';
 import {
   generateMockTasks,
@@ -262,6 +262,261 @@ const getStashOverviewMessages = (): Message[] => {
           striped: true,
           bordered: true,
         },
+      },
+    },
+    {
+      id: 'demo-6e',
+      content: "What about heat maps? Can I visualize patterns and density in data?",
+      sender: { id: 'user-demo', name: 'You', avatar: '👤' },
+      timestamp: addHours(new Date(), 0.047),
+      status: 'delivered',
+      isOwn: true,
+    },
+    {
+      id: 'demo-6f',
+      content: "## Heat Maps: Visualize Patterns at Scale\n\nAbsolutely! **Heat Maps** are perfect for showing patterns, density, and intensity across large datasets.\n\nInstead of:\n*\"Server load was 45% at 9am, 67% at 10am, 89% at 11am across all regions...\"*\n\nYou get a **visual heat map** that instantly reveals:\n• **Temporal Patterns** - When are peaks and valleys?\n• **Geographic Distribution** - Where is activity concentrated?\n• **Resource Utilization** - Which servers/regions are hot spots?\n• **Anomaly Detection** - Spot unusual patterns instantly\n\nPerfect for:\n• Server/infrastructure monitoring\n• Sales performance by region/time\n• User activity patterns\n• A/B test results visualization\n• System health dashboards\n\nThis example shows server performance across regions over 24 hours. Notice how you can instantly spot the traffic spike during business hours and identify which regions need scaling!",
+      sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
+      timestamp: addHours(new Date(), 0.0475),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'heatmap',
+        data: {
+          xLabels: ['12am', '3am', '6am', '9am', '12pm', '3pm', '6pm', '9pm'],
+          yLabels: ['US-East', 'US-West', 'EU-Central', 'Asia-Pacific', 'South America', 'Middle East'],
+          values: [
+            [12, 8, 5, 15, 45, 78, 92, 45],
+            [15, 10, 8, 20, 52, 85, 88, 50],
+            [35, 42, 55, 78, 85, 72, 45, 38],
+            [82, 75, 65, 55, 45, 58, 72, 85],
+            [8, 6, 10, 25, 48, 62, 55, 22],
+            [18, 15, 22, 35, 52, 68, 75, 42],
+          ],
+          title: 'Server Load Heat Map - Last 24 Hours',
+          subtitle: 'CPU utilization % by region and time • Tap 👁️ to expand',
+          mode: 'mini',
+          colorScheme: 'temperature',
+          showValues: false,
+          minValue: 0,
+          maxValue: 100,
+        },
+      },
+    },
+    {
+      id: 'demo-6g',
+      content: "How does Stash handle live streaming data? Like real-time stock prices or IoT sensor data?",
+      sender: { id: 'user-demo', name: 'You', avatar: '👤' },
+      timestamp: addHours(new Date(), 0.0485),
+      status: 'delivered',
+      isOwn: true,
+    },
+    {
+      id: 'demo-6h',
+      content: "## Live Data Streaming: Real-Time Updates Made Easy\n\nExcellent question! **Live data streaming** is a first-class feature in Stash, not an afterthought.\n\n**The Challenge:**\nTraditional chat components freeze or stutter when receiving rapid updates. You've probably seen dashboards that:\n• Drop frames during updates\n• Queue updates and lag behind real-time\n• Re-render the entire UI on every data point\n• Struggle with high-frequency data (>10 updates/sec)\n\n**Stash's Solution:**\n✅ **WebSocket-Native** - Built-in support, no custom integration needed\n✅ **Smart Batching** - Bundles rapid updates to prevent UI thrashing\n✅ **Incremental Rendering** - Only updates changed elements\n✅ **Adaptive Throttling** - Auto-adjusts update frequency to maintain 60fps\n✅ **Buffer Management** - Handles bursts without memory bloat\n\n**Real-World Use Cases:**\n• Stock tickers and crypto prices\n• IoT sensor dashboards (temperature, pressure, etc.)\n• Live sports scores and stats\n• Server metrics and alerts\n• Real-time analytics\n• Live auction bidding\n\nCheck out the **📈 Live** tab to see a live-streaming sales dashboard in action - updating multiple charts simultaneously with zero lag!",
+      sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
+      timestamp: addHours(new Date(), 0.049),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'time-series-chart',
+        data: {
+          series: [
+            {
+              id: 'live-demo',
+              name: 'Live Stream Demo',
+              data: Array.from({ length: 20 }, (_, i) => ({
+                timestamp: addMinutes(new Date(), -20 + i),
+                value: Math.random() * 100 + 50,
+              })),
+              color: '#3B82F6',
+              strokeWidth: 2,
+            },
+          ],
+          title: 'Live Streaming Demo',
+          subtitle: 'Simulated real-time data • Updates every second',
+          mode: 'mini',
+          showLegend: false,
+          enableZoom: false,
+          yAxisLabel: 'Value',
+          streaming: true,
+        },
+      },
+    },
+    {
+      id: 'demo-6i',
+      content: "What about workflow visualization? Like CI/CD pipelines or data processing flows?",
+      sender: { id: 'user-demo', name: 'You', avatar: '👤' },
+      timestamp: addHours(new Date(), 0.0495),
+      status: 'delivered',
+      isOwn: true,
+    },
+    {
+      id: 'demo-6j',
+      content: "## DAG Graphs: Workflow & Pipeline Visualization\n\nPerfect timing! **DAG (Directed Acyclic Graph)** visualization is crucial for understanding workflows, dependencies, and data flows.\n\nInstead of describing:\n*\"Build depends on Test, which depends on Lint and TypeCheck. Deploy depends on Build succeeding...\"*\n\nYou get an **interactive pipeline visualization** showing:\n• **Execution Flow** - See the exact order of operations\n• **Dependencies** - Understand what depends on what\n• **Status at a Glance** - Success, failure, running, pending\n• **Critical Path** - Identify bottlenecks instantly\n• **Parallel Execution** - See what runs concurrently\n\n**Perfect For:**\n• CI/CD pipeline visualization (GitHub Actions, Jenkins, etc.)\n• Data processing workflows (Airflow, ETL pipelines)\n• ML model training pipelines\n• Microservice dependencies\n• Task execution plans\n• State machines and workflow engines\n\nThis example shows a typical deployment pipeline with parallel testing, build stages, and conditional deployment. Notice how you can instantly see:\n• Which stages can run in parallel\n• Where the pipeline is currently executing\n• Which stage failed and blocked downstream tasks\n\nClick any node to see detailed logs, timing, and configuration!",
+      sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
+      timestamp: addHours(new Date(), 0.0505),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'graph-visualization',
+        data: {
+          data: {
+            nodes: [
+              { id: 'start', labels: ['Start'], properties: { name: 'Trigger', type: 'start' }, color: '#10B981', size: 16 },
+              { id: 'checkout', labels: ['Stage'], properties: { name: 'Checkout Code', status: 'success' }, color: '#10B981' },
+              { id: 'install', labels: ['Stage'], properties: { name: 'Install Deps', status: 'success' }, color: '#10B981' },
+              { id: 'lint', labels: ['Stage'], properties: { name: 'Lint', status: 'success' }, color: '#10B981' },
+              { id: 'typecheck', labels: ['Stage'], properties: { name: 'TypeCheck', status: 'success' }, color: '#10B981' },
+              { id: 'test-unit', labels: ['Stage'], properties: { name: 'Unit Tests', status: 'success' }, color: '#10B981' },
+              { id: 'test-e2e', labels: ['Stage'], properties: { name: 'E2E Tests', status: 'failed' }, color: '#EF4444', size: 18 },
+              { id: 'build', labels: ['Stage'], properties: { name: 'Build', status: 'success' }, color: '#10B981' },
+              { id: 'security', labels: ['Stage'], properties: { name: 'Security Scan', status: 'running' }, color: '#F59E0B', size: 18 },
+              { id: 'docker', labels: ['Stage'], properties: { name: 'Build Image', status: 'pending' }, color: '#94A3B8' },
+              { id: 'deploy-staging', labels: ['Stage'], properties: { name: 'Deploy Staging', status: 'blocked' }, color: '#94A3B8' },
+              { id: 'deploy-prod', labels: ['Stage'], properties: { name: 'Deploy Prod', status: 'blocked' }, color: '#94A3B8' },
+            ],
+            edges: [
+              { id: 'e1', source: 'start', target: 'checkout', type: 'TRIGGERS', label: 'git push' },
+              { id: 'e2', source: 'checkout', target: 'install', type: 'THEN', label: '' },
+              { id: 'e3', source: 'install', target: 'lint', type: 'PARALLEL', label: '' },
+              { id: 'e4', source: 'install', target: 'typecheck', type: 'PARALLEL', label: '' },
+              { id: 'e5', source: 'install', target: 'test-unit', type: 'PARALLEL', label: '' },
+              { id: 'e6', source: 'install', target: 'test-e2e', type: 'PARALLEL', label: '' },
+              { id: 'e7', source: 'lint', target: 'build', type: 'REQUIRED', label: 'must pass' },
+              { id: 'e8', source: 'typecheck', target: 'build', type: 'REQUIRED', label: 'must pass' },
+              { id: 'e9', source: 'test-unit', target: 'build', type: 'REQUIRED', label: 'must pass' },
+              { id: 'e10', source: 'test-e2e', target: 'build', type: 'REQUIRED', label: 'must pass' },
+              { id: 'e11', source: 'build', target: 'security', type: 'THEN', label: '' },
+              { id: 'e12', source: 'build', target: 'docker', type: 'THEN', label: '' },
+              { id: 'e13', source: 'security', target: 'deploy-staging', type: 'REQUIRED', label: 'must pass' },
+              { id: 'e14', source: 'docker', target: 'deploy-staging', type: 'REQUIRED', label: 'image ready' },
+              { id: 'e15', source: 'deploy-staging', target: 'deploy-prod', type: 'APPROVAL', label: 'manual approval' },
+            ],
+            metadata: {
+              name: 'CI/CD Pipeline - Production Deployment',
+              description: 'Automated deployment pipeline with parallel testing and security checks',
+            },
+          },
+          title: 'CI/CD Pipeline Visualization',
+          subtitle: 'Deployment workflow • E2E tests failed, blocking deployment',
+          mode: 'mini',
+          layout: 'hierarchical',
+          direction: 'LR',
+          showLabels: true,
+          showEdgeLabels: true,
+          enablePhysics: false,
+        },
+      },
+    },
+    {
+      id: 'demo-6k',
+      content: "What about performance profiling? Can I visualize where my code is spending time?",
+      sender: { id: 'user-demo', name: 'You', avatar: '👤' },
+      timestamp: addHours(new Date(), 0.051),
+      status: 'delivered',
+      isOwn: true,
+    },
+    {
+      id: 'demo-6l',
+      content: "## Flame Graphs: Performance Profiling Made Visual\n\nAbsolutely! **Flame Graphs** are the gold standard for visualizing performance profiling data, and Stash brings them to chat interfaces.\n\nInstead of scrolling through text-based profiler output:\n```\nmain(): 10000 samples (100%)\n  handleRequest(): 6500 samples (65%)\n    authenticateUser(): 1200 samples (12%)\n      jwt.verify(): 600 samples (6%)\n```\n\nYou get an **interactive flame graph** that:\n• **Shows Call Hierarchy** - See the entire call stack at a glance\n• **Reveals Hot Paths** - Instantly identify performance bottlenecks\n• **Interactive Zoom** - Click any function to focus and explore\n• **Smart Search** - Find specific functions across the entire profile\n• **Time Distribution** - Width shows time spent, color shows depth\n\n**Perfect For:**\n• CPU profiling (pprof, perf, FlameScope)\n• Memory allocation analysis\n• Performance optimization\n• Production incident investigation\n• Benchmarking and regression testing\n\nThis example shows a real API server profile captured with pprof. Notice how you can instantly see:\n• `handleRequest()` takes 65% of total time\n• Most time is in `processBusinessLogic()` → `fetchRelatedData()`\n• Database queries are the primary bottleneck\n• Authentication overhead is acceptable at 12%\n\n**Pro tip:** Click on any node to see detailed metrics (file, line number, samples, self vs. total time). Use the search to find specific functions!",
+      sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
+      timestamp: addHours(new Date(), 0.052),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'flamegraph',
+        data: {
+          root: {
+            id: 'main',
+            name: 'main()',
+            value: 10000,
+            metadata: {
+              file: 'src/main.ts',
+              line: 1,
+              samples: 10000,
+              selfTime: 100,
+              totalTime: 10000,
+            },
+            children: [
+              {
+                id: 'app-init',
+                name: 'initializeApp()',
+                value: 2500,
+                metadata: { file: 'src/app.ts', line: 45, samples: 2500, selfTime: 200, totalTime: 2500 },
+                children: [
+                  {
+                    id: 'config',
+                    name: 'loadConfig()',
+                    value: 800,
+                    metadata: { file: 'src/config.ts', samples: 800 },
+                  },
+                  {
+                    id: 'db',
+                    name: 'connectDatabase()',
+                    value: 1200,
+                    metadata: { file: 'src/database.ts', samples: 1200 },
+                  },
+                ],
+              },
+              {
+                id: 'request',
+                name: 'handleRequest()',
+                value: 6500,
+                metadata: { file: 'src/server.ts', line: 156, samples: 6500, selfTime: 400, totalTime: 6500 },
+                children: [
+                  {
+                    id: 'auth',
+                    name: 'authenticateUser()',
+                    value: 1200,
+                    metadata: { file: 'src/auth.ts', samples: 1200 },
+                    children: [
+                      {
+                        id: 'jwt',
+                        name: 'jwt.verify()',
+                        value: 600,
+                        metadata: { samples: 600 },
+                      },
+                    ],
+                  },
+                  {
+                    id: 'controller',
+                    name: 'controller.execute()',
+                    value: 3500,
+                    metadata: { file: 'src/controllers/api.ts', line: 234, samples: 3500 },
+                    children: [
+                      {
+                        id: 'business',
+                        name: 'processBusinessLogic()',
+                        value: 2600,
+                        metadata: { file: 'src/services/business.ts', samples: 2600 },
+                        children: [
+                          {
+                            id: 'db-queries',
+                            name: 'fetchRelatedData()',
+                            value: 1800,
+                            metadata: { samples: 1800 },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          total: 10000,
+          unit: 'samples',
+          metadata: {
+            type: 'cpu',
+            duration: 10000,
+            application: 'API Server',
+          },
+        },
+        title: 'API Server CPU Profile',
+        subtitle: '10,000 samples • pprof format • Tap 🔍 to explore',
+        mode: 'preview',
+        colorScheme: 'hot',
+        showSearch: true,
       },
     },
     {
@@ -2673,6 +2928,385 @@ const getDataTableChatMessages = (): Message[] => {
   ];
 };
 
+// Heatmap focused chat - Infrastructure Monitoring
+const getHeatmapChatMessages = (): Message[] => {
+  const now = new Date();
+
+  // Generate server performance heatmap data
+  const generateServerHeatmapData = () => {
+    const servers = ['Web-01', 'Web-02', 'Web-03', 'API-01', 'API-02', 'DB-01'];
+    const metrics = ['CPU Usage', 'Memory', 'Disk I/O', 'Network', 'Latency', 'Throughput'];
+    const data: any[] = [];
+
+    servers.forEach((server) => {
+      metrics.forEach((metric) => {
+        const baseValue = Math.random() * 100;
+        const value = metric === 'Latency' || metric === 'Throughput' ?
+          baseValue * 5 : baseValue;
+
+        data.push({
+          x: server,
+          y: metric,
+          value: Math.round(value * 100) / 100,
+          label: `${server} - ${metric}`,
+          metadata: {
+            timestamp: new Date().toISOString(),
+            status: value > 80 ? 'critical' : value > 60 ? 'warning' : 'normal',
+            unit: metric === 'Latency' ? 'ms' : metric === 'Throughput' ? 'MB/s' : '%',
+          },
+        });
+      });
+    });
+
+    return data;
+  };
+
+  // Generate time series data for key metrics
+  const generateMetricTimeSeries = (metricName: string, baseValue: number, variance: number, color: string) => {
+    return {
+      id: metricName.toLowerCase().replace(/\s+/g, '-'),
+      name: metricName,
+      data: Array.from({ length: 15 }, (_, i) => ({
+        timestamp: addMinutes(now, -15 + i),
+        value: baseValue + (Math.random() - 0.5) * variance,
+      })),
+      color,
+      lineWidth: 2,
+    };
+  };
+
+  const heatmapData = generateServerHeatmapData();
+
+  return [
+    {
+      id: 'hm-1',
+      content: "Can you show me the current infrastructure health across all our production servers?",
+      sender: { id: 'user-ops', name: 'You', avatar: '👤' },
+      timestamp: new Date(Date.now() - 180000),
+      status: 'delivered',
+      isOwn: true,
+    },
+    {
+      id: 'hm-2',
+      content: "Here's a comprehensive infrastructure monitoring dashboard with real-time metrics:\n\n**Dashboard Overview:**\n• **Performance Heatmap**: All servers × all metrics in one view\n• **CPU Trends**: Real-time CPU utilization across the cluster\n• **Memory Trends**: Memory consumption patterns\n• **Response Time**: API latency tracking\n\n**What to watch:**\n• 🟢 Green zones = Healthy operations\n• 🟡 Yellow zones = Monitor closely\n• 🔴 Red zones = Immediate attention needed\n\nClick 👁️ Expand for the full interactive dashboard with drill-down capabilities!",
+      sender: { id: 'ai-ops', name: 'Ops AI', avatar: '🤖' },
+      timestamp: new Date(Date.now() - 175000),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'dashboard',
+        data: {
+          config: {
+            title: 'Infrastructure Monitoring Dashboard',
+            description: 'Real-time server performance metrics',
+            gridSize: '2x2',
+            items: [
+              {
+                id: 'heatmap-performance',
+                type: 'heatmap',
+                title: 'Performance Matrix',
+                gridPosition: { row: 0, col: 0, rowSpan: 2, colSpan: 1 },
+                data: {
+                  data: heatmapData,
+                  colorScale: 'red',
+                  showLegend: true,
+                  showGrid: true,
+                  xAxisLabel: 'Servers',
+                  yAxisLabel: 'Metrics',
+                  valueFormatter: (value: number) => `${value.toFixed(1)}`,
+                  autoScale: true,
+                },
+              },
+              {
+                id: 'cpu-trends',
+                type: 'time-series',
+                title: 'CPU Utilization (%)',
+                gridPosition: { row: 0, col: 1 },
+                data: {
+                  series: [
+                    generateMetricTimeSeries('Web Servers', 45, 15, '#3B82F6'),
+                    generateMetricTimeSeries('API Servers', 62, 18, '#8B5CF6'),
+                    generateMetricTimeSeries('Database', 58, 12, '#10B981'),
+                  ],
+                  showLegend: true,
+                  showGrid: true,
+                  height: 150,
+                  valueFormatter: (value: number) => `${value.toFixed(0)}%`,
+                },
+              },
+              {
+                id: 'memory-trends',
+                type: 'time-series',
+                title: 'Memory Usage (%)',
+                gridPosition: { row: 1, col: 1 },
+                data: {
+                  series: [
+                    generateMetricTimeSeries('Web Servers', 52, 12, '#3B82F6'),
+                    generateMetricTimeSeries('API Servers', 68, 15, '#8B5CF6'),
+                    generateMetricTimeSeries('Database', 75, 10, '#10B981'),
+                  ],
+                  showLegend: true,
+                  showGrid: true,
+                  height: 150,
+                  valueFormatter: (value: number) => `${value.toFixed(0)}%`,
+                },
+              },
+            ],
+          },
+          mode: 'mini',
+          height: 400,
+        },
+      },
+    },
+    {
+      id: 'hm-3',
+      content: "I notice API servers have higher resource utilization. Should we be concerned?",
+      sender: { id: 'user-ops', name: 'You', avatar: '👤' },
+      timestamp: new Date(Date.now() - 150000),
+      status: 'delivered',
+      isOwn: true,
+    },
+    {
+      id: 'hm-4',
+      content: "Good observation! The API servers are running hotter than other tiers, but it's within acceptable ranges:\n\n**Current Status:**\n• **CPU**: ~62% average (threshold: 80%) ✅\n• **Memory**: ~68% average (threshold: 85%) ⚠️\n• Memory is approaching watch level\n\n**Analysis:**\n• API-01 and API-02 showing correlated load patterns\n• Likely increased traffic during business hours\n• Memory growth is gradual, not spiking\n\n**Recommendations:**\n1. **Immediate**: Monitor memory growth trend\n2. **Short-term**: Review API caching strategy to reduce memory pressure\n3. **Long-term**: Consider horizontal scaling (add API-03) if traffic continues to grow\n4. **Set alert**: Notify if memory exceeds 80%\n\nThe system is stable but approaching capacity on the API tier. I'll alert you if metrics exceed thresholds!",
+      sender: { id: 'ai-ops', name: 'Ops AI', avatar: '🤖' },
+      timestamp: new Date(Date.now() - 145000),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'hm-5',
+      content: "Can you show me response time trends? I want to make sure latency isn't creeping up.",
+      sender: { id: 'user-ops', name: 'You', avatar: '👤' },
+      timestamp: new Date(Date.now() - 120000),
+      status: 'delivered',
+      isOwn: true,
+    },
+    {
+      id: 'hm-6',
+      content: "Here's the API response time breakdown across all endpoints over the last 15 minutes:",
+      sender: { id: 'ai-ops', name: 'Ops AI', avatar: '🤖' },
+      timestamp: new Date(Date.now() - 115000),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'time-series-chart',
+        data: {
+          series: [
+            {
+              id: 'p50-latency',
+              name: 'p50 (Median)',
+              data: Array.from({ length: 15 }, (_, i) => ({
+                timestamp: addMinutes(now, -15 + i),
+                value: 120 + (Math.random() - 0.5) * 30,
+              })),
+              color: '#10B981',
+              lineWidth: 3,
+            },
+            {
+              id: 'p95-latency',
+              name: 'p95',
+              data: Array.from({ length: 15 }, (_, i) => ({
+                timestamp: addMinutes(now, -15 + i),
+                value: 280 + (Math.random() - 0.5) * 60,
+              })),
+              color: '#F59E0B',
+              lineWidth: 3,
+            },
+            {
+              id: 'p99-latency',
+              name: 'p99',
+              data: Array.from({ length: 15 }, (_, i) => ({
+                timestamp: addMinutes(now, -15 + i),
+                value: 450 + (Math.random() - 0.5) * 100,
+              })),
+              color: '#EF4444',
+              lineWidth: 3,
+            },
+          ],
+          mode: 'full',
+          title: 'API Response Time Distribution',
+          subtitle: 'Last 15 minutes • All endpoints',
+          showLegend: true,
+          showGrid: true,
+          showXAxis: true,
+          showYAxis: true,
+          xAxisLabel: 'Time',
+          yAxisLabel: 'Latency (ms)',
+          valueFormatter: (value: number) => `${value.toFixed(0)}ms`,
+          height: 280,
+        },
+      },
+    },
+    {
+      id: 'hm-7',
+      content: "**Latency Analysis:**\n\n✅ **p50 (Median)**: 120ms - Excellent\n⚠️ **p95**: 280ms - Good, but watch for increases\n🔴 **p99**: 450ms - Approaching threshold (500ms)\n\n**Insights:**\n• 95% of requests complete in under 280ms\n• 1% of requests are slow (450ms+)\n• Likely database queries or external API calls\n\n**Action Items:**\n1. Identify slow p99 queries with query profiling\n2. Add query result caching for common patterns\n3. Consider read replicas to distribute load\n4. Set up p99 > 500ms alerts\n\nOverall system health: **GOOD** 🟢",
+      sender: { id: 'ai-ops', name: 'Ops AI', avatar: '🤖' },
+      timestamp: new Date(Date.now() - 110000),
+      status: 'delivered',
+      isOwn: false,
+    },
+  ];
+};
+
+const getWorkflowChatMessages = (): Message[] => {
+  const now = new Date();
+
+  // Generate CI/CD workflow data
+  const generateCICDWorkflow = () => {
+    const nodes: any[] = [
+      {
+        id: 'start',
+        type: 'start',
+        label: 'Trigger',
+        status: 'success',
+        metadata: { duration: 100, startTime: subDays(now, 0), endTime: subDays(now, 0) },
+      },
+      {
+        id: 'checkout',
+        type: 'task',
+        label: 'Checkout',
+        description: 'Clone repository',
+        status: 'success',
+        metadata: { duration: 5000, retries: 0 },
+      },
+      {
+        id: 'install',
+        type: 'task',
+        label: 'Install Deps',
+        description: 'npm install',
+        status: 'success',
+        metadata: { duration: 45000, retries: 0 },
+      },
+      {
+        id: 'lint',
+        type: 'task',
+        label: 'Lint',
+        description: 'ESLint check',
+        status: 'success',
+        metadata: { duration: 8000 },
+      },
+      {
+        id: 'test',
+        type: 'task',
+        label: 'Test',
+        description: 'Run tests',
+        status: 'success',
+        metadata: { duration: 35000, retries: 1 },
+      },
+      {
+        id: 'build',
+        type: 'task',
+        label: 'Build',
+        description: 'Production build',
+        status: 'running',
+        metadata: { startTime: now },
+      },
+      {
+        id: 'security',
+        type: 'task',
+        label: 'Security Scan',
+        status: 'waiting',
+      },
+      {
+        id: 'deploy-staging',
+        type: 'api',
+        label: 'Deploy Staging',
+        status: 'idle',
+      },
+      {
+        id: 'e2e',
+        type: 'task',
+        label: 'E2E Tests',
+        status: 'idle',
+      },
+      {
+        id: 'approval',
+        type: 'manual',
+        label: 'Approve',
+        description: 'Manual approval',
+        status: 'idle',
+      },
+      {
+        id: 'deploy-prod',
+        type: 'api',
+        label: 'Deploy Prod',
+        status: 'idle',
+      },
+      {
+        id: 'notify',
+        type: 'notification',
+        label: 'Notify',
+        status: 'idle',
+      },
+      {
+        id: 'end',
+        type: 'end',
+        label: 'Complete',
+        status: 'idle',
+      },
+    ];
+
+    const edges: any[] = [
+      { id: 'e1', source: 'start', target: 'checkout', conditionType: 'always' },
+      { id: 'e2', source: 'checkout', target: 'install', conditionType: 'success' },
+      { id: 'e3', source: 'install', target: 'lint', conditionType: 'success' },
+      { id: 'e4', source: 'install', target: 'test', conditionType: 'success' },
+      { id: 'e5', source: 'lint', target: 'build', conditionType: 'success' },
+      { id: 'e6', source: 'test', target: 'build', conditionType: 'success' },
+      { id: 'e7', source: 'build', target: 'security', conditionType: 'success' },
+      { id: 'e8', source: 'security', target: 'deploy-staging', conditionType: 'success' },
+      { id: 'e9', source: 'deploy-staging', target: 'e2e', conditionType: 'success' },
+      { id: 'e10', source: 'e2e', target: 'approval', conditionType: 'success' },
+      { id: 'e11', source: 'approval', target: 'deploy-prod', conditionType: 'success' },
+      { id: 'e12', source: 'deploy-prod', target: 'notify', conditionType: 'success' },
+      { id: 'e13', source: 'notify', target: 'end', conditionType: 'always' },
+      { id: 'e14', source: 'security', target: 'notify', conditionType: 'failure', label: 'on fail', style: 'dashed' },
+    ];
+
+    return {
+      id: 'cicd-pipeline',
+      name: 'CI/CD Pipeline',
+      description: 'Automated deployment workflow',
+      nodes,
+      edges,
+      metadata: {
+        created: subDays(now, 30),
+        version: '2.1.0',
+        author: 'DevOps Team',
+        executionCount: 487,
+        averageDuration: 420000,
+        successRate: 0.94,
+      },
+    };
+  };
+
+  const workflowData = generateCICDWorkflow();
+
+  return [
+    {
+      id: 'wf-1',
+      content: "Show me the current deployment pipeline status for the production release",
+      sender: { id: 'user-dev', name: 'You', avatar: '👤' },
+      timestamp: new Date(Date.now() - 120000),
+      status: 'delivered',
+      isOwn: true,
+    },
+    {
+      id: 'wf-2',
+      content: "Here's the **CI/CD Pipeline Status** for your production release:\n\n**Current State:**\n• ✅ Tests passing (with 1 retry)\n• ⚡ Build in progress...\n• ⏳ 7 stages remaining\n\n**Pipeline Highlights:**\n• **Success Rate**: 94% (487 total runs)\n• **Avg Duration**: 7 minutes\n• **Critical Path**: Highlighted in yellow\n\n**Next Steps:**\n1. Security scan (auto-triggered after build)\n2. Staging deployment\n3. Manual approval required for production\n\nClick nodes to see detailed execution logs and metadata!",
+      sender: { id: 'ai-devops', name: 'DevOps AI', avatar: '🤖' },
+      timestamp: new Date(Date.now() - 115000),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'workflow',
+        data: workflowData,
+      },
+    },
+  ];
+};
+
 // Core demo chats showcasing Stash capabilities
 const ALL_MOCK_CHATS: ChatPreview[] = [
   // Combined overview - what is Stash and why it exists
@@ -2680,6 +3314,7 @@ const ALL_MOCK_CHATS: ChatPreview[] = [
     id: 'chat-overview',
     title: '✨ What is Stash?',
     type: 'ai',
+    groupId: 'tutorials',
     participants: [
       { id: 'user-overview', name: 'You', avatar: '👤' },
       { id: 'ai-overview', name: 'Stash AI', avatar: '🤖' },
@@ -2705,6 +3340,7 @@ const ALL_MOCK_CHATS: ChatPreview[] = [
     id: 'chat-websocket-tutorial',
     title: '📚 Tutorial: Real-Time WebSocket Integration',
     type: 'ai',
+    groupId: 'tutorials',
     participants: [
       { id: 'user-tutorial', name: 'You', avatar: '👤' },
       { id: 'ai-tutorial', name: 'Stash Tutorial', avatar: '📚' },
@@ -2730,6 +3366,7 @@ const ALL_MOCK_CHATS: ChatPreview[] = [
     id: 'chat-incident',
     title: '🚨 Thundering Herd Incident - Cache Stampede',
     type: 'ai',
+    groupId: 'debugging',
     participants: [
       { id: 'user-ops', name: 'DevOps Team', avatar: '👨‍💻' },
       { id: 'ai-monitor', name: 'System Monitor AI', avatar: '🤖' },
@@ -2756,6 +3393,7 @@ const ALL_MOCK_CHATS: ChatPreview[] = [
     id: 'chat-data-table',
     title: '📊 Sales Analytics - DataTable Demo',
     type: 'ai',
+    groupId: 'examples',
     participants: [
       { id: 'user-sales', name: 'Sales Manager', avatar: '👔' },
       { id: 'ai-sales', name: 'Sales AI', avatar: '🤖' },
@@ -2781,6 +3419,7 @@ const ALL_MOCK_CHATS: ChatPreview[] = [
     id: 'chat-graph-tutorial',
     title: '📊 Tutorial: Live Streaming Graphs with WebSockets',
     type: 'ai',
+    groupId: 'tutorials',
     participants: [
       { id: 'user-tutorial', name: 'You', avatar: '👤' },
       { id: 'ai-assistant', name: 'Stash AI', avatar: '🤖' },
@@ -2806,6 +3445,7 @@ const ALL_MOCK_CHATS: ChatPreview[] = [
     id: 'chat-live-streaming',
     title: '📈 Live Streaming Sales Dashboard',
     type: 'ai',
+    groupId: 'examples',
     participants: [
       { id: 'user-streaming', name: 'You', avatar: '👤' },
       { id: 'ai-streaming', name: 'Sales AI', avatar: '📊' },
@@ -2826,11 +3466,64 @@ const ALL_MOCK_CHATS: ChatPreview[] = [
       lastReadAt: new Date(),
     },
   },
+  // Server Performance Monitoring with Heatmap
+  {
+    id: 'chat-heatmap',
+    title: '🔥 Infrastructure Monitoring',
+    type: 'ai',
+    groupId: 'examples',
+    participants: [
+      { id: 'user-ops', name: 'You', avatar: '👤' },
+      { id: 'ai-ops', name: 'Ops AI', avatar: '🤖' },
+    ],
+    lastMessage: {
+      content: 'Here\'s the current server performance heatmap showing CPU, memory, and network utilization across all servers.',
+      timestamp: new Date(),
+      senderId: 'ai-ops',
+      senderName: 'Ops AI',
+    },
+    unreadCount: 0,
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    isPinned: true,
+    isMuted: false,
+    isArchived: false,
+    metadata: {
+      lastReadAt: new Date(),
+    },
+  },
+  // CI/CD Workflow demo
+  {
+    id: 'chat-workflow',
+    title: '🔄 CI/CD Pipeline Status',
+    type: 'ai',
+    groupId: 'examples',
+    participants: [
+      { id: 'user-dev', name: 'You', avatar: '👤' },
+      { id: 'ai-devops', name: 'DevOps AI', avatar: '🤖' },
+    ],
+    lastMessage: {
+      content: 'Build in progress. Security scan and staging deployment will start automatically after build completes.',
+      timestamp: new Date(),
+      senderId: 'ai-devops',
+      senderName: 'DevOps AI',
+    },
+    unreadCount: 0,
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    isPinned: true,
+    isMuted: false,
+    isArchived: false,
+    metadata: {
+      lastReadAt: new Date(),
+    },
+  },
   // Media collaboration demo
   {
     id: 'chat-media',
     title: '🎨 Creative Team - Campaign Assets',
     type: 'group',
+    groupId: 'examples',
     participants: [
       { id: 'user-sarah', name: 'Sarah Chen', avatar: '👩‍🎨' },
       { id: 'user-mike', name: 'Mike Rodriguez', avatar: '🧑‍💼' },
@@ -2856,6 +3549,7 @@ const ALL_MOCK_CHATS: ChatPreview[] = [
     id: 'chat-pagination',
     title: '📄 Pagination Demo: 1,200 Messages',
     type: 'ai',
+    groupId: 'debugging',
     participants: [
       { id: 'user-1', name: 'You', avatar: '👤' },
       { id: 'ai-pagination', name: 'AI Assistant', avatar: '🤖' },
@@ -2881,6 +3575,7 @@ const ALL_MOCK_CHATS: ChatPreview[] = [
     id: 'chat-0',
     title: 'Q1 Website Redesign',
     type: 'group',
+    groupId: 'examples',
     participants: [
       { id: 'user1', name: 'Sarah Chen', avatar: undefined },
       { id: 'user2', name: 'John Doe', avatar: undefined },
@@ -2908,6 +3603,13 @@ export default function ChatHistoryExample() {
   const [allChats] = useState(ALL_MOCK_CHATS);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
 
+  // Define chat groups for organizing conversations
+  const chatGroups: ChatGroup[] = [
+    { id: 'tutorials', title: 'Tutorials', icon: '📚', order: 1, collapsed: false },
+    { id: 'examples', title: 'Chat Examples', icon: '💬', order: 2, collapsed: false },
+    { id: 'debugging', title: 'Debugging & Performance', icon: '🔧', order: 3, collapsed: false },
+  ];
+
   // Memoize initial messages to avoid regenerating large datasets
   const overviewMessages = useMemo(() => getStashOverviewMessages(), []);
   const allPaginationMessages = useMemo(() => getLargeMessageHistory(), []); // Store all 1200 messages
@@ -2917,11 +3619,16 @@ export default function ChatHistoryExample() {
   const incidentMessages = useMemo(() => getSystemIncidentMessages(), []);
   const dataTableMessages = useMemo(() => getDataTableChatMessages(), []);
 
+  const heatmapMessages = useMemo(() => getHeatmapChatMessages(), []);
+  const workflowMessages = useMemo(() => getWorkflowChatMessages(), []);
+
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>({
     'chat-overview': overviewMessages,
     'chat-websocket-tutorial': webSocketTutorialMessages,
     'chat-graph-tutorial': graphTutorialMessages,
     'chat-data-table': dataTableMessages,
+    'chat-heatmap': heatmapMessages,
+    'chat-workflow': workflowMessages,
     'chat-incident': incidentMessages,
     'chat-0': initialMessages,
   });
@@ -3124,6 +3831,8 @@ export default function ChatHistoryExample() {
         onLoadAfter: loadNewerChats,
         onCreateNewChat: handleCreateNewChat,
         onRefresh: handleRefresh,
+        groups: chatGroups,
+        enableGrouping: true,
       }}
       sidebarWidth={320}
       mobileBreakpoint={768}

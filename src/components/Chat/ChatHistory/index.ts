@@ -8,6 +8,7 @@ export type { ChatLayoutProps } from './ChatLayout';
 
 export type {
   ChatPreview,
+  ChatGroup,
   ChatHistoryCallbacks,
   ChatHistoryProps,
 } from './types';

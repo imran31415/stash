@@ -14,6 +14,11 @@ import {
   LoadingState,
   DataTable,
   DataTableDetailView,
+  Heatmap,
+  HeatmapDetailView,
+  Workflow,
+  WorkflowDetailView,
+  FlameGraph,
   type Task,
   type Resource,
   type GanttTask,
@@ -25,6 +30,12 @@ import {
   type SupportedLanguage,
   type ColumnDefinition,
   type RowData,
+  type HeatmapDataPoint,
+  type WorkflowData,
+  type WorkflowNode,
+  type WorkflowEdge,
+  type FlameGraphData,
+  type FlameGraphNode,
 } from '../../src/components/Chat/InteractiveComponents';
 import { addDays, addWeeks, addHours, subDays } from 'date-fns';
 import {
@@ -41,6 +52,9 @@ const InteractiveComponentsExample: React.FC = () => {
   const [graphDetailVisible, setGraphDetailVisible] = useState(false);
   const [codeBlockDetailVisible, setCodeBlockDetailVisible] = useState(false);
   const [dataTableDetailVisible, setDataTableDetailVisible] = useState(false);
+  const [heatmapDetailVisible, setHeatmapDetailVisible] = useState(false);
+  const [workflowDetailVisible, setWorkflowDetailVisible] = useState(false);
+  const [flameGraphDetailVisible, setFlameGraphDetailVisible] = useState(false);
   const [currentCodeBlock, setCurrentCodeBlock] = useState<{
     code: string;
     language: SupportedLanguage;
@@ -75,6 +89,473 @@ const InteractiveComponentsExample: React.FC = () => {
     status: ['Active', 'Inactive', 'Pending'][i % 3],
     joinDate: addDays(new Date(), -i * 5).toLocaleDateString(),
   }));
+
+  // Heatmap mock data - Server Performance Matrix
+  const generateHeatmapData = (): HeatmapDataPoint[] => {
+    const servers = ['Server-1', 'Server-2', 'Server-3', 'Server-4', 'Server-5', 'Server-6'];
+    const metrics = ['CPU', 'Memory', 'Disk I/O', 'Network', 'Latency', 'Throughput'];
+    const data: HeatmapDataPoint[] = [];
+
+    servers.forEach((server) => {
+      metrics.forEach((metric) => {
+        // Generate random values with some pattern
+        const baseValue = Math.random() * 100;
+        const value = metric === 'CPU' || metric === 'Memory' ?
+          baseValue :
+          metric === 'Latency' ? baseValue * 5 : baseValue * 10;
+
+        data.push({
+          x: server,
+          y: metric,
+          value: Math.round(value * 100) / 100,
+          label: `${server} - ${metric}`,
+          metadata: {
+            timestamp: new Date().toISOString(),
+            status: value > 70 ? 'warning' : value > 90 ? 'critical' : 'normal',
+          },
+        });
+      });
+    });
+
+    return data;
+  };
+
+  const sampleHeatmapData = useMemo(() => generateHeatmapData(), []);
+
+  // Workflow mock data - CI/CD Pipeline
+  const generateWorkflowData = (): WorkflowData => {
+    const nodes: WorkflowNode[] = [
+      {
+        id: 'start',
+        type: 'start',
+        label: 'Start',
+        status: 'success',
+        metadata: {
+          startTime: subDays(new Date(), 1),
+          endTime: subDays(new Date(), 1),
+          duration: 100,
+        },
+      },
+      {
+        id: 'checkout',
+        type: 'task',
+        label: 'Checkout Code',
+        description: 'Clone repository from GitHub',
+        status: 'success',
+        metadata: {
+          startTime: subDays(new Date(), 1),
+          endTime: subDays(new Date(), 1),
+          duration: 5000,
+        },
+      },
+      {
+        id: 'install',
+        type: 'task',
+        label: 'Install Dependencies',
+        description: 'npm install',
+        status: 'success',
+        metadata: {
+          startTime: subDays(new Date(), 1),
+          endTime: subDays(new Date(), 1),
+          duration: 45000,
+        },
+      },
+      {
+        id: 'lint',
+        type: 'task',
+        label: 'Run Linter',
+        description: 'ESLint code quality check',
+        status: 'success',
+        metadata: {
+          startTime: subDays(new Date(), 1),
+          endTime: subDays(new Date(), 1),
+          duration: 8000,
+        },
+      },
+      {
+        id: 'test',
+        type: 'task',
+        label: 'Run Tests',
+        description: 'Jest unit and integration tests',
+        status: 'success',
+        metadata: {
+          startTime: subDays(new Date(), 1),
+          endTime: subDays(new Date(), 1),
+          duration: 35000,
+          retries: 1,
+        },
+      },
+      {
+        id: 'build',
+        type: 'task',
+        label: 'Build Application',
+        description: 'Production build',
+        status: 'running',
+        metadata: {
+          startTime: new Date(),
+        },
+      },
+      {
+        id: 'security',
+        type: 'task',
+        label: 'Security Scan',
+        description: 'Run security vulnerability check',
+        status: 'waiting',
+      },
+      {
+        id: 'deploy-staging',
+        type: 'api',
+        label: 'Deploy to Staging',
+        description: 'Deploy to staging environment',
+        status: 'idle',
+      },
+      {
+        id: 'integration-tests',
+        type: 'task',
+        label: 'Integration Tests',
+        description: 'E2E tests on staging',
+        status: 'idle',
+      },
+      {
+        id: 'approval',
+        type: 'manual',
+        label: 'Manual Approval',
+        description: 'Approve production deployment',
+        status: 'idle',
+      },
+      {
+        id: 'deploy-prod',
+        type: 'api',
+        label: 'Deploy to Production',
+        description: 'Deploy to production environment',
+        status: 'idle',
+      },
+      {
+        id: 'notify',
+        type: 'notification',
+        label: 'Send Notification',
+        description: 'Notify team of deployment',
+        status: 'idle',
+      },
+      {
+        id: 'end',
+        type: 'end',
+        label: 'Complete',
+        status: 'idle',
+      },
+    ];
+
+    const edges: WorkflowEdge[] = [
+      { id: 'e1', source: 'start', target: 'checkout', conditionType: 'always' },
+      { id: 'e2', source: 'checkout', target: 'install', conditionType: 'success' },
+      { id: 'e3', source: 'install', target: 'lint', conditionType: 'success' },
+      { id: 'e4', source: 'install', target: 'test', conditionType: 'success' },
+      { id: 'e5', source: 'lint', target: 'build', conditionType: 'success' },
+      { id: 'e6', source: 'test', target: 'build', conditionType: 'success' },
+      { id: 'e7', source: 'build', target: 'security', conditionType: 'success' },
+      { id: 'e8', source: 'security', target: 'deploy-staging', conditionType: 'success' },
+      { id: 'e9', source: 'deploy-staging', target: 'integration-tests', conditionType: 'success' },
+      { id: 'e10', source: 'integration-tests', target: 'approval', conditionType: 'success' },
+      { id: 'e11', source: 'approval', target: 'deploy-prod', conditionType: 'success' },
+      { id: 'e12', source: 'deploy-prod', target: 'notify', conditionType: 'success' },
+      { id: 'e13', source: 'notify', target: 'end', conditionType: 'always' },
+      {
+        id: 'e14',
+        source: 'security',
+        target: 'notify',
+        conditionType: 'failure',
+        label: 'on failure',
+        style: 'dashed',
+      },
+    ];
+
+    return {
+      id: 'cicd-pipeline',
+      name: 'CI/CD Pipeline',
+      description: 'Automated build, test, and deployment workflow',
+      nodes,
+      edges,
+      metadata: {
+        created: subDays(new Date(), 30),
+        modified: new Date(),
+        version: '2.1.0',
+        author: 'DevOps Team',
+        tags: ['ci/cd', 'automation', 'deployment'],
+        executionCount: 487,
+        averageDuration: 420000,
+        successRate: 0.94,
+      },
+    };
+  };
+
+  const sampleWorkflowData = useMemo(() => generateWorkflowData(), []);
+
+  // FlameGraph mock data - CPU Profiling
+  const generateFlameGraphData = (): FlameGraphData => {
+    const root: FlameGraphNode = {
+      id: 'main',
+      name: 'main()',
+      value: 10000,
+      metadata: {
+        file: 'src/main.ts',
+        line: 1,
+        samples: 10000,
+        selfTime: 100,
+        totalTime: 10000,
+        percentage: 100,
+      },
+      children: [
+        {
+          id: 'app-init',
+          name: 'initializeApp()',
+          value: 2500,
+          metadata: {
+            file: 'src/app.ts',
+            line: 45,
+            samples: 2500,
+            selfTime: 200,
+            totalTime: 2500,
+            percentage: 25,
+          },
+          children: [
+            {
+              id: 'config-load',
+              name: 'loadConfig()',
+              value: 800,
+              metadata: {
+                file: 'src/config.ts',
+                line: 12,
+                samples: 800,
+                selfTime: 500,
+                totalTime: 800,
+              },
+              children: [
+                {
+                  id: 'fs-read',
+                  name: 'fs.readFileSync()',
+                  value: 300,
+                  metadata: { file: 'node:fs', samples: 300, selfTime: 300, totalTime: 300 },
+                },
+              ],
+            },
+            {
+              id: 'db-connect',
+              name: 'connectDatabase()',
+              value: 1200,
+              metadata: {
+                file: 'src/database.ts',
+                line: 88,
+                samples: 1200,
+                selfTime: 300,
+                totalTime: 1200,
+              },
+              children: [
+                {
+                  id: 'pool-create',
+                  name: 'createConnectionPool()',
+                  value: 900,
+                  metadata: { file: 'pg', line: 234, samples: 900, selfTime: 900, totalTime: 900 },
+                },
+              ],
+            },
+            {
+              id: 'middleware',
+              name: 'setupMiddleware()',
+              value: 500,
+              metadata: {
+                file: 'src/middleware.ts',
+                line: 23,
+                samples: 500,
+                selfTime: 500,
+                totalTime: 500,
+              },
+            },
+          ],
+        },
+        {
+          id: 'request-handler',
+          name: 'handleRequest()',
+          value: 6500,
+          metadata: {
+            file: 'src/server.ts',
+            line: 156,
+            samples: 6500,
+            selfTime: 400,
+            totalTime: 6500,
+            percentage: 65,
+          },
+          children: [
+            {
+              id: 'route-match',
+              name: 'matchRoute()',
+              value: 800,
+              metadata: { file: 'src/router.ts', line: 67, samples: 800, selfTime: 800, totalTime: 800 },
+            },
+            {
+              id: 'auth-check',
+              name: 'authenticateUser()',
+              value: 1200,
+              metadata: {
+                file: 'src/auth.ts',
+                line: 45,
+                samples: 1200,
+                selfTime: 200,
+                totalTime: 1200,
+              },
+              children: [
+                {
+                  id: 'jwt-verify',
+                  name: 'jwt.verify()',
+                  value: 600,
+                  metadata: { file: 'jsonwebtoken', samples: 600, selfTime: 600, totalTime: 600 },
+                },
+                {
+                  id: 'db-query-user',
+                  name: 'getUserById()',
+                  value: 400,
+                  metadata: { file: 'src/models/user.ts', samples: 400, selfTime: 100, totalTime: 400 },
+                  children: [
+                    {
+                      id: 'sql-exec',
+                      name: 'pool.query()',
+                      value: 300,
+                      metadata: { file: 'pg', samples: 300, selfTime: 300, totalTime: 300 },
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              id: 'controller',
+              name: 'controller.execute()',
+              value: 3500,
+              metadata: {
+                file: 'src/controllers/api.ts',
+                line: 234,
+                samples: 3500,
+                selfTime: 300,
+                totalTime: 3500,
+              },
+              children: [
+                {
+                  id: 'validate',
+                  name: 'validateInput()',
+                  value: 600,
+                  metadata: { file: 'src/validation.ts', samples: 600, selfTime: 600, totalTime: 600 },
+                },
+                {
+                  id: 'business-logic',
+                  name: 'processBusinessLogic()',
+                  value: 2600,
+                  metadata: {
+                    file: 'src/services/business.ts',
+                    line: 89,
+                    samples: 2600,
+                    selfTime: 500,
+                    totalTime: 2600,
+                  },
+                  children: [
+                    {
+                      id: 'db-queries',
+                      name: 'fetchRelatedData()',
+                      value: 1200,
+                      metadata: {
+                        file: 'src/services/data.ts',
+                        samples: 1200,
+                        selfTime: 200,
+                        totalTime: 1200,
+                      },
+                      children: [
+                        {
+                          id: 'query-1',
+                          name: 'pool.query() [1]',
+                          value: 400,
+                          metadata: { samples: 400, selfTime: 400, totalTime: 400 },
+                        },
+                        {
+                          id: 'query-2',
+                          name: 'pool.query() [2]',
+                          value: 600,
+                          metadata: { samples: 600, selfTime: 600, totalTime: 600 },
+                        },
+                      ],
+                    },
+                    {
+                      id: 'compute',
+                      name: 'calculateMetrics()',
+                      value: 900,
+                      metadata: {
+                        file: 'src/analytics.ts',
+                        line: 156,
+                        samples: 900,
+                        selfTime: 900,
+                        totalTime: 900,
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              id: 'response',
+              name: 'formatResponse()',
+              value: 1000,
+              metadata: {
+                file: 'src/response.ts',
+                line: 34,
+                samples: 1000,
+                selfTime: 400,
+                totalTime: 1000,
+              },
+              children: [
+                {
+                  id: 'json-stringify',
+                  name: 'JSON.stringify()',
+                  value: 600,
+                  metadata: { file: 'native', samples: 600, selfTime: 600, totalTime: 600 },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'cleanup',
+          name: 'cleanup()',
+          value: 1000,
+          metadata: {
+            file: 'src/server.ts',
+            line: 289,
+            samples: 1000,
+            selfTime: 600,
+            totalTime: 1000,
+            percentage: 10,
+          },
+          children: [
+            {
+              id: 'close-connections',
+              name: 'closeConnections()',
+              value: 400,
+              metadata: { file: 'src/database.ts', samples: 400, selfTime: 400, totalTime: 400 },
+            },
+          ],
+        },
+      ],
+    };
+
+    return {
+      root,
+      total: 10000,
+      unit: 'samples',
+      metadata: {
+        type: 'cpu',
+        duration: 10000,
+        timestamp: new Date(),
+        application: 'API Server',
+      },
+    };
+  };
+
+  const sampleFlameGraphData = useMemo(() => generateFlameGraphData(), []);
 
   // Sample task data (kept for reference but using large dataset in examples)
   const sampleTasks: Task[] = [
@@ -831,6 +1312,151 @@ yarn add stash
       </View>
 
       <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Heatmap Component (Mini)</Text>
+        <Text style={styles.sectionDescription}>
+          Compact heatmap visualization for server performance metrics (tap to expand)
+        </Text>
+        <Heatmap
+          data={sampleHeatmapData}
+          mode="mini"
+          title="Server Performance Matrix"
+          subtitle="Real-time monitoring"
+          colorScale="blue"
+          showLegend={false}
+          showGrid={true}
+          xAxisLabel="Servers"
+          yAxisLabel="Metrics"
+          onCellPress={(cell) => console.log('Cell pressed:', cell.x, cell.y, cell.value)}
+          onExpandPress={() => setHeatmapDetailVisible(true)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Heatmap Component (Full)</Text>
+        <Text style={styles.sectionDescription}>
+          Full-featured heatmap with color legend and interactive cell selection
+        </Text>
+        <Heatmap
+          data={sampleHeatmapData}
+          mode="full"
+          title="Performance Heatmap"
+          subtitle="6 servers × 6 metrics"
+          colorScale="red"
+          showLegend={true}
+          showGrid={true}
+          showXAxis={true}
+          showYAxis={true}
+          xAxisLabel="Servers"
+          yAxisLabel="Performance Metrics"
+          onCellPress={(cell) => console.log('Cell pressed:', cell.x, cell.y, cell.value)}
+          valueFormatter={(value) => `${value.toFixed(1)}%`}
+          height={350}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <TouchableOpacity
+          style={styles.detailViewButton}
+          onPress={() => setHeatmapDetailVisible(true)}
+        >
+          <Text style={styles.detailViewButtonText}>
+            🔥 Open Heatmap Detail View
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Workflow Component (Mini)</Text>
+        <Text style={styles.sectionDescription}>
+          DAG workflow visualization for CI/CD pipelines (tap to expand)
+        </Text>
+        <Workflow
+          data={sampleWorkflowData}
+          mode="mini"
+          orientation="horizontal"
+          showLabels={true}
+          showStatus={true}
+          highlightCriticalPath={true}
+          onNodePress={(node) => console.log('Node pressed:', node.label)}
+          onExpandPress={() => setWorkflowDetailVisible(true)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Workflow Component (Full)</Text>
+        <Text style={styles.sectionDescription}>
+          Full-featured workflow with status indicators and execution metadata
+        </Text>
+        <Workflow
+          data={sampleWorkflowData}
+          mode="full"
+          orientation="horizontal"
+          showLabels={true}
+          showEdgeLabels={true}
+          showStatus={true}
+          showMetadata={true}
+          highlightCriticalPath={true}
+          onNodePress={(node) => console.log('Full - Node pressed:', node.label)}
+          onEdgePress={(edge) => console.log('Edge pressed:', edge.id)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <TouchableOpacity
+          style={styles.detailViewButton}
+          onPress={() => setWorkflowDetailVisible(true)}
+        >
+          <Text style={styles.detailViewButtonText}>
+            🔄 Open Workflow Detail View
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>FlameGraph Component (Mini)</Text>
+        <Text style={styles.sectionDescription}>
+          CPU profiling visualization showing call stack hierarchy (tap to expand)
+        </Text>
+        <FlameGraph
+          data={sampleFlameGraphData}
+          mode="mini"
+          colorScheme="hot"
+          showSearch={false}
+          onNodeClick={(node) => console.log('Node clicked:', node.name)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>FlameGraph Component (Preview)</Text>
+        <Text style={styles.sectionDescription}>
+          Interactive flame graph with search and zoom capabilities
+        </Text>
+        <FlameGraph
+          data={sampleFlameGraphData}
+          title="API Server CPU Profile"
+          subtitle={`${sampleFlameGraphData.total} total ${sampleFlameGraphData.unit} • Click nodes to inspect`}
+          mode="preview"
+          colorScheme="hot"
+          showSearch={true}
+          showTooltips={true}
+          minPercentage={1}
+          onNodeClick={(node) => console.log('Node clicked:', node.name, node.metadata)}
+          height={350}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <TouchableOpacity
+          style={styles.detailViewButton}
+          onPress={() => setFlameGraphDetailVisible(true)}
+        >
+          <Text style={styles.detailViewButtonText}>
+            🔥 Open FlameGraph Detail View
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>LoadingState Component</Text>
         <Text style={styles.sectionDescription}>
           Beautiful loading indicators with smooth animations. Supports inline and overlay modes.
@@ -961,6 +1587,38 @@ yarn add stash
         paginated={true}
         onClose={() => setDataTableDetailVisible(false)}
         onRowPress={(row) => console.log('Row pressed in detail:', row)}
+      />
+
+      {/* Heatmap Detail View Modal */}
+      <HeatmapDetailView
+        visible={heatmapDetailVisible}
+        data={sampleHeatmapData}
+        title="Server Performance Heatmap"
+        subtitle="Real-time infrastructure monitoring"
+        colorScale="red"
+        xAxisLabel="Servers"
+        yAxisLabel="Performance Metrics"
+        onClose={() => setHeatmapDetailVisible(false)}
+        onCellPress={(cell) => console.log('Detail - Cell pressed:', cell.x, cell.y, cell.value)}
+        valueFormatter={(value) => `${value.toFixed(1)}%`}
+      />
+
+      {/* Workflow Detail View Modal */}
+      <WorkflowDetailView
+        visible={workflowDetailVisible}
+        data={sampleWorkflowData}
+        title={sampleWorkflowData.name}
+        subtitle={sampleWorkflowData.description}
+        orientation="horizontal"
+        showLabels={true}
+        showEdgeLabels={true}
+        showStatus={true}
+        showMetadata={true}
+        highlightCriticalPath={true}
+        searchable={true}
+        onClose={() => setWorkflowDetailVisible(false)}
+        onNodePress={(node) => console.log('Detail - Node pressed:', node.label)}
+        onEdgePress={(edge) => console.log('Detail - Edge pressed:', edge.id)}
       />
     </ScrollView>
   );

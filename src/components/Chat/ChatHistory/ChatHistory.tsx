@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,8 @@ import {
   RefreshControl,
 } from 'react-native';
 import { usePaginatedList } from '../hooks/usePaginatedList';
-import type { ChatPreview, ChatHistoryProps } from './types';
+import type { ChatPreview, ChatHistoryProps, ChatGroup } from './types';
+import { ChatGroupHeader } from './ChatGroupHeader';
 import { colors, spacing, borderRadius, shadows } from './styles';
 
 export const ChatHistory: React.FC<ChatHistoryProps> = ({
@@ -33,9 +34,15 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
   onCreateNewChat,
   onChatsLoaded,
   renderChatItem,
+  groups = [],
+  enableGrouping = false,
+  onGroupToggle,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
+    new Set(groups.filter(g => g.collapsed).map(g => g.id))
+  );
 
   const {
     items: chats,
@@ -109,6 +116,60 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
     );
   });
 
+  // Group chats by groupId
+  const groupedChatData = useMemo(() => {
+    if (!enableGrouping || groups.length === 0) {
+      return filteredChats;
+    }
+
+    // Sort groups by order
+    const sortedGroups = [...groups].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+    const items: Array<ChatPreview | { type: 'group-header'; group: ChatGroup; chatCount: number; unreadCount: number }> = [];
+
+    // Add ungrouped chats first (chats without groupId)
+    const ungroupedChats = filteredChats.filter(chat => !chat.groupId);
+    items.push(...ungroupedChats);
+
+    // Then add grouped chats
+    sortedGroups.forEach(group => {
+      const groupChats = filteredChats.filter(chat => chat.groupId === group.id);
+
+      if (groupChats.length > 0) {
+        const unreadCount = groupChats.reduce((sum, chat) => sum + chat.unreadCount, 0);
+
+        // Add group header
+        items.push({
+          type: 'group-header',
+          group,
+          chatCount: groupChats.length,
+          unreadCount,
+        });
+
+        // Add chats in this group (only if not collapsed)
+        if (!collapsedGroups.has(group.id)) {
+          items.push(...groupChats);
+        }
+      }
+    });
+
+    return items;
+  }, [filteredChats, groups, enableGrouping, collapsedGroups]);
+
+  const handleGroupToggle = useCallback((groupId: string) => {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(groupId)) {
+        next.delete(groupId);
+      } else {
+        next.add(groupId);
+      }
+      return next;
+    });
+
+    onGroupToggle?.(groupId, !collapsedGroups.has(groupId));
+  }, [collapsedGroups, onGroupToggle]);
+
   const formatTimestamp = (date: Date) => {
     const now = new Date();
     const diff = now.getTime() - new Date(date).getTime();
@@ -175,12 +236,26 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
     );
   };
 
-  const renderItem = ({ item }: { item: ChatPreview }) => {
-    const isSelected = item.id === currentChatId;
-    if (renderChatItem) {
-      return <View>{renderChatItem(item, isSelected)}</View>;
+  const renderItem = ({ item }: { item: any }) => {
+    // Check if this is a group header
+    if (item.type === 'group-header') {
+      return (
+        <ChatGroupHeader
+          group={item.group}
+          chatCount={item.chatCount}
+          unreadCount={item.unreadCount}
+          onToggle={() => handleGroupToggle(item.group.id)}
+        />
+      );
     }
-    return renderDefaultChatItem(item, isSelected);
+
+    // Regular chat item
+    const chat = item as ChatPreview;
+    const isSelected = chat.id === currentChatId;
+    if (renderChatItem) {
+      return <View>{renderChatItem(chat, isSelected)}</View>;
+    }
+    return renderDefaultChatItem(chat, isSelected);
   };
 
   const ListHeaderComponent = () => (
@@ -242,9 +317,14 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
   return (
     <View style={styles.container}>
       <FlatList
-        data={filteredChats}
+        data={groupedChatData}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => {
+          if ('type' in item && item.type === 'group-header') {
+            return `group-${item.group.id}`;
+          }
+          return (item as ChatPreview).id;
+        }}
         style={styles.list}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={true}

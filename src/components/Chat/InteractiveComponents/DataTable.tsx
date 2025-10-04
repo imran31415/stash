@@ -58,7 +58,7 @@ export const DataTable: React.FC<DataTableProps> = ({
   const isMini = mode === 'mini';
   const isPreview = mode === 'preview';
   const screenWidth = Dimensions.get('window').width;
-  const containerWidth = (isMini || isPreview) ? 400 : screenWidth;
+  const containerWidth = (isMini || isPreview) ? Math.min(350, screenWidth - 32) : screenWidth;
 
   // Determine screen breakpoint - treat mini/preview as small screen
   const isSmallScreen = (isMini || isPreview) || containerWidth < 400;
@@ -218,7 +218,7 @@ export const DataTable: React.FC<DataTableProps> = ({
         styles.container,
         {
           maxHeight,
-          width: (isMini || isPreview) ? 400 : '100%',
+          width: (isMini || isPreview) ? 350 : '100%',
           alignSelf: (isMini || isPreview) ? 'flex-start' : 'stretch'
         }
       ]}

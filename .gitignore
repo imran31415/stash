@@ -62,3 +62,19 @@ temp/
 
 # Watchman
 .watchmanconfig
+
+# Kubernetes secrets
+k8/secrets/
+k8/*-secret.yaml
+k8/secret-*.yaml
+*.secret.yaml
+*-tls.yaml
+*-tls.crt
+*-tls.key
+
+# Docker registry credentials
+.dockerconfigjson
+
+# Sensitive configuration
+config.prod.yaml
+config.production.yaml

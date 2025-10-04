@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stash-example-app
+  namespace: stash-example
+  labels:
+    app: stash-example
+    component: web
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: stash-example
+      component: web
+  template:
+    metadata:
+      labels:
+        app: stash-example
+        component: web
+        version: v1.0.0
+    spec:
+      containers:
+      - name: stash-example-web
+        image: registry.digitalocean.com/resourceloop/stash-example:latest
+        # For local testing, use: stash-example:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+      imagePullSecrets:
+      - name: digitalocean-registry
