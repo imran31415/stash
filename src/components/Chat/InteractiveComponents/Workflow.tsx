@@ -427,7 +427,13 @@ export const Workflow: React.FC<WorkflowProps> = ({
     const gradientId = `node-gradient-${node.id}`;
 
     return (
-      <G key={node.id} onPress={() => handleNodePress(node)}>
+      <G
+        key={node.id}
+        {...(Platform.OS === 'web'
+          ? { onClick: () => handleNodePress(node) }
+          : { onPress: () => handleNodePress(node) }
+        )}
+      >
         {/* Outer glow effect for selected/critical path */}
         {(isSelected || isOnCriticalPath) && (
           <Rect
