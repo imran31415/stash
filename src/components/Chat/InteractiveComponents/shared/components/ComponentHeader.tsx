@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useThemeColors } from '../../../../../theme';
+import { useThemeColors } from '../hooks';
 import { spacing, typography, borderRadius } from '../tokens';
 
 export interface ComponentHeaderProps {

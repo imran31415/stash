@@ -40,8 +40,10 @@ import {
   TreeView,
   TreeViewDetailView,
   MultiSwipeable,
+  KanbanBoard,
+  KanbanBoardDetailView,
 } from './InteractiveComponents';
-import type { Task, TimeSeriesSeries, GraphData, SupportedLanguage, MediaItem, DashboardConfig, ColumnDefinition, RowData, VideoStreamData, TreeViewData, SwipeableItem } from './InteractiveComponents';
+import type { Task, TimeSeriesSeries, GraphData, SupportedLanguage, MediaItem, DashboardConfig, ColumnDefinition, RowData, VideoStreamData, TreeViewData, SwipeableItem, KanbanBoardData } from './InteractiveComponents';
 import { MarkdownText } from './MarkdownText';
 
 export interface ChatMessageProps {
@@ -131,6 +133,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   const [videoStreamData, setVideoStreamData] = useState<VideoStreamData | null>(null);
   const [showTreeViewDetail, setShowTreeViewDetail] = useState(false);
   const [treeViewData, setTreeViewData] = useState<TreeViewData | null>(null);
+  const [showKanbanDetail, setShowKanbanDetail] = useState(false);
+  const [kanbanData, setKanbanData] = useState<KanbanBoardData | null>(null);
 
   // Loading state for AI messages
   if (isLoading) {
@@ -239,6 +243,11 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   const handleTreeViewExpand = (treeViewData: TreeViewData) => {
     setTreeViewData(treeViewData);
     setShowTreeViewDetail(true);
+  };
+
+  const handleKanbanExpand = (kanbanData: KanbanBoardData) => {
+    setKanbanData(kanbanData);
+    setShowKanbanDetail(true);
   };
 
   const renderInteractiveComponent = () => {
@@ -405,10 +414,21 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
       case 'tree-view':
         return (
           <TreeView
-            data={data.data}
+            data={data.data || data}
             mode={data.mode || 'mini'}
             onNodePress={(node, path) => onAction?.('node-press', { node, path })}
-            onExpandPress={() => handleTreeViewExpand(data.data)}
+            onExpandPress={() => handleTreeViewExpand(data.data || data)}
+          />
+        );
+      case 'kanban-board':
+        return (
+          <KanbanBoard
+            data={data.data || data}
+            mode={data.mode || 'mini'}
+            showStats={data.showStats !== false}
+            onCardPress={(card, column) => onAction?.('card-press', { card, column })}
+            onColumnPress={(column) => onAction?.('column-press', column)}
+            onExpandPress={() => handleKanbanExpand(data.data || data)}
           />
         );
       case 'video-stream':
@@ -767,6 +787,15 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           data={treeViewData}
           visible={showTreeViewDetail}
           onClose={() => setShowTreeViewDetail(false)}
+        />
+      )}
+
+      {/* KanbanBoard Detail View */}
+      {showKanbanDetail && kanbanData && (
+        <KanbanBoardDetailView
+          data={kanbanData}
+          visible={showKanbanDetail}
+          onClose={() => setShowKanbanDetail(false)}
         />
       )}
     </View>

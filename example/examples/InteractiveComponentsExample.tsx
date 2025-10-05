@@ -22,6 +22,8 @@ import {
   TreeView,
   TreeViewDetailView,
   MultiSwipeable,
+  KanbanBoard,
+  KanbanBoardDetailView,
   type Task,
   type Resource,
   type GanttTask,
@@ -42,6 +44,9 @@ import {
   type TreeViewData,
   type TreeNode,
   type SwipeableItem,
+  type KanbanBoardData,
+  type KanbanColumn,
+  type KanbanCard,
 } from '../../src/components/Chat/InteractiveComponents';
 import { addDays, addWeeks, addHours, subDays } from 'date-fns';
 import {
@@ -62,6 +67,7 @@ const InteractiveComponentsExample: React.FC = () => {
   const [workflowDetailVisible, setWorkflowDetailVisible] = useState(false);
   const [flameGraphDetailVisible, setFlameGraphDetailVisible] = useState(false);
   const [treeViewDetailVisible, setTreeViewDetailVisible] = useState(false);
+  const [kanbanDetailVisible, setKanbanDetailVisible] = useState(false);
   const [currentCodeBlock, setCurrentCodeBlock] = useState<{
     code: string;
     language: SupportedLanguage;
@@ -775,6 +781,214 @@ const InteractiveComponentsExample: React.FC = () => {
   };
 
   const sampleTreeViewData = useMemo(() => generateTreeViewData(), []);
+
+  // KanbanBoard mock data - Sprint Planning
+  const generateKanbanBoardData = (): KanbanBoardData => {
+    const columns: KanbanColumn[] = [
+      {
+        id: 'backlog',
+        title: 'Backlog',
+        icon: '📋',
+        wipLimit: 10,
+        cards: [
+          {
+            id: 'card-1',
+            title: 'User Authentication Redesign',
+            description: 'Implement new OAuth 2.0 authentication flow with biometric support',
+            priority: 'medium',
+            tags: [
+              { id: 't1', label: 'Auth', color: '#3B82F6' },
+              { id: 't2', label: 'Security', color: '#EF4444' },
+            ],
+            assignees: [
+              { id: 'u1', name: 'Sarah Chen', color: '#3B82F6' },
+            ],
+            checklistItems: 8,
+            checklistCompleted: 0,
+            comments: 3,
+          },
+          {
+            id: 'card-2',
+            title: 'Mobile App Performance Optimization',
+            description: 'Reduce app startup time and improve scroll performance',
+            priority: 'high',
+            dueDate: addDays(new Date(), 14),
+            tags: [
+              { id: 't3', label: 'Performance', color: '#F59E0B' },
+              { id: 't4', label: 'Mobile', color: '#8B5CF6' },
+            ],
+            assignees: [
+              { id: 'u2', name: 'John Doe', color: '#10B981' },
+              { id: 'u3', name: 'Alex Kim', color: '#F59E0B' },
+            ],
+            checklistItems: 12,
+            checklistCompleted: 2,
+            comments: 7,
+            attachments: 3,
+          },
+        ],
+      },
+      {
+        id: 'todo',
+        title: 'To Do',
+        icon: '📝',
+        wipLimit: 5,
+        cards: [
+          {
+            id: 'card-3',
+            title: 'Implement Dark Mode',
+            description: 'Add system-wide dark mode support with theme persistence',
+            priority: 'high',
+            dueDate: addDays(new Date(), 7),
+            tags: [
+              { id: 't5', label: 'UI/UX', color: '#EC4899' },
+              { id: 't6', label: 'Feature', color: '#06B6D4' },
+            ],
+            assignees: [
+              { id: 'u4', name: 'Emma Wilson', color: '#EC4899' },
+            ],
+            checklistItems: 10,
+            checklistCompleted: 3,
+            comments: 5,
+            attachments: 2,
+          },
+          {
+            id: 'card-4',
+            title: 'Database Migration to PostgreSQL',
+            description: 'Migrate from SQLite to PostgreSQL for better scalability',
+            priority: 'critical',
+            dueDate: addDays(new Date(), 5),
+            tags: [
+              { id: 't7', label: 'Database', color: '#3B82F6' },
+              { id: 't8', label: 'Backend', color: '#10B981' },
+            ],
+            assignees: [
+              { id: 'u5', name: 'David Lee', color: '#3B82F6' },
+            ],
+            checklistItems: 15,
+            checklistCompleted: 5,
+            comments: 12,
+          },
+        ],
+      },
+      {
+        id: 'in-progress',
+        title: 'In Progress',
+        icon: '⚡',
+        wipLimit: 3,
+        cards: [
+          {
+            id: 'card-5',
+            title: 'Real-time Chat Feature',
+            description: 'WebSocket-based real-time messaging with typing indicators',
+            priority: 'high',
+            dueDate: addDays(new Date(), 3),
+            tags: [
+              { id: 't9', label: 'Real-time', color: '#EF4444' },
+              { id: 't10', label: 'WebSocket', color: '#F59E0B' },
+            ],
+            assignees: [
+              { id: 'u2', name: 'John Doe', color: '#10B981' },
+              { id: 'u6', name: 'Carol Davis', color: '#8B5CF6' },
+            ],
+            checklistItems: 20,
+            checklistCompleted: 15,
+            comments: 18,
+            attachments: 5,
+          },
+          {
+            id: 'card-6',
+            title: 'API Rate Limiting',
+            description: 'Implement token bucket algorithm for API rate limiting',
+            priority: 'medium',
+            tags: [
+              { id: 't11', label: 'API', color: '#3B82F6' },
+              { id: 't12', label: 'Security', color: '#EF4444' },
+            ],
+            assignees: [
+              { id: 'u5', name: 'David Lee', color: '#3B82F6' },
+            ],
+            checklistItems: 8,
+            checklistCompleted: 6,
+            comments: 4,
+          },
+        ],
+      },
+      {
+        id: 'review',
+        title: 'Code Review',
+        icon: '👀',
+        wipLimit: 4,
+        cards: [
+          {
+            id: 'card-7',
+            title: 'Payment Gateway Integration',
+            description: 'Stripe integration for subscription payments',
+            priority: 'critical',
+            tags: [
+              { id: 't13', label: 'Payments', color: '#10B981' },
+              { id: 't14', label: 'Integration', color: '#F59E0B' },
+            ],
+            assignees: [
+              { id: 'u1', name: 'Sarah Chen', color: '#3B82F6' },
+            ],
+            checklistItems: 10,
+            checklistCompleted: 10,
+            comments: 6,
+            attachments: 2,
+          },
+        ],
+      },
+      {
+        id: 'done',
+        title: 'Done',
+        icon: '✅',
+        cards: [
+          {
+            id: 'card-8',
+            title: 'User Profile Page',
+            description: 'Completed user profile with avatar upload',
+            priority: 'medium',
+            tags: [
+              { id: 't15', label: 'UI', color: '#EC4899' },
+            ],
+            assignees: [
+              { id: 'u4', name: 'Emma Wilson', color: '#EC4899' },
+            ],
+            checklistItems: 12,
+            checklistCompleted: 12,
+            comments: 8,
+            attachments: 4,
+          },
+          {
+            id: 'card-9',
+            title: 'Email Notification System',
+            description: 'SendGrid integration for transactional emails',
+            priority: 'high',
+            tags: [
+              { id: 't16', label: 'Email', color: '#06B6D4' },
+              { id: 't17', label: 'Backend', color: '#10B981' },
+            ],
+            assignees: [
+              { id: 'u3', name: 'Alex Kim', color: '#F59E0B' },
+            ],
+            checklistItems: 7,
+            checklistCompleted: 7,
+            comments: 3,
+          },
+        ],
+      },
+    ];
+
+    return {
+      id: 'sprint-board',
+      title: 'Sprint 23 - Q4 Development',
+      description: 'November 2024 Sprint Board',
+      columns,
+    };
+  };
+
+  const sampleKanbanData = useMemo(() => generateKanbanBoardData(), []);
 
   // Sample task data (kept for reference but using large dataset in examples)
   const sampleTasks: Task[] = [
@@ -1793,6 +2007,46 @@ yarn add stash
       </View>
 
       <View style={styles.section}>
+        <Text style={styles.sectionTitle}>KanbanBoard Component (Mini)</Text>
+        <Text style={styles.sectionDescription}>
+          Agile task management board with WIP limits, priorities, and assignees (tap to expand)
+        </Text>
+        <KanbanBoard
+          data={sampleKanbanData}
+          mode="mini"
+          showStats={true}
+          onCardPress={(card, column) => console.log('Card pressed:', card.title, 'in column:', column.title)}
+          onColumnPress={(column) => console.log('Column pressed:', column.title)}
+          onExpandPress={() => setKanbanDetailVisible(true)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>KanbanBoard Component (Full)</Text>
+        <Text style={styles.sectionDescription}>
+          Full-featured kanban board with drag-and-drop (coming soon), tags, due dates, and progress tracking
+        </Text>
+        <KanbanBoard
+          data={sampleKanbanData}
+          mode="full"
+          showStats={true}
+          onCardPress={(card, column) => console.log('Full - Card pressed:', card.title)}
+          onColumnPress={(column) => console.log('Full - Column pressed:', column.title)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <TouchableOpacity
+          style={styles.detailViewButton}
+          onPress={() => setKanbanDetailVisible(true)}
+        >
+          <Text style={styles.detailViewButtonText}>
+            📋 Open Kanban Board Detail View
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>MultiSwipeable Component</Text>
         <Text style={styles.sectionDescription}>
           Swipeable gallery that displays multiple interactive components as slides. Perfect for presenting
@@ -1981,6 +2235,15 @@ yarn add stash
         onClose={() => setWorkflowDetailVisible(false)}
         onNodePress={(node) => console.log('Detail - Node pressed:', node.label)}
         onEdgePress={(edge) => console.log('Detail - Edge pressed:', edge.id)}
+      />
+
+      {/* Kanban Board Detail View Modal */}
+      <KanbanBoardDetailView
+        visible={kanbanDetailVisible}
+        data={sampleKanbanData}
+        onClose={() => setKanbanDetailVisible(false)}
+        onCardPress={(card, column) => console.log('Detail view - Card pressed:', card.title, 'in column:', column.title)}
+        onColumnPress={(column) => console.log('Detail view - Column pressed:', column.title)}
       />
     </ScrollView>
   );

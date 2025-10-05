@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useThemeColors } from '../../../../../theme';
+import { useThemeColors } from '../hooks';
 import { spacing, typography } from '../tokens';
 import type { StatItem } from '../types';
 

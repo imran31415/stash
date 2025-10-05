@@ -45,6 +45,24 @@ export const useResponsiveMode = (mode: ComponentMode = 'full') => {
 
 /**
  * Hook for managing component theme with consistent color application
- * Extends useThemeColors with component-specific defaults
+ * Provides default theme colors for components
  */
-export { useThemeColors } from '../../../../../theme';
+export const useThemeColors = () => {
+  return {
+    surface: '#FFFFFF',
+    surfaceSecondary: '#F8F9FA',
+    background: '#F3F4F6',
+    text: '#1E293B',
+    textSecondary: '#64748B',
+    textTertiary: '#94A3B8',
+    border: '#E2E8F0',
+    borderLight: '#F1F5F9',
+    primary: '#3B82F6',
+    primaryLight: '#60A5FA',
+    primaryDark: '#2563EB',
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#0EA5E9',
+  };
+};

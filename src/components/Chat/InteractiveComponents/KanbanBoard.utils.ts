@@ -10,6 +10,20 @@ import type {
  * Calculate board statistics
  */
 export function calculateBoardStats(data: KanbanBoardData): KanbanBoardStats {
+  // Safety check for undefined data
+  if (!data || !data.columns) {
+    return {
+      totalCards: 0,
+      completedCards: 0,
+      inProgressCards: 0,
+      blockedCards: 0,
+      overdueCards: 0,
+      completionRate: 0,
+      wipUtilization: 0,
+      averageCardsPerColumn: 0,
+    };
+  }
+
   const allCards: KanbanCard[] = [];
 
   if (data.useSwimlanes && data.swimlanes) {

@@ -15,6 +15,7 @@ import LiveStreamingChatExample from './LiveStreamingChatExample';
 import { getWebSocketTutorialMessages } from './WebSocketTutorialExample';
 import { getLiveStreamingGraphTutorialMessages } from './LiveStreamingGraphTutorial';
 import { getTreeViewChatMessages, treeViewChat } from './chatExamples';
+import { getKanbanBoardTutorialMessages } from './KanbanBoardTutorial';
 
 // Combined "What is Stash?" - Philosophy + Demo
 const getStashOverviewMessages = (): Message[] => {
@@ -3925,6 +3926,32 @@ const ALL_MOCK_CHATS: ChatPreview[] = [
       lastReadAt: new Date(),
     },
   },
+  // KanbanBoard Tutorial
+  {
+    id: 'chat-kanban-tutorial',
+    title: '📋 Tutorial: Kanban Board for Agile Teams',
+    type: 'ai',
+    groupId: 'tutorials',
+    participants: [
+      { id: 'user-tutorial', name: 'You', avatar: '👤' },
+      { id: 'ai-tutorial', name: 'Stash Tutorial', avatar: '📚' },
+    ],
+    lastMessage: {
+      content: 'Learn how to build agile kanban boards with WIP limits, priorities, tags, and progress tracking!',
+      timestamp: new Date(),
+      senderId: 'ai-tutorial',
+      senderName: 'Stash Tutorial',
+    },
+    unreadCount: 0,
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    isPinned: true,
+    isMuted: false,
+    isArchived: false,
+    metadata: {
+      lastReadAt: new Date(),
+    },
+  },
   // Live Streaming Sales Dashboard
   {
     id: 'chat-live-streaming',
@@ -4129,6 +4156,7 @@ export default function ChatHistoryExample() {
   const initialMessages = useMemo(() => getAIIntegratedMessages(), []);
   const webSocketTutorialMessages = useMemo(() => getWebSocketTutorialMessages(), []);
   const graphTutorialMessages = useMemo(() => getLiveStreamingGraphTutorialMessages(), []);
+  const kanbanTutorialMessages = useMemo(() => getKanbanBoardTutorialMessages(), []);
   const incidentMessages = useMemo(() => getSystemIncidentMessages(), []);
   const dataTableMessages = useMemo(() => getDataTableChatMessages(), []);
 
@@ -4142,6 +4170,7 @@ export default function ChatHistoryExample() {
     'chat-overview': overviewMessages,
     'chat-websocket-tutorial': webSocketTutorialMessages,
     'chat-graph-tutorial': graphTutorialMessages,
+    'chat-kanban-tutorial': kanbanTutorialMessages,
     'chat-data-table': dataTableMessages,
     'chat-heatmap': heatmapMessages,
     'chat-tree-view': treeViewMessages,

@@ -35,6 +35,25 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const colors = useThemeColors();
   const { isMini } = useResponsiveMode(mode);
 
+  // Early return if data is not provided
+  if (!data || !data.columns) {
+    return (
+      <View style={[styles.container, { height }]}>
+        <ComponentHeader
+          title={data?.title || 'Kanban Board'}
+          description={data?.description}
+          isMini={isMini}
+          onExpandPress={onExpandPress}
+        />
+        <View style={styles.emptyContainer}>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+            No kanban board data available
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   const stats = useMemo(() => calculateBoardStats(data), [data]);
 
   const renderCard = useCallback((card: KanbanCard, column: KanbanColumn) => {
@@ -296,16 +315,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   boardContent: {
-    padding: 16,
-    gap: 12,
+    padding: 12,
+    gap: 10,
   },
   column: {
-    width: 280,
+    width: 240,
     borderRadius: borderRadius.base,
     overflow: 'hidden',
   },
   columnMini: {
-    width: 220,
+    width: 200,
   },
   columnHeader: {
     padding: 12,
@@ -446,5 +465,15 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  emptyText: {
+    fontSize: 14,
+    textAlign: 'center',
   },
 });

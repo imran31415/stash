@@ -33,8 +33,27 @@ export const TreeView: React.FC<TreeViewProps> = ({
   const { isMini } = useResponsiveMode(mode);
 
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(() =>
-    getInitiallyExpandedNodes(data.roots, initialExpandedDepth)
+    data?.roots ? getInitiallyExpandedNodes(data.roots, initialExpandedDepth) : new Set()
   );
+
+  // Early return if data is not provided
+  if (!data || !data.roots) {
+    return (
+      <View style={[styles.container, { height }]}>
+        <ComponentHeader
+          title={data?.title || 'Tree View'}
+          description={data?.description}
+          isMini={isMini}
+          onExpandPress={onExpandPress}
+        />
+        <View style={styles.emptyContainer}>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+            No tree data available
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   const stats = useMemo(() => calculateTreeStats(data, expandedNodes), [data, expandedNodes]);
 
@@ -321,5 +340,15 @@ const styles = StyleSheet.create({
   },
   childrenContainer: {
     marginLeft: 0,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  emptyText: {
+    fontSize: 14,
+    textAlign: 'center',
   },
 });

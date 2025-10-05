@@ -48,7 +48,10 @@ export const MultiSwipeable: React.FC<MultiSwipeableProps> = ({
   const isPreview = mode === 'preview';
 
   // Calculate dimensions
-  const itemWidth = containerWidth > 0 ? containerWidth : (isMini ? 350 : screenWidth);
+  const itemWidth = containerWidth > 0 ? containerWidth : (isMini ? 350 : isPreview ? 600 : screenWidth);
+  const itemHeight = isMini ? 300 : isPreview ? 400 : 500;
+  // Total container height includes header, content, dots, and footer
+  const containerHeight = itemHeight + 120; // header + dots + footer padding
 
   // Handle auto-advance
   useEffect(() => {
@@ -148,6 +151,8 @@ export const MultiSwipeable: React.FC<MultiSwipeableProps> = ({
       mode: item.data.mode || mode,
       title: item.title || item.data.title,
       subtitle: item.subtitle || item.data.subtitle,
+      height: itemHeight - 16, // Subtract padding
+      width: itemWidth - 16, // Subtract padding
     };
 
     switch (item.type) {
@@ -277,7 +282,7 @@ export const MultiSwipeable: React.FC<MultiSwipeableProps> = ({
 
   return (
     <View
-      style={[styles.container, style]}
+      style={[styles.container, { minHeight: containerHeight }, style]}
       onLayout={handleLayout}
     >
       {/* Header with item counter */}
@@ -293,7 +298,7 @@ export const MultiSwipeable: React.FC<MultiSwipeableProps> = ({
       </View>
 
       {/* Swipeable content area */}
-      <View style={styles.contentContainer}>
+      <View style={[styles.contentContainer, { height: itemHeight }]}>
         {/* Previous arrow */}
         {showArrows && currentIndex > 0 && (
           <TouchableOpacity
@@ -316,14 +321,14 @@ export const MultiSwipeable: React.FC<MultiSwipeableProps> = ({
           showsHorizontalScrollIndicator={false}
           onScrollBeginDrag={handleScrollBegin}
           onMomentumScrollEnd={handleScrollEnd}
-          style={styles.scrollView}
+          style={[styles.scrollView, { height: itemHeight }]}
           contentContainerStyle={styles.scrollContent}
           decelerationRate="fast"
         >
           {items.map((item, index) => (
             <View
               key={item.id}
-              style={[styles.itemContainer, { width: itemWidth }]}
+              style={[styles.itemContainer, { width: itemWidth, height: itemHeight }]}
             >
               {renderItem(item, index)}
             </View>
