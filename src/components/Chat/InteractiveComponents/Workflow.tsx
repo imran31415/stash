@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, useEffect } from 'react';
+import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   Platform,
   LayoutChangeEvent,
   ScrollView,
+  PanResponder,
+  GestureResponderEvent,
 } from 'react-native';
 import Svg, { Rect, Path, Text as SvgText, Defs, Marker, G, Circle } from 'react-native-svg';
 import type { WorkflowProps, WorkflowNode, WorkflowEdge, PositionedNode, PositionedEdge } from './Workflow.types';
@@ -60,6 +62,14 @@ export const Workflow: React.FC<WorkflowProps> = ({
   const [zoom, setZoom] = useState(1);
   const [panX, setPanX] = useState(0);
   const [panY, setPanY] = useState(0);
+
+  const isDragging = useRef(false);
+  const lastPanRef = useRef({ x: 0, y: 0 });
+  const lastPinchDistance = useRef<number | null>(null);
+  const containerRef = useRef<any>(null);
+  const isDraggingMouse = useRef(false);
+  const dragStartPos = useRef({ x: 0, y: 0 });
+  const dragStartPan = useRef({ x: 0, y: 0 });
 
   const { isMini } = useResponsiveMode(mode);
   const { width, height, handleLayout, measuredWidth } = useLayoutMeasurement(
@@ -128,6 +138,9 @@ export const Workflow: React.FC<WorkflowProps> = ({
 
   const handleNodePress = useCallback(
     (node: WorkflowNode) => {
+      // Don't select node if we were dragging
+      if (isDragging.current) return;
+
       setSelectedNodeId(node.id);
       setSelectedEdgeId(null);
       onNodePress?.(node);
@@ -137,6 +150,9 @@ export const Workflow: React.FC<WorkflowProps> = ({
 
   const handleEdgePress = useCallback(
     (edge: WorkflowEdge) => {
+      // Don't select edge if we were dragging
+      if (isDragging.current) return;
+
       setSelectedEdgeId(edge.id);
       setSelectedNodeId(null);
       onEdgePress?.(edge);
@@ -172,6 +188,191 @@ export const Workflow: React.FC<WorkflowProps> = ({
 
   const handlePanDown = useCallback(() => {
     setPanY((prev) => prev + 50);
+  }, []);
+
+  // Pan responder for drag-to-pan functionality
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => !isMini,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only start panning if the gesture has moved more than 5 pixels
+        return !isMini && (Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5);
+      },
+      onPanResponderGrant: (_, gestureState) => {
+        isDragging.current = false;
+        lastPanRef.current = { x: panX, y: panY };
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (!isMini) {
+          isDragging.current = true;
+          // Pan in the opposite direction of the drag for natural feel
+          setPanX(lastPanRef.current.x - gestureState.dx / zoom);
+          setPanY(lastPanRef.current.y - gestureState.dy / zoom);
+        }
+      },
+      onPanResponderRelease: () => {
+        // Small delay to prevent click events after drag
+        setTimeout(() => {
+          isDragging.current = false;
+        }, 100);
+      },
+      onPanResponderTerminate: () => {
+        setTimeout(() => {
+          isDragging.current = false;
+        }, 100);
+      },
+    })
+  ).current;
+
+  // Handle scroll-to-zoom for web
+  const handleWheel = useCallback(
+    (event: any) => {
+      if (isMini || Platform.OS !== 'web') return;
+
+      event.preventDefault();
+
+      const delta = event.deltaY;
+      const zoomFactor = delta > 0 ? 0.9 : 1.1;
+
+      setZoom((prev) => {
+        const newZoom = Math.max(0.5, Math.min(prev * zoomFactor, 3));
+        return newZoom;
+      });
+    },
+    [isMini]
+  );
+
+  // Mouse event handlers for web drag-to-pan
+  const handleMouseDown = useCallback(
+    (event: any) => {
+      if (isMini || Platform.OS !== 'web') return;
+
+      event.preventDefault();
+      isDraggingMouse.current = true;
+      isDragging.current = false;
+      dragStartPos.current = { x: event.clientX, y: event.clientY };
+      dragStartPan.current = { x: panX, y: panY };
+
+      // Change cursor to grabbing
+      if (containerRef.current) {
+        containerRef.current.style.cursor = 'grabbing';
+      }
+    },
+    [isMini, panX, panY]
+  );
+
+  const handleMouseMove = useCallback(
+    (event: any) => {
+      if (isMini || Platform.OS !== 'web' || !isDraggingMouse.current) return;
+
+      event.preventDefault();
+
+      const deltaX = event.clientX - dragStartPos.current.x;
+      const deltaY = event.clientY - dragStartPos.current.y;
+
+      // If mouse has moved more than 3 pixels, consider it a drag
+      if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+        isDragging.current = true;
+      }
+
+      // Update pan position based on drag
+      const newPanX = dragStartPan.current.x + deltaX / zoom;
+      const newPanY = dragStartPan.current.y + deltaY / zoom;
+
+      setPanX(newPanX);
+      setPanY(newPanY);
+    },
+    [isMini, zoom]
+  );
+
+  const handleMouseUp = useCallback(() => {
+    if (Platform.OS !== 'web') return;
+
+    isDraggingMouse.current = false;
+
+    // Restore cursor to grab
+    if (containerRef.current) {
+      containerRef.current.style.cursor = 'grab';
+    }
+
+    // Small delay to prevent click events after drag
+    setTimeout(() => {
+      isDragging.current = false;
+    }, 100);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    if (Platform.OS !== 'web') return;
+
+    isDraggingMouse.current = false;
+
+    // Restore cursor to grab
+    if (containerRef.current) {
+      containerRef.current.style.cursor = 'grab';
+    }
+
+    setTimeout(() => {
+      isDragging.current = false;
+    }, 100);
+  }, []);
+
+  // Add event listeners for web
+  useEffect(() => {
+    if (Platform.OS === 'web' && containerRef.current && !isMini) {
+      const element = containerRef.current;
+
+      // Wheel event on the container
+      element.addEventListener('wheel', handleWheel, { passive: false });
+
+      // Mouse down on the container
+      element.addEventListener('mousedown', handleMouseDown);
+
+      // Mouse move and up on document for better tracking
+      // This ensures we capture events even if mouse moves outside container
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+
+      return () => {
+        element.removeEventListener('wheel', handleWheel);
+        element.removeEventListener('mousedown', handleMouseDown);
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [handleWheel, handleMouseDown, handleMouseMove, handleMouseUp, isMini]);
+
+  // Handle pinch-to-zoom for mobile
+  const handleTouchMove = useCallback(
+    (event: any) => {
+      if (isMini || Platform.OS === 'web') return;
+
+      const touches = event.nativeEvent.touches;
+      if (touches.length === 2) {
+        // Calculate distance between two touches
+        const touch1 = touches[0];
+        const touch2 = touches[1];
+        const distance = Math.sqrt(
+          Math.pow(touch2.pageX - touch1.pageX, 2) + Math.pow(touch2.pageY - touch1.pageY, 2)
+        );
+
+        if (lastPinchDistance.current !== null) {
+          const delta = distance - lastPinchDistance.current;
+          const zoomFactor = delta > 0 ? 1.01 : 0.99;
+
+          setZoom((prev) => {
+            const newZoom = Math.max(0.5, Math.min(prev * zoomFactor, 3));
+            return newZoom;
+          });
+        }
+
+        lastPinchDistance.current = distance;
+      }
+    },
+    [isMini]
+  );
+
+  const handleTouchEnd = useCallback(() => {
+    lastPinchDistance.current = null;
   }, []);
 
   const renderNode = (node: PositionedNode) => {
@@ -353,16 +554,12 @@ export const Workflow: React.FC<WorkflowProps> = ({
       )}
 
       {/* Workflow Visualization */}
-      <ScrollView
-        horizontal={!isMini}
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsHorizontalScrollIndicator={!isMini}
-        showsVerticalScrollIndicator={false}
-        minimumZoomScale={0.5}
-        maximumZoomScale={3}
-        pinchGestureEnabled={!isMini}
-        scrollEnabled={!isMini}
+      <View
+        ref={containerRef}
+        style={styles.svgContainer}
+        {...(isMini ? {} : panResponder.panHandlers)}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         <Svg
           width={isMini ? (width || 0) : (width || 0) * zoom}
@@ -391,7 +588,7 @@ export const Workflow: React.FC<WorkflowProps> = ({
           {/* Render nodes */}
           {positionedNodes.map((node) => renderNode(node))}
         </Svg>
-      </ScrollView>
+      </View>
 
       {/* Zoom Controls */}
       {mode === 'full' && (
@@ -464,6 +661,19 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 13,
     color: '#6B7280',
+  },
+  svgContainer: {
+    flex: 1,
+    overflow: 'hidden',
+    ...Platform.select({
+      web: {
+        cursor: 'grab',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        MozUserSelect: 'none',
+        msUserSelect: 'none',
+      } as any,
+    }),
   },
   scrollView: {
     flex: 1,

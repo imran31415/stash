@@ -124,7 +124,10 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
   }, [isPaused, streamingPaused, onStreamingToggle, streamingCallbackId]);
 
   // Use streaming series if enabled, otherwise use original series
-  const activeSeries = enableLiveStreaming ? streamingSeries : series;
+  const activeSeries = useMemo(
+    () => enableLiveStreaming ? streamingSeries : series,
+    [enableLiveStreaming, streamingSeries, series]
+  );
 
   // Assign colors to series
   const coloredSeries = useMemo(() => assignSeriesColors(activeSeries), [activeSeries]);

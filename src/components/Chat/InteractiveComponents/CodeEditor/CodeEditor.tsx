@@ -64,6 +64,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 
   const [activeFileId, setActiveFileId] = useState<string>(files[0]?.id || 'default');
   const [activeTab, setActiveTab] = useState<CodeEditorTab>('code');
+  const [expandedPane, setExpandedPane] = useState<'code' | 'preview' | null>(null);
   const [fileContents, setFileContents] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     files.forEach((file) => {
@@ -139,8 +140,20 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
       return (
         <View style={styles.codePane}>
           <View style={[styles.languageHeader, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-            <Text style={[styles.languageLabel, { color: colors.textSecondary }]}>Language:</Text>
-            <Text style={[styles.languageValue, { color: colors.text }]}>{language}</Text>
+            <View style={styles.languageInfo}>
+              <Text style={[styles.languageLabel, { color: colors.textSecondary }]}>Language:</Text>
+              <Text style={[styles.languageValue, { color: colors.text }]}>{language}</Text>
+            </View>
+            {layout === 'split' && (
+              <TouchableOpacity
+                style={styles.expandButton}
+                onPress={() => setExpandedPane(expandedPane === 'code' ? null : 'code')}
+              >
+                <Text style={[styles.expandIcon, { color: colors.primary }]}>
+                  {expandedPane === 'code' ? '⊗' : '⛶'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
           <ScrollView
             style={styles.editorScroll}
@@ -165,8 +178,20 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     return (
       <View style={[styles.codePane, { backgroundColor: colors.codeBlock.background }]}>
         <View style={[styles.languageHeader, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-          <Text style={[styles.languageLabel, { color: colors.textSecondary }]}>Language:</Text>
-          <Text style={[styles.languageValue, { color: colors.text }]}>{language}</Text>
+          <View style={styles.languageInfo}>
+            <Text style={[styles.languageLabel, { color: colors.textSecondary }]}>Language:</Text>
+            <Text style={[styles.languageValue, { color: colors.text }]}>{language}</Text>
+          </View>
+          {layout === 'split' && (
+            <TouchableOpacity
+              style={styles.expandButton}
+              onPress={() => setExpandedPane(expandedPane === 'code' ? null : 'code')}
+            >
+              <Text style={[styles.expandIcon, { color: colors.primary }]}>
+                {expandedPane === 'code' ? '⊗' : '⛶'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
         <ScrollView
           style={styles.editorScroll}
@@ -185,7 +210,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         </ScrollView>
       </View>
     );
-  }, [editable, currentCode, activeFile?.language, activeFile?.name, showLineNumbers, colors.codeBlock.background, colors.surface, colors.border, colors.text, colors.textSecondary, handleCodeChange]);
+  }, [editable, currentCode, activeFile?.language, activeFile?.name, showLineNumbers, colors.codeBlock.background, colors.surface, colors.border, colors.text, colors.textSecondary, handleCodeChange, layout, expandedPane]);
 
   const renderPreviewPane = () => {
     if (!showPreview || !renderPreview) {
@@ -202,6 +227,19 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 
     return (
       <View style={styles.previewContainer}>
+        {layout === 'split' && (
+          <View style={[styles.previewHeader, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+            <Text style={[styles.previewTitle, { color: colors.text }]}>Preview</Text>
+            <TouchableOpacity
+              style={styles.expandButton}
+              onPress={() => setExpandedPane(expandedPane === 'preview' ? null : 'preview')}
+            >
+              <Text style={[styles.expandIcon, { color: colors.primary }]}>
+                {expandedPane === 'preview' ? '⊗' : '⛶'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
         <ErrorBoundary
           fallback={(error) =>
             previewErrorFallback ? (
@@ -279,10 +317,23 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     // Split layout
     return (
       <View style={styles.splitContent}>
-        <View style={[styles.splitPane, { borderRightColor: colors.border }]}>
-          {renderCodePane()}
-        </View>
-        {showPreview && <View style={styles.splitPane}>{renderPreviewPane()}</View>}
+        {(!expandedPane || expandedPane === 'code') && (
+          <View style={[
+            styles.splitPane,
+            { borderRightColor: colors.border },
+            expandedPane === 'code' && styles.splitPaneExpanded,
+          ]}>
+            {renderCodePane()}
+          </View>
+        )}
+        {showPreview && (!expandedPane || expandedPane === 'preview') && (
+          <View style={[
+            styles.splitPane,
+            expandedPane === 'preview' && styles.splitPaneExpanded,
+          ]}>
+            {renderPreviewPane()}
+          </View>
+        )}
       </View>
     );
   };
@@ -387,15 +438,24 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRightWidth: 1,
   },
+  splitPaneExpanded: {
+    flex: 1,
+    borderRightWidth: 0,
+  },
   codePane: {
     flex: 1,
   },
   languageHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
+  },
+  languageInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   languageLabel: {
     fontSize: 12,
@@ -406,6 +466,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     fontFamily: 'monospace',
+  },
+  previewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+  },
+  previewTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  expandButton: {
+    padding: spacing.xs,
+    marginLeft: spacing.sm,
+  },
+  expandIcon: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   codeBlock: {
     // Removed flex: 1 to allow proper scrolling
@@ -428,10 +508,10 @@ const styles = StyleSheet.create({
   },
   previewContainer: {
     flex: 1,
-    padding: spacing.md,
   },
   previewContent: {
     flex: 1,
+    padding: spacing.md,
   },
   emptyPreview: {
     flex: 1,

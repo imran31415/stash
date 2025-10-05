@@ -142,7 +142,7 @@ const CodeEditorExample: React.FC = () => {
               title="Stash Library Implementation"
               description="Copy this code to use in your project"
               onExpandPress={() => setExpandedEditor('impl')}
-              height={500}
+              height={700}
             />
           </ScrollView>
         </View>

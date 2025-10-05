@@ -102,6 +102,13 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     totalDataPoints?: number;
     xAxisLabel?: string;
     yAxisLabel?: string;
+    enableLiveStreaming?: boolean;
+    streamingPaused?: boolean;
+    onStreamingToggle?: (isActive: boolean) => void;
+    streamingCallbackId?: string;
+    streamingWindowSize?: number;
+    maxDataPoints?: number;
+    showStreamingControls?: boolean;
   } | null>(null);
   const [graphData, setGraphData] = useState<{
     data: GraphData;
@@ -185,9 +192,31 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     pageSize?: number,
     totalDataPoints?: number,
     xAxisLabel?: string,
-    yAxisLabel?: string
+    yAxisLabel?: string,
+    enableLiveStreaming?: boolean,
+    streamingPaused?: boolean,
+    onStreamingToggle?: (isActive: boolean) => void,
+    streamingCallbackId?: string,
+    streamingWindowSize?: number,
+    maxDataPoints?: number,
+    showStreamingControls?: boolean
   ) => {
-    setTimeSeriesData({ series, title, subtitle, pageSize, totalDataPoints, xAxisLabel, yAxisLabel });
+    setTimeSeriesData({
+      series,
+      title,
+      subtitle,
+      pageSize,
+      totalDataPoints,
+      xAxisLabel,
+      yAxisLabel,
+      enableLiveStreaming,
+      streamingPaused,
+      onStreamingToggle,
+      streamingCallbackId,
+      streamingWindowSize,
+      maxDataPoints,
+      showStreamingControls
+    });
     setShowTimeSeriesDetail(true);
   };
 
@@ -308,7 +337,14 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                 data.pageSize,
                 data.totalDataPoints,
                 data.xAxisLabel,
-                data.yAxisLabel
+                data.yAxisLabel,
+                data.enableLiveStreaming,
+                data.streamingPaused,
+                data.onStreamingToggle,
+                data.streamingCallbackId,
+                data.streamingWindowSize,
+                data.maxDataPoints,
+                data.showStreamingControls
               )
             }
           >
@@ -323,7 +359,14 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                   data.pageSize,
                   data.totalDataPoints,
                   data.xAxisLabel,
-                  data.yAxisLabel
+                  data.yAxisLabel,
+                  data.enableLiveStreaming,
+                  data.streamingPaused,
+                  data.onStreamingToggle,
+                  data.streamingCallbackId,
+                  data.streamingWindowSize,
+                  data.maxDataPoints,
+                  data.showStreamingControls
                 )
               }
             />
@@ -685,6 +728,13 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           xAxisLabel={timeSeriesData.xAxisLabel}
           yAxisLabel={timeSeriesData.yAxisLabel}
           onDataPointPress={(dataPoint, series) => console.log('Data point pressed:', dataPoint, series)}
+          enableLiveStreaming={timeSeriesData.enableLiveStreaming}
+          streamingPaused={timeSeriesData.streamingPaused}
+          onStreamingToggle={timeSeriesData.onStreamingToggle}
+          streamingCallbackId={timeSeriesData.streamingCallbackId}
+          streamingWindowSize={timeSeriesData.streamingWindowSize}
+          maxDataPoints={timeSeriesData.maxDataPoints}
+          showStreamingControls={timeSeriesData.showStreamingControls}
         />
       )}
 

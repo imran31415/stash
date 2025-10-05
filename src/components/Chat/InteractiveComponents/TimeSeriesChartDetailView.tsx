@@ -28,6 +28,13 @@ interface TimeSeriesChartDetailViewProps {
   yAxisLabel?: string;
   valueFormatter?: (value: number) => string;
   dateFormatter?: (date: Date) => string;
+  enableLiveStreaming?: boolean;
+  streamingPaused?: boolean;
+  onStreamingToggle?: (isActive: boolean) => void;
+  streamingCallbackId?: string;
+  streamingWindowSize?: number;
+  maxDataPoints?: number;
+  showStreamingControls?: boolean;
 }
 
 export const TimeSeriesChartDetailView: React.FC<TimeSeriesChartDetailViewProps> = ({
@@ -43,6 +50,13 @@ export const TimeSeriesChartDetailView: React.FC<TimeSeriesChartDetailViewProps>
   yAxisLabel,
   valueFormatter,
   dateFormatter,
+  enableLiveStreaming,
+  streamingPaused,
+  onStreamingToggle,
+  streamingCallbackId,
+  streamingWindowSize,
+  maxDataPoints,
+  showStreamingControls,
 }) => {
   const { width: windowWidth } = Dimensions.get('window');
   const [currentPage, setCurrentPage] = useState(0);
@@ -135,6 +149,13 @@ export const TimeSeriesChartDetailView: React.FC<TimeSeriesChartDetailViewProps>
               valueFormatter={valueFormatter}
               dateFormatter={dateFormatter}
               height={isNarrowScreen ? 300 : 500}
+              enableLiveStreaming={enableLiveStreaming}
+              streamingPaused={streamingPaused}
+              onStreamingToggle={onStreamingToggle}
+              streamingCallbackId={streamingCallbackId}
+              streamingWindowSize={streamingWindowSize}
+              maxDataPoints={maxDataPoints}
+              showStreamingControls={showStreamingControls}
             />
           </View>
 
