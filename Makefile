@@ -51,7 +51,7 @@ update-deployment: ## Update deployment with new image tag
 	@echo "✅ Deployment updated"
 
 .PHONY: apply-k8s
-apply-k8s: ## Apply Kubernetes manifests
+apply-k8s: ## Apply all Kubernetes manifests
 	@echo "Applying Kubernetes manifests..."
 	kubectl apply -f $(K8S_DIR)/namespace.yaml
 	kubectl apply -f $(K8S_DIR)/deployment.yaml
@@ -157,3 +157,27 @@ test-coverage: ## Run tests with coverage report
 	@echo "Running tests with coverage..."
 	yarn test:coverage
 	@echo "✅ Coverage report generated"
+
+.PHONY: setup-turn
+setup-turn: ## Setup TURN server for WebRTC
+	@echo "Setting up TURN server..."
+	cd k8 && ./setup-coturn.sh
+
+.PHONY: turn-logs
+turn-logs: ## Show TURN server logs
+	kubectl logs -n $(NAMESPACE) -l app=coturn -f
+
+.PHONY: turn-status
+turn-status: ## Check TURN server status
+	@echo "TURN Server Status:"
+	kubectl get deployment coturn -n $(NAMESPACE)
+	@echo ""
+	kubectl get svc coturn-service -n $(NAMESPACE)
+	@echo ""
+	kubectl get pods -n $(NAMESPACE) -l app=coturn
+
+.PHONY: delete-turn
+delete-turn: ## Delete TURN server
+	@echo "Deleting TURN server..."
+	kubectl delete -f $(K8S_DIR)/coturn-deployment.yaml || true
+	@echo "✅ TURN server deleted"

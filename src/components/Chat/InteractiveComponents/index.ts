@@ -40,6 +40,14 @@ export type {
 } from './CodeBlock.types';
 
 export type {
+  CodeFile,
+  CodeEditorProps,
+  CodeEditorState,
+  CodeEditorLayout,
+  CodeEditorTab,
+} from './CodeEditor/CodeEditor.types';
+
+export type {
   MediaType,
   ImageFormat,
   VideoFormat,
@@ -174,6 +182,7 @@ export { GraphVisualization } from './GraphVisualization';
 export { GraphVisualizationDetailView } from './GraphVisualizationDetailView';
 export { CodeBlock } from './CodeBlock';
 export { CodeBlockDetailView } from './CodeBlockDetailView';
+export { CodeEditor, CodeEditorDetailView } from './CodeEditor';
 export { Media } from './Media';
 export { MediaDetailView } from './MediaDetailView';
 export { Dashboard } from './Dashboard';

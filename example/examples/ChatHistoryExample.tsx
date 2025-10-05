@@ -712,6 +712,68 @@ function MyChat() {
         },
       },
     },
+    {
+      id: 'demo-9',
+      content: "## Try It Yourself!\n\nWant to see the code in action? Check out our interactive code editor where you can explore and experiment with Stash components live!\n\n👇 Click the tabs below to switch between code and preview:",
+      sender: { id: 'ai-demo', name: 'Stash AI', avatar: '🤖' },
+      timestamp: addHours(new Date(), 0.051),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'code-editor',
+        data: {
+          code: `// Interactive Stash Component Example
+import { GanttChart } from '@stash/react-native';
+
+// Define your project tasks
+const projectTasks = [
+  {
+    id: '1',
+    title: 'Design Phase',
+    startDate: new Date('2025-01-01'),
+    endDate: new Date('2025-01-15'),
+    progress: 100,
+    status: 'completed',
+    priority: 'high',
+  },
+  {
+    id: '2',
+    title: 'Development',
+    startDate: new Date('2025-01-10'),
+    endDate: new Date('2025-02-28'),
+    progress: 60,
+    status: 'in-progress',
+    priority: 'critical',
+  },
+  {
+    id: '3',
+    title: 'Testing',
+    startDate: new Date('2025-02-20'),
+    endDate: new Date('2025-03-15'),
+    progress: 0,
+    status: 'pending',
+    priority: 'high',
+  },
+];
+
+// Render the Gantt chart
+<GanttChart
+  tasks={projectTasks}
+  mode="full"
+  showProgress={true}
+  showToday={true}
+/>`,
+          language: 'tsx',
+          fileName: 'GanttChartExample.tsx',
+          mode: 'mini',
+          editable: false,
+          showPreview: true,
+          showLineNumbers: true,
+          title: 'Interactive Code Editor',
+          description: 'Explore Stash components with live code preview',
+        },
+      },
+    },
   ];
 };
 

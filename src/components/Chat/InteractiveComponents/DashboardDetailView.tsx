@@ -35,13 +35,15 @@ export const DashboardDetailView: React.FC<DashboardDetailViewProps> = ({
             <Text style={styles.closeButtonText}>✕</Text>
           </TouchableOpacity>
         </View>
-        <Dashboard
-          config={config}
-          mode="full"
-          onItemPress={handleItemPress}
-          scrollable={true}
-          showHeader={false}
-        />
+        <View style={styles.dashboardWrapper}>
+          <Dashboard
+            config={config}
+            mode="full"
+            onItemPress={handleItemPress}
+            scrollable={true}
+            showHeader={false}
+          />
+        </View>
 
         {/* Individual item detail views */}
         {expandedItem?.type === 'time-series-chart' && (
@@ -125,6 +127,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
     backgroundColor: '#FFFFFF',
+  },
+  dashboardWrapper: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: 18,

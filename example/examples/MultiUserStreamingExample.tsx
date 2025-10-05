@@ -453,16 +453,9 @@ const MultiUserStreamingExample: React.FC = () => {
     setChatMessages(prev => [...prev, msg]);
   };
 
-  const handleSendMessage = (content: string) => {
-    const newMessage: Message = {
-      id: `msg-${Date.now()}`,
-      content,
-      sender: { id: SESSION_USER_ID, name: userName, avatar: '👤' },
-      timestamp: new Date(),
-      status: 'sending',
-      isOwn: true,
-    };
-    setChatMessages([...chatMessages, newMessage]);
+  const handleSendMessage = (message: Message) => {
+    // Message is already created by Chat component, just add it to our state
+    setChatMessages([...chatMessages, message]);
 
     // Send to server (if not in demo mode)
     if (!demoMode && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -470,14 +463,14 @@ const MultiUserStreamingExample: React.FC = () => {
         type: 'chat-message',
         roomId: currentRoom,
         userId: SESSION_USER_ID,
-        content,
+        content: message.content,
       }));
     }
 
     setTimeout(() => {
       setChatMessages((prev) =>
         prev.map((msg) =>
-          msg.id === newMessage.id ? { ...msg, status: 'delivered' as const } : msg
+          msg.id === message.id ? { ...msg, status: 'delivered' as const } : msg
         )
       );
     }, 500);
@@ -565,6 +558,19 @@ const MultiUserStreamingExample: React.FC = () => {
           <Text style={styles.lobbySubtitle}>
             {demoMode ? '🟢 Demo Mode - No Server Required' : (isConnected ? '🟢 Connected' : `🔴 ${connectionStatus}`)}
           </Text>
+          {!isConnected && !demoMode && (
+            <TouchableOpacity
+              style={[styles.button, styles.buttonSecondary, { marginTop: 12 }]}
+              onPress={() => {
+                setDemoMode(true);
+                reconnectAttempts.current = 0;
+              }}
+            >
+              <Text style={[styles.buttonText, { color: '#007AFF' }]}>
+                Skip to Demo Mode →
+              </Text>
+            </TouchableOpacity>
+          )}
           {demoMode && (
             <Text style={styles.demoNotice}>
               Running in demo mode. Create a room and test the live camera streaming!
@@ -744,6 +750,11 @@ const styles = StyleSheet.create({
   },
   buttonPrimary: {
     backgroundColor: '#007AFF',
+  },
+  buttonSecondary: {
+    backgroundColor: '#F0F0F0',
+    borderWidth: 2,
+    borderColor: '#007AFF',
   },
   buttonDisabled: {
     backgroundColor: '#CCC',

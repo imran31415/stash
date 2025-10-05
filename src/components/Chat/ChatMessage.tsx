@@ -24,6 +24,7 @@ import {
   GraphVisualizationDetailView,
   CodeBlock,
   CodeBlockDetailView,
+  CodeEditor,
   Media,
   MediaDetailView,
   Dashboard,
@@ -348,6 +349,16 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             onCopy={() => onAction?.('copy', data)}
           />
         );
+      case 'code-editor':
+        return (
+          <CodeEditor
+            {...data}
+            mode={data.mode || 'mini'}
+            editable={data.editable ?? false}
+            showPreview={data.showPreview ?? true}
+            showLineNumbers={data.showLineNumbers ?? true}
+          />
+        );
       case 'media':
         return (
           <Media
@@ -361,6 +372,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         return (
           <Dashboard
             config={data.config}
+            mode="mini"
             onItemPress={(item) => onAction?.('item-press', item)}
             onExpandPress={() => handleDashboardExpand(data.config)}
           />

@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   codeContainer: {
-    maxHeight: 500,
+    // Removed maxHeight constraint to allow full scrolling in CodeEditor
   },
   codeWrapper: {
     paddingVertical: 8,

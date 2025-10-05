@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+  Dimensions,
+  Modal,
+  ScrollView,
+  Animated,
+} from 'react-native';
 import InteractiveComponentsExample from './examples/InteractiveComponentsExample';
 import ChatHistoryExample from './examples/ChatHistoryExample';
 import MediaExample from './examples/MediaExample';
@@ -7,17 +18,79 @@ import LiveStreamingSalesExample from './examples/LiveStreamingSalesExample';
 import DashboardExample from './examples/DashboardExample';
 import VideoStreamExample from './examples/VideoStreamExample';
 import MultiUserStreamingExample from './examples/MultiUserStreamingExample';
+import CodeEditorExample from './examples/CodeEditorExample';
 import { LoadingState } from './components/LoadingState';
 import { ThemeProvider, useTheme, useThemeColors } from '../src/theme';
 
-type TabType = 'history' | 'interactive' | 'media' | 'streaming' | 'dashboard';
+type ExampleType =
+  | 'history'
+  | 'interactive'
+  | 'media'
+  | 'streaming'
+  | 'dashboard'
+  | 'codeeditor';
+
+interface ExampleItem {
+  id: ExampleType;
+  title: string;
+  description: string;
+  icon: string;
+  category: string;
+}
+
+const EXAMPLES: ExampleItem[] = [
+  {
+    id: 'history',
+    title: 'Chat History',
+    description: 'Chat conversations with history and search',
+    icon: '💬',
+    category: 'Chat',
+  },
+  {
+    id: 'interactive',
+    title: 'UI Components',
+    description: 'Interactive data visualizations and components',
+    icon: '📊',
+    category: 'Components',
+  },
+  {
+    id: 'dashboard',
+    title: 'Dashboard',
+    description: 'Customizable dashboard layouts',
+    icon: '📋',
+    category: 'Components',
+  },
+  {
+    id: 'codeeditor',
+    title: 'Code Editor',
+    description: 'Live code editor with preview',
+    icon: '💻',
+    category: 'Components',
+  },
+  {
+    id: 'streaming',
+    title: 'Live Streaming',
+    description: 'Multi-user video streaming',
+    icon: '🎥',
+    category: 'Media',
+  },
+  {
+    id: 'media',
+    title: 'Media Gallery',
+    description: 'Image and video galleries',
+    icon: '🖼️',
+    category: 'Media',
+  },
+];
 
 function AppContent() {
   const { themeMode, toggleTheme } = useTheme();
   const colors = useThemeColors();
-  const [activeTab, setActiveTab] = useState<TabType>('history');
-  const [isLoadingTab, setIsLoadingTab] = useState(false);
+  const [activeExample, setActiveExample] = useState<ExampleType>('history');
+  const [isLoadingExample, setIsLoadingExample] = useState(false);
+  const [sideMenuVisible, setSideMenuVisible] = useState(false);
   const [windowWidth, setWindowWidth] = useState(Dimensions.get('window').width);
+  const slideAnim = useState(new Animated.Value(-300))[0];
 
   // Detect window resize
   useEffect(() => {
@@ -30,12 +103,25 @@ function AppContent() {
 
   const isMobile = windowWidth < 768;
 
-  // Handle tab switching with loading state
-  const handleTabChange = (newTab: TabType) => {
-    if (newTab === activeTab) return;
+  // Animate side menu
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: sideMenuVisible ? 0 : -300,
+      duration: 250,
+      useNativeDriver: false,
+    }).start();
+  }, [sideMenuVisible, slideAnim]);
+
+  // Handle example switching with loading state
+  const handleExampleChange = (newExample: ExampleType) => {
+    if (newExample === activeExample) {
+      setSideMenuVisible(false);
+      return;
+    }
 
     // Show loading state
-    setIsLoadingTab(true);
+    setIsLoadingExample(true);
+    setSideMenuVisible(false);
 
     // Minimum loading duration to ensure smooth transition
     const minLoadingTime = 300;
@@ -43,39 +129,31 @@ function AppContent() {
 
     // Use setTimeout to allow UI to update
     setTimeout(() => {
-      setActiveTab(newTab);
+      setActiveExample(newExample);
 
       // Calculate remaining time to maintain minimum loading duration
       const elapsed = Date.now() - startTime;
       const remaining = Math.max(0, minLoadingTime - elapsed);
 
       setTimeout(() => {
-        setIsLoadingTab(false);
+        setIsLoadingExample(false);
       }, remaining);
     }, 50);
   };
 
   const renderContent = () => {
-    if (isLoadingTab) {
-      const loadingMessage =
-        activeTab === 'history' ? 'Chats' :
-        activeTab === 'media' ? 'Media Examples' :
-        activeTab === 'streaming' ? 'Streaming' :
-        activeTab === 'dashboard' ? 'Dashboards' :
-        'UI Components';
+    if (isLoadingExample) {
+      const currentExample = EXAMPLES.find((ex) => ex.id === activeExample);
+      const loadingMessage = currentExample?.title || 'Example';
 
       return (
         <View style={styles.loadingContainer}>
-          <LoadingState
-            message={`Loading ${loadingMessage}...`}
-            size="large"
-            height={400}
-          />
+          <LoadingState message={`Loading ${loadingMessage}...`} size="large" height={400} />
         </View>
       );
     }
 
-    switch (activeTab) {
+    switch (activeExample) {
       case 'interactive':
         return <InteractiveComponentsExample />;
       case 'history':
@@ -86,24 +164,135 @@ function AppContent() {
         return <MultiUserStreamingExample />;
       case 'dashboard':
         return <DashboardExample />;
+      case 'codeeditor':
+        return <CodeEditorExample />;
       default:
         return null;
     }
   };
+
+  const renderSideMenu = () => {
+    const groupedExamples = EXAMPLES.reduce((acc, example) => {
+      if (!acc[example.category]) {
+        acc[example.category] = [];
+      }
+      acc[example.category].push(example);
+      return acc;
+    }, {} as Record<string, ExampleItem[]>);
+
+    return (
+      <Modal
+        visible={sideMenuVisible}
+        transparent
+        animationType="none"
+        onRequestClose={() => setSideMenuVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setSideMenuVisible(false)}
+        >
+          <Animated.View
+            style={[
+              styles.sideMenu,
+              { backgroundColor: colors.surface, left: slideAnim },
+            ]}
+            onStartShouldSetResponder={() => true}
+          >
+            <View style={[styles.sideMenuHeader, { borderBottomColor: colors.border }]}>
+              <Text style={[styles.sideMenuTitle, { color: colors.text }]}>Examples</Text>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setSideMenuVisible(false)}
+              >
+                <Text style={[styles.closeButtonText, { color: colors.textSecondary }]}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.sideMenuContent}>
+              {Object.entries(groupedExamples).map(([category, items]) => (
+                <View key={category} style={styles.categorySection}>
+                  <Text style={[styles.categoryTitle, { color: colors.textSecondary }]}>
+                    {category}
+                  </Text>
+                  {items.map((example) => (
+                    <TouchableOpacity
+                      key={example.id}
+                      style={[
+                        styles.menuItem,
+                        activeExample === example.id && {
+                          backgroundColor: colors.primary + '15',
+                          borderLeftColor: colors.primary,
+                        },
+                      ]}
+                      onPress={() => handleExampleChange(example.id)}
+                    >
+                      <Text style={styles.menuItemIcon}>{example.icon}</Text>
+                      <View style={styles.menuItemContent}>
+                        <Text
+                          style={[
+                            styles.menuItemTitle,
+                            {
+                              color:
+                                activeExample === example.id ? colors.primary : colors.text,
+                            },
+                          ]}
+                        >
+                          {example.title}
+                        </Text>
+                        <Text style={[styles.menuItemDescription, { color: colors.textSecondary }]}>
+                          {example.description}
+                        </Text>
+                      </View>
+                      {activeExample === example.id && (
+                        <Text style={[styles.activeIndicator, { color: colors.primary }]}>✓</Text>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ))}
+            </ScrollView>
+          </Animated.View>
+        </TouchableOpacity>
+      </Modal>
+    );
+  };
+
+  const currentExample = EXAMPLES.find((ex) => ex.id === activeExample);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'} />
 
       {/* Header */}
-      <View style={[styles.header, isMobile && styles.headerMobile, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <View style={styles.headerTextContainer}>
-          <Text style={[styles.headerTitle, isMobile && styles.headerTitleMobile, { color: colors.text }]}>
-            {isMobile ? 'Stash Examples' : 'Stash Chat Examples'}
-          </Text>
-          {!isMobile && <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>React Native Component Library</Text>}
+      <View
+        style={[
+          styles.header,
+          isMobile && styles.headerMobile,
+          { backgroundColor: colors.surface, borderBottomColor: colors.border },
+        ]}
+      >
+        <View style={styles.headerLeft}>
+          <View style={styles.headerTextContainer}>
+            <Text style={[styles.headerTitle, isMobile && styles.headerTitleMobile, { color: colors.text }]}>
+              {currentExample?.title || 'Stash Examples'}
+            </Text>
+            {!isMobile && currentExample && (
+              <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+                {currentExample.description}
+              </Text>
+            )}
+          </View>
         </View>
         <View style={styles.headerButtons}>
+          <TouchableOpacity
+            style={[styles.examplesButton, { backgroundColor: colors.primary }]}
+            onPress={() => setSideMenuVisible(true)}
+          >
+            <Text style={[styles.examplesButtonText, { color: colors.textOnPrimary }]}>
+              📚 Examples Playground
+            </Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={[styles.themeButton, { backgroundColor: colors.primary }]}
             onPress={toggleTheme}
@@ -115,63 +304,11 @@ function AppContent() {
         </View>
       </View>
 
-      {/* Tabs */}
-      <View style={[styles.tabs, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'history' && { borderBottomColor: colors.primary }]}
-          onPress={() => handleTabChange('history')}
-          disabled={isLoadingTab}
-        >
-          <Text style={[styles.tabText, { color: activeTab === 'history' ? colors.primary : colors.textSecondary }]}>
-            💬 Chats
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'interactive' && { borderBottomColor: colors.primary }]}
-          onPress={() => handleTabChange('interactive')}
-          disabled={isLoadingTab}
-        >
-          <Text style={[styles.tabText, { color: activeTab === 'interactive' ? colors.primary : colors.textSecondary }]}>
-            📊 UI
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'dashboard' && { borderBottomColor: colors.primary }]}
-          onPress={() => handleTabChange('dashboard')}
-          disabled={isLoadingTab}
-        >
-          <Text style={[styles.tabText, { color: activeTab === 'dashboard' ? colors.primary : colors.textSecondary }]}>
-            📋 Dash
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'streaming' && { borderBottomColor: colors.primary }]}
-          onPress={() => handleTabChange('streaming')}
-          disabled={isLoadingTab}
-        >
-          <Text style={[styles.tabText, { color: activeTab === 'streaming' ? colors.primary : colors.textSecondary }]}>
-            🎥 Streaming
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'media' && { borderBottomColor: colors.primary }]}
-          onPress={() => handleTabChange('media')}
-          disabled={isLoadingTab}
-        >
-          <Text style={[styles.tabText, { color: activeTab === 'media' ? colors.primary : colors.textSecondary }]}>
-            🖼️ Media
-          </Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Content */}
-      <View style={styles.content}>
-        {renderContent()}
-      </View>
+      <View style={styles.content}>{renderContent()}</View>
+
+      {/* Side Menu */}
+      {renderSideMenu()}
     </SafeAreaView>
   );
 }
@@ -201,63 +338,52 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
   },
+  headerLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  examplesButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  examplesButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
   headerTextContainer: {
     flex: 1,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   headerTitleMobile: {
     fontSize: 16,
     marginBottom: 0,
   },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
   },
   headerButtons: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  chatsButton: {
-    paddingHorizontal: 12,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  chatsButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
   themeButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
   themeButtonText: {
     fontSize: 18,
-  },
-  tabs: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  tabText: {
-    fontSize: 12,
-    fontWeight: '600',
   },
   content: {
     flex: 1,
@@ -266,5 +392,83 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  sideMenu: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 300,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  sideMenuHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 20,
+    borderBottomWidth: 1,
+  },
+  sideMenuTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeButtonText: {
+    fontSize: 24,
+    fontWeight: '300',
+  },
+  sideMenuContent: {
+    flex: 1,
+  },
+  categorySection: {
+    paddingVertical: 8,
+  },
+  categoryTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderLeftWidth: 3,
+    borderLeftColor: 'transparent',
+  },
+  menuItemIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  menuItemContent: {
+    flex: 1,
+  },
+  menuItemTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  menuItemDescription: {
+    fontSize: 12,
+  },
+  activeIndicator: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginLeft: 8,
   },
 });

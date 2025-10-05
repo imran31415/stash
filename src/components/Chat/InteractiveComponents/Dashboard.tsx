@@ -130,12 +130,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
     [config.gridSize, config.customGrid]
   );
 
-  const gridSpacing = config.spacing ?? spacing.md;
-  const gridPadding = config.padding ?? spacing.sm;
+  const gridSpacing = config.spacing ?? spacing.xs;
+  const gridPadding = config.padding ?? spacing.xs;
 
-  // Account for header height - use actual measured heights
-  // Mini header with expand button: ~50px, Full header: ~70px, with description: ~110px
-  const headerHeight = showHeader ? (isMini ? 50 : (config.description ? 110 : 70)) : 0;
+  // Account for header height - calculated from actual styles
+  // Header: paddingVertical (spacing.md * 2) + title height + subtitle (if present) + border
+  // Mini: 24px (padding) + 12px (title) + 4px (subtitle margin if present) + 11px (subtitle) + 1px (border) ≈ 52px
+  // Full: 24px (padding) + 14px (title) + 4px (subtitle margin if present) + 11px (subtitle) + 1px (border) ≈ 54px
+  // Description: 16px (padding) + 20px (line height) + 1px (border) = 37px
+  const baseHeaderHeight = isMini ? 52 : 54;
+  const descriptionHeight = (!isMini && config.description) ? 37 : 0;
+  const headerHeight = showHeader ? (baseHeaderHeight + descriptionHeight) : 0;
   const availableGridHeight = containerHeight - headerHeight;
 
   // Render individual dashboard item
@@ -411,7 +416,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   // Calculate total grid dimensions for absolute positioning
   const totalGridWidth = containerWidth - (gridPadding * 2);
-  const totalGridHeight = availableGridHeight - (gridPadding * 2);
+
+  // Calculate the actual content height needed for the grid
+  // The available height already accounts for header, so we just need the grid area
+  const cellHeight = (availableGridHeight - (gridPadding * 2) - (gridSpacing * (gridDimensions.rows - 1))) / gridDimensions.rows;
+  const actualContentHeight = (cellHeight * gridDimensions.rows) + (gridSpacing * (gridDimensions.rows - 1)) + (gridPadding * 2);
 
   const dashboardContent = (
     <View
@@ -421,7 +430,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           padding: gridPadding,
           backgroundColor: config.backgroundColor || colors.surface.secondary,
           width: containerWidth,
-          height: availableGridHeight,
+          height: actualContentHeight,
           position: 'relative',
         },
       ]}
@@ -458,7 +467,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {dashboardContent}
         </ScrollView>
       ) : (
-        <View style={{ height: availableGridHeight }}>
+        <View style={[styles.nonScrollContainer, { height: availableGridHeight }]}>
           {dashboardContent}
         </View>
       )}
@@ -531,7 +540,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    flexGrow: 1,
+    // No flexGrow to prevent extra spacing
+  },
+  nonScrollContainer: {
+    overflow: 'hidden',
   },
   gridContainer: {
     // Using absolute positioning for grid items, so no flex needed

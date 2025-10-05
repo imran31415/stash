@@ -55,17 +55,6 @@ export const MultiSwipeable: React.FC<MultiSwipeableProps> = ({
   // Total container height includes header, content, dots, and footer
   const containerHeight = itemHeight + 120; // header + dots + footer padding
 
-  console.log('[MultiSwipeable] Render:', {
-    itemsCount: items.length,
-    mode,
-    currentIndex,
-    containerWidth,
-    itemWidth,
-    itemHeight,
-    containerHeight,
-    screenWidth,
-  });
-
   // Handle auto-advance
   useEffect(() => {
     if (autoAdvanceInterval > 0 && items.length > 1) {
@@ -145,24 +134,11 @@ export const MultiSwipeable: React.FC<MultiSwipeableProps> = ({
     // Reject unreasonable widths (max 2000px to be safe)
     const maxReasonableWidth = Math.min(screenWidth * 2, 2000);
     if (width > 0 && width < maxReasonableWidth && width !== containerWidth) {
-      console.log('[MultiSwipeable.handleLayout] Setting containerWidth:', width);
       setContainerWidth(width);
-    } else if (width >= maxReasonableWidth) {
-      console.warn('[MultiSwipeable.handleLayout] Rejecting unreasonable width:', width, 'using maxWidth:', maxReasonableWidth);
     }
   };
 
   const renderItem = (item: SwipeableItem, index: number) => {
-    console.log('[MultiSwipeable.renderItem]', {
-      index,
-      type: item.type,
-      title: item.title,
-      hasData: !!item.data,
-      dataKeys: item.data ? Object.keys(item.data) : [],
-      itemHeight,
-      itemWidth,
-    });
-
     const isActive = index === currentIndex;
 
     // Create handlers that pass the item index
@@ -182,15 +158,6 @@ export const MultiSwipeable: React.FC<MultiSwipeableProps> = ({
       height: itemHeight - 16, // Subtract padding
       width: itemWidth - 16, // Subtract padding
     };
-
-    console.log('[MultiSwipeable.renderItem] componentProps:', {
-      type: item.type,
-      propsKeys: Object.keys(componentProps),
-      height: componentProps.height,
-      width: componentProps.width,
-      mode: componentProps.mode,
-      hasTasksOrData: 'tasks' in componentProps || 'data' in componentProps,
-    });
 
     switch (item.type) {
       case 'gantt-chart':

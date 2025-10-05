@@ -40,16 +40,18 @@ export const ComponentHeader: React.FC<ComponentHeaderProps> = ({
         )}
         {children}
       </View>
-      {isMini && onExpandPress && showExpandButton && (
+      {onExpandPress && showExpandButton && (
         <TouchableOpacity
-          style={styles.expandButton}
+          style={[styles.expandButton, { backgroundColor: colors.primary }]}
           onPress={onExpandPress}
           activeOpacity={0.7}
           accessibilityRole="button"
-          accessibilityLabel="Expand"
-          accessibilityHint="Double tap to expand component"
+          accessibilityLabel="Expand to fullscreen"
+          accessibilityHint="Double tap to expand to fullscreen"
         >
-          <Text style={[styles.expandIcon, { color: colors.textSecondary }]}>⤢</Text>
+          <Text style={[styles.expandText, { color: colors.textOnPrimary }]}>
+            👁️ {isMini ? 'Expand' : 'Fullscreen'}
+          </Text>
         </TouchableOpacity>
       )}
     </View>
@@ -78,11 +80,16 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   expandButton: {
-    padding: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
     marginLeft: spacing.sm,
     borderRadius: borderRadius.base,
   },
   expandIcon: {
     fontSize: typography.fontSize.xxxl,
+  },
+  expandText: {
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.semibold,
   },
 });
