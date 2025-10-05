@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text, Modal, TouchableOpacity, Linking } from 'react-native';
 import { ChatLayout, Chat, ChatWithPagination } from '../../src/components/Chat';
 import type { ChatPreview, Message, GraphData, ChatGroup } from '../../src/components/Chat';
 import { addDays, addWeeks, addHours, addMinutes, subDays } from 'date-fns';
@@ -5008,9 +5008,10 @@ const ALL_MOCK_CHATS: ChatPreview[] = [
 ];
 
 export default function ChatHistoryExample() {
-  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+  const [currentChatId, setCurrentChatId] = useState<string | null>('chat-overview');
   const [allChats] = useState(ALL_MOCK_CHATS);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
+  const [showBetaModal, setShowBetaModal] = useState(false);
 
   // Define chat groups for organizing conversations
   const chatGroups: ChatGroup[] = [
@@ -5134,7 +5135,7 @@ export default function ChatHistoryExample() {
 
   const handleCreateNewChat = useCallback(() => {
     console.log('[ChatHistoryExample] Create new chat clicked');
-    // In a real app, navigate to new chat creation screen
+    setShowBetaModal(true);
   }, []);
 
   const handleRefresh = useCallback(async () => {
@@ -5236,85 +5237,124 @@ export default function ChatHistoryExample() {
   const messages = currentChatId ? chatMessages[currentChatId] || [] : [];
 
   return (
-    <ChatLayout
-      chatHistoryProps={{
-        userId: 'current-user',
-        currentChatId: currentChatId || undefined,
-        windowSize: 50,
-        loadMoreThreshold: 10,
-        showSearch: true,
-        showCreateButton: true,
-        onChatSelect: (chat) => handleChatSelect(chat.id),
-        onLoadInitial: loadInitialChats,
-        onLoadBefore: loadOlderChats,
-        onLoadAfter: loadNewerChats,
-        onCreateNewChat: handleCreateNewChat,
-        onRefresh: handleRefresh,
-        groups: chatGroups,
-        enableGrouping: true,
-      }}
-      sidebarWidth={320}
-      mobileBreakpoint={768}
-      defaultSidebarVisible={true}
-      defaultMobileVisible={false}
-      autoSelectFirstChat={true}
-      showMenuButton={true}
-      onChatSelect={handleChatSelect}
-    >
-      {/* Chat content area */}
-      {currentChatId ? (
-        currentChatId === 'chat-live-streaming' ? (
-          // Use LiveStreamingChatExample for live streaming sales dashboard
-          <LiveStreamingChatExample />
-        ) : currentChatId === 'chat-media' ? (
-          // Use MediaChatExample for media collaboration demo
-          <MediaChatExample />
-        ) : currentChatId === 'chat-pagination' ? (
-          // Use ChatWithPagination for the large message demo
-          <ChatWithPagination
-            userId="current-user"
-            chatType="ai"
-            chatId={currentChatId}
-            windowSize={50}
-            loadMoreThreshold={10}
-            onLoadInitialMessages={loadInitialPaginationMessages}
-            onLoadMessagesBefore={loadMessagesBefore}
-            onLoadMessagesAfter={loadMessagesAfter}
-            onSendMessage={handleSendMessage}
-            placeholder="Type a message..."
-            enableWebSocket={false}
-            enableHTTP={false}
-            showConnectionStatus={false}
-          />
+    <>
+      <ChatLayout
+        chatHistoryProps={{
+          userId: 'current-user',
+          currentChatId: currentChatId || undefined,
+          windowSize: 50,
+          loadMoreThreshold: 10,
+          showSearch: true,
+          showCreateButton: true,
+          onChatSelect: (chat) => handleChatSelect(chat.id),
+          onLoadInitial: loadInitialChats,
+          onLoadBefore: loadOlderChats,
+          onLoadAfter: loadNewerChats,
+          onCreateNewChat: handleCreateNewChat,
+          onRefresh: handleRefresh,
+          groups: chatGroups,
+          enableGrouping: true,
+        }}
+        sidebarWidth={320}
+        mobileBreakpoint={768}
+        defaultSidebarVisible={true}
+        defaultMobileVisible={false}
+        autoSelectFirstChat={true}
+        showMenuButton={true}
+        onChatSelect={handleChatSelect}
+      >
+        {/* Chat content area */}
+        {currentChatId ? (
+          currentChatId === 'chat-live-streaming' ? (
+            // Use LiveStreamingChatExample for live streaming sales dashboard
+            <LiveStreamingChatExample />
+          ) : currentChatId === 'chat-media' ? (
+            // Use MediaChatExample for media collaboration demo
+            <MediaChatExample />
+          ) : currentChatId === 'chat-pagination' ? (
+            // Use ChatWithPagination for the large message demo
+            <ChatWithPagination
+              userId="current-user"
+              chatType="ai"
+              chatId={currentChatId}
+              windowSize={50}
+              loadMoreThreshold={10}
+              onLoadInitialMessages={loadInitialPaginationMessages}
+              onLoadMessagesBefore={loadMessagesBefore}
+              onLoadMessagesAfter={loadMessagesAfter}
+              onSendMessage={handleSendMessage}
+              placeholder="Type a message..."
+              enableWebSocket={false}
+              enableHTTP={false}
+              showConnectionStatus={false}
+            />
+          ) : (
+            // Use regular Chat for other chats
+            <Chat
+              userId="current-user"
+              chatType={currentChat?.type || 'group'}
+              chatId={currentChatId}
+              messages={messages}
+              onSendMessage={handleSendMessage}
+              placeholder="Type a message..."
+              enableWebSocket={false}
+              enableHTTP={false}
+              showConnectionStatus={false}
+              presentationMode={isPresentationMode}
+              onExitPresentation={() => setIsPresentationMode(false)}
+              onEnterPresentation={handleEnterPresentation}
+              onCopyHistory={handleCopyHistory}
+              initialScrollPosition={currentChatId === 'chat-overview' ? 'top' : 'bottom'}
+            />
+          )
         ) : (
-          // Use regular Chat for other chats
-          <Chat
-            userId="current-user"
-            chatType={currentChat?.type || 'group'}
-            chatId={currentChatId}
-            messages={messages}
-            onSendMessage={handleSendMessage}
-            placeholder="Type a message..."
-            enableWebSocket={false}
-            enableHTTP={false}
-            showConnectionStatus={false}
-            presentationMode={isPresentationMode}
-            onExitPresentation={() => setIsPresentationMode(false)}
-            onEnterPresentation={handleEnterPresentation}
-            onCopyHistory={handleCopyHistory}
-            initialScrollPosition={currentChatId === 'chat-overview' ? 'top' : 'bottom'}
-          />
-        )
-      ) : (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateIcon}>💬</Text>
-          <Text style={styles.emptyStateTitle}>Select a chat to start messaging</Text>
-          <Text style={styles.emptyStateSubtitle}>
-            Choose from {allChats.length} conversations on the left
-          </Text>
-        </View>
-      )}
-    </ChatLayout>
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateIcon}>💬</Text>
+            <Text style={styles.emptyStateTitle}>Select a chat to start messaging</Text>
+            <Text style={styles.emptyStateSubtitle}>
+              Choose from {allChats.length} conversations on the left
+            </Text>
+          </View>
+        )}
+      </ChatLayout>
+
+      {/* Beta Access Modal */}
+      <Modal
+        visible={showBetaModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowBetaModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowBetaModal(false)}
+        >
+          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
+            <Text style={styles.modalTitle}>🚀 Beta Access</Text>
+            <Text style={styles.modalMessage}>
+              Stash is currently working with select beta customers.
+            </Text>
+            <Text style={styles.modalMessage}>
+              Contact{' '}
+              <Text
+                style={styles.modalEmail}
+                onPress={() => Linking.openURL('mailto:scalebaseio@gmail.com')}
+              >
+                scalebaseio@gmail.com
+              </Text>
+              {' '}if you would like to discuss working together!
+            </Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => setShowBetaModal(false)}
+            >
+              <Text style={styles.modalButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </>
   );
 }
 
@@ -5341,5 +5381,56 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#8E8E93',
     textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    maxWidth: 500,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: '#000000',
+    marginBottom: 12,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  modalEmail: {
+    color: '#3B82F6',
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
+  modalButton: {
+    backgroundColor: '#3B82F6',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

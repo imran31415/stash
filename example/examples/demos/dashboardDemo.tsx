@@ -188,15 +188,17 @@ const dashboardDemo: DemoConfig<DashboardConfig> = {
       },
       "data": {
         "title": "Service Mesh",
-        "nodes": [
-          { "id": "api", "label": "API Gateway", "type": "service", "status": "healthy" },
-          { "id": "auth", "label": "Auth Service", "type": "service", "status": "healthy" },
-          { "id": "db", "label": "Database", "type": "database", "status": "warning" }
-        ],
-        "edges": [
-          { "id": "e1", "source": "api", "target": "auth", "label": "authenticate" },
-          { "id": "e2", "source": "auth", "target": "db", "label": "query" }
-        ],
+        "data": {
+          "nodes": [
+            { "id": "api", "labels": ["Service"], "properties": { "name": "API Gateway", "type": "service", "status": "healthy" } },
+            { "id": "auth", "labels": ["Service"], "properties": { "name": "Auth Service", "type": "service", "status": "healthy" } },
+            { "id": "db", "labels": ["Database"], "properties": { "name": "Database", "type": "database", "status": "warning" } }
+          ],
+          "edges": [
+            { "id": "e1", "source": "api", "target": "auth", "type": "CALLS", "label": "authenticate" },
+            { "id": "e2", "source": "auth", "target": "db", "type": "QUERIES", "label": "query" }
+          ]
+        },
         "mode": "mini",
         "layout": "force",
         "height": 300
@@ -212,21 +214,23 @@ const dashboardDemo: DemoConfig<DashboardConfig> = {
         "colSpan": 3
       },
       "data": {
-        "id": "deploy-pipeline",
-        "name": "Deployment Pipeline",
-        "nodes": [
-          { "id": "build", "type": "task", "label": "Build", "status": "success" },
-          { "id": "test", "type": "task", "label": "Test", "status": "success" },
-          { "id": "staging", "type": "task", "label": "Deploy to Staging", "status": "running" },
-          { "id": "approve", "type": "condition", "label": "Manual Approval", "status": "waiting" },
-          { "id": "prod", "type": "task", "label": "Deploy to Production", "status": "idle" }
-        ],
-        "edges": [
-          { "id": "e1", "source": "build", "target": "test", "conditionType": "success" },
-          { "id": "e2", "source": "test", "target": "staging", "conditionType": "success" },
-          { "id": "e3", "source": "staging", "target": "approve", "conditionType": "success" },
-          { "id": "e4", "source": "approve", "target": "prod", "conditionType": "success" }
-        ],
+        "data": {
+          "id": "deploy-pipeline",
+          "name": "Deployment Pipeline",
+          "nodes": [
+            { "id": "build", "type": "task", "label": "Build", "status": "success" },
+            { "id": "test", "type": "task", "label": "Test", "status": "success" },
+            { "id": "staging", "type": "task", "label": "Deploy to Staging", "status": "running" },
+            { "id": "approve", "type": "condition", "label": "Manual Approval", "status": "waiting" },
+            { "id": "prod", "type": "task", "label": "Deploy to Production", "status": "idle" }
+          ],
+          "edges": [
+            { "id": "e1", "source": "build", "target": "test", "conditionType": "success" },
+            { "id": "e2", "source": "test", "target": "staging", "conditionType": "success" },
+            { "id": "e3", "source": "staging", "target": "approve", "conditionType": "success" },
+            { "id": "e4", "source": "approve", "target": "prod", "conditionType": "success" }
+          ]
+        },
         "mode": "mini",
         "orientation": "horizontal",
         "showLabels": true,
@@ -319,8 +323,10 @@ const config: DashboardConfig = {
       gridPosition: { row: 2, col: 2, rowSpan: 1, colSpan: 1 },
       data: {
         title: 'Service Mesh',
-        nodes: [/* ... */],
-        edges: [/* ... */],
+        data: {
+          nodes: [/* ... */],
+          edges: [/* ... */]
+        },
         mode: 'mini',
         height: 300
       }
@@ -332,10 +338,14 @@ const config: DashboardConfig = {
       type: 'workflow',
       gridPosition: { row: 3, col: 0, rowSpan: 1, colSpan: 3 },
       data: {
-        name: 'Deployment Pipeline',
-        nodes: [/* ... */],
-        edges: [/* ... */],
+        data: {
+          id: 'deploy-pipeline',
+          name: 'Deployment Pipeline',
+          nodes: [/* ... */],
+          edges: [/* ... */]
+        },
         mode: 'mini',
+        orientation: 'horizontal',
         height: 300
       }
     }
