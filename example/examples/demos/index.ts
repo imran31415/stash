@@ -6,6 +6,7 @@ import kanbanDemo from './kanbanDemo';
 import treeViewDemo from './treeViewDemo';
 import graphVisualizationDemo from './graphVisualizationDemo';
 import workflowDemo from './workflowDemo';
+import dashboardDemo from './dashboardDemo';
 import { DemoConfig } from './types';
 
 export const demos: Record<string, DemoConfig> = {
@@ -17,6 +18,7 @@ export const demos: Record<string, DemoConfig> = {
   treeview: treeViewDemo,
   graph: graphVisualizationDemo,
   workflow: workflowDemo,
+  dashboard: dashboardDemo,
 };
 
 export type { DemoConfig } from './types';

@@ -95,8 +95,18 @@ export const Media: React.FC<MediaProps> = ({
   const [audioPosition, setAudioPosition] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
 
-  // Calculate container dimensions
-  const containerWidth = maxWidth || (isMini ? 350 : screenWidth - 32);
+  // Track actual container width via onLayout
+  const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
+
+  const handleLayout = (event: any) => {
+    const { width } = event.nativeEvent.layout;
+    if (width > 0 && !maxWidth && width !== measuredWidth) {
+      setMeasuredWidth(width);
+    }
+  };
+
+  // Calculate container dimensions - use measured width when available
+  const containerWidth = maxWidth || measuredWidth || (isMini ? Math.min(screenWidth - 32, 800) : screenWidth - 32);
   const containerHeight = maxHeight || (isMini ? 200 : 400);
 
   // Current media item
@@ -705,7 +715,7 @@ export const Media: React.FC<MediaProps> = ({
       <View style={[
         styles.container,
         isMini && styles.containerMini,
-        { width: '100%', maxWidth: isMini ? 350 : undefined, alignSelf: 'stretch' }
+        { width: '100%', maxWidth: isMini ? 800 : undefined, alignSelf: 'stretch' }
       ]}>
         <View style={[
           styles.mediaContainer,
@@ -727,11 +737,14 @@ export const Media: React.FC<MediaProps> = ({
   }
 
   return (
-    <View style={[
-      styles.container,
-      isMini && styles.containerMini,
-      { width: '100%', maxWidth: isMini ? 350 : undefined, alignSelf: 'stretch' }
-    ]}>
+    <View
+      style={[
+        styles.container,
+        isMini && styles.containerMini,
+        { width: '100%', maxWidth: isMini ? 800 : undefined, alignSelf: 'stretch' }
+      ]}
+      onLayout={handleLayout}
+    >
       {/* Header with title */}
       {!isMini && currentMedia && (
         <View style={styles.header}>

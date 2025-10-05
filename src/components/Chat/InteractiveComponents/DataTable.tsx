@@ -62,7 +62,7 @@ export const DataTable: React.FC<DataTableProps> = ({
   const { isMini, isPreview } = useResponsiveMode(mode);
   const screenWidth = Dimensions.get('window').width;
   const { width: measuredWidth, handleLayout } = useLayoutMeasurement();
-  const containerWidth = measuredWidth || ((isMini || isPreview) ? Math.min(350, screenWidth - 32) : screenWidth);
+  const containerWidth = measuredWidth || ((isMini || isPreview) ? Math.min(800, screenWidth - 32) : screenWidth);
 
   // Determine screen breakpoint - treat mini/preview as small screen
   const isSmallScreen = (isMini || isPreview) || containerWidth < 400;
@@ -220,7 +220,7 @@ export const DataTable: React.FC<DataTableProps> = ({
         {
           maxHeight,
           width: '100%',
-          maxWidth: (isMini || isPreview) ? 350 : undefined,
+          maxWidth: (isMini || isPreview) ? 800 : undefined,
           alignSelf: 'stretch'
         }
       ]}

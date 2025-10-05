@@ -412,7 +412,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
         {
           height: dimensions.chartHeight,
           width: customWidth || '100%',
-          maxWidth: mode !== 'full' ? 350 : undefined,
+          maxWidth: mode !== 'full' ? 800 : undefined,
           alignSelf: 'stretch'
         }
       ]}

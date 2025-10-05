@@ -25,7 +25,8 @@ export interface CodeEditorDetailViewProps {
   editable?: boolean;
   showPreview?: boolean;
   showLineNumbers?: boolean;
-  renderPreview?: (code: string) => React.ReactNode;
+  renderPreview?: (code: string, language?: string, onExpandPress?: () => void) => React.ReactNode;
+  onPreviewExpandPress?: () => void;
   onChange?: (code: string) => void;
 }
 
@@ -50,6 +51,7 @@ export const CodeEditorDetailView: React.FC<CodeEditorDetailViewProps> = ({
   showPreview = true,
   showLineNumbers = true,
   renderPreview,
+  onPreviewExpandPress,
   onChange,
 }) => {
   return (
@@ -92,6 +94,7 @@ export const CodeEditorDetailView: React.FC<CodeEditorDetailViewProps> = ({
             showPreview={showPreview}
             showLineNumbers={showLineNumbers}
             renderPreview={renderPreview}
+            onPreviewExpandPress={onPreviewExpandPress}
             onChange={onChange}
             showHeader={false}
           />

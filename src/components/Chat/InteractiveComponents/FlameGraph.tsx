@@ -54,7 +54,8 @@ export const FlameGraph: React.FC<FlameGraphProps> = ({
   const graphHeight = isMini ? 150 : isPreview ? 240 : 400;
 
   // Use measured container width, fallback to safe defaults
-  const measuredWidth = containerWidth > 0 ? containerWidth : ((isMini || isPreview) ? 350 : screenWidth);
+  const defaultMiniWidth = Math.min(screenWidth - 32, 800);
+  const measuredWidth = containerWidth > 0 ? containerWidth : ((isMini || isPreview) ? defaultMiniWidth : screenWidth);
   const graphWidth = measuredWidth - 32;
 
   // Color schemes

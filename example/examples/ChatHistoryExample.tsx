@@ -722,49 +722,109 @@ function MyChat() {
       interactiveComponent: {
         type: 'code-editor',
         data: {
-          code: `// Interactive Stash Component Example
-import { GanttChart } from '@stash/react-native';
+          files: [
+            {
+              id: 'data',
+              name: 'data.json',
+              language: 'json',
+              code: `[
+  {
+    "id": "1",
+    "title": "Design Phase",
+    "description": "UI/UX design and wireframes",
+    "startDate": "2025-01-01T00:00:00.000Z",
+    "endDate": "2025-01-15T00:00:00.000Z",
+    "progress": 100,
+    "status": "completed",
+    "priority": "high",
+    "assignee": "Alice Chen"
+  },
+  {
+    "id": "2",
+    "title": "Development",
+    "description": "Core features implementation",
+    "startDate": "2025-01-10T00:00:00.000Z",
+    "endDate": "2025-02-28T00:00:00.000Z",
+    "progress": 60,
+    "status": "in-progress",
+    "priority": "critical",
+    "assignee": "Bob Smith",
+    "dependencies": ["1"]
+  },
+  {
+    "id": "3",
+    "title": "Testing",
+    "description": "QA and bug fixes",
+    "startDate": "2025-02-20T00:00:00.000Z",
+    "endDate": "2025-03-15T00:00:00.000Z",
+    "progress": 0,
+    "status": "pending",
+    "priority": "high",
+    "assignee": "Carol Wang",
+    "dependencies": ["2"]
+  }
+]`,
+            },
+            {
+              id: 'implementation',
+              name: 'GanttChartExample.tsx',
+              language: 'tsx',
+              code: `import { GanttChart, type GanttTask } from 'stash';
 
-// Define your project tasks
-const projectTasks = [
+// Define your tasks
+const tasks: GanttTask[] = [
   {
     id: '1',
     title: 'Design Phase',
+    description: 'UI/UX design and wireframes',
     startDate: new Date('2025-01-01'),
     endDate: new Date('2025-01-15'),
     progress: 100,
     status: 'completed',
     priority: 'high',
+    assignee: 'Alice Chen'
   },
   {
     id: '2',
     title: 'Development',
+    description: 'Core features implementation',
     startDate: new Date('2025-01-10'),
     endDate: new Date('2025-02-28'),
     progress: 60,
     status: 'in-progress',
     priority: 'critical',
+    assignee: 'Bob Smith',
+    dependencies: ['1']
   },
   {
     id: '3',
     title: 'Testing',
+    description: 'QA and bug fixes',
     startDate: new Date('2025-02-20'),
     endDate: new Date('2025-03-15'),
     progress: 0,
     status: 'pending',
     priority: 'high',
+    assignee: 'Carol Wang',
+    dependencies: ['2']
   },
 ];
 
 // Render the Gantt chart
-<GanttChart
-  tasks={projectTasks}
-  mode="full"
-  showProgress={true}
-  showToday={true}
-/>`,
-          language: 'tsx',
-          fileName: 'GanttChartExample.tsx',
+export default function App() {
+  return (
+    <GanttChart
+      tasks={tasks}
+      mode="full"
+      title="Project Timeline"
+      subtitle="Track project progress and dependencies"
+      showProgress={true}
+      showToday={true}
+    />
+  );
+}`,
+            },
+          ],
           mode: 'mini',
           editable: false,
           showPreview: true,
@@ -3459,7 +3519,17 @@ const getWorkflowChatMessages = (): Message[] => {
       isOwn: false,
       interactiveComponent: {
         type: 'workflow',
-        data: workflowData,
+        data: {
+          data: workflowData,
+          title: 'CI/CD Pipeline',
+          subtitle: 'Production Deployment • Build in progress',
+          mode: 'mini',
+          showLabels: true,
+          showStatus: true,
+          showMetadata: true,
+          highlightCriticalPath: true,
+          orientation: 'horizontal',
+        },
       },
     },
   ];
@@ -3830,6 +3900,715 @@ const getMultiSwipeableMessages = (): Message[] => {
 };
 
 // Core demo chats showcasing Stash capabilities
+// Sprint Planning - Team Collaboration
+const getSprintPlanningMessages = (): Message[] => {
+  const now = new Date();
+
+  // Sprint planning Gantt chart
+  const sprintTasks = [
+    {
+      id: 'sprint-1',
+      title: 'User Authentication Flow',
+      startDate: addDays(now, 1),
+      endDate: addDays(now, 5),
+      progress: 0,
+      assignee: 'Sarah Chen',
+      priority: 'high' as const,
+      status: 'not-started' as const,
+      dependencies: [],
+    },
+    {
+      id: 'sprint-2',
+      title: 'API Integration - Payment Gateway',
+      startDate: addDays(now, 2),
+      endDate: addDays(now, 7),
+      progress: 0,
+      assignee: 'Mike Rodriguez',
+      priority: 'high' as const,
+      status: 'not-started' as const,
+      dependencies: ['sprint-1'],
+    },
+    {
+      id: 'sprint-3',
+      title: 'Dashboard UI Components',
+      startDate: addDays(now, 1),
+      endDate: addDays(now, 4),
+      progress: 0,
+      assignee: 'Alex Kim',
+      priority: 'medium' as const,
+      status: 'not-started' as const,
+      dependencies: [],
+    },
+    {
+      id: 'sprint-4',
+      title: 'Mobile Responsive Layouts',
+      startDate: addDays(now, 5),
+      endDate: addDays(now, 9),
+      progress: 0,
+      assignee: 'Alex Kim',
+      priority: 'medium' as const,
+      status: 'not-started' as const,
+      dependencies: ['sprint-3'],
+    },
+    {
+      id: 'sprint-5',
+      title: 'Unit Tests - Auth Module',
+      startDate: addDays(now, 6),
+      endDate: addDays(now, 8),
+      progress: 0,
+      assignee: 'Jamie Foster',
+      priority: 'high' as const,
+      status: 'not-started' as const,
+      dependencies: ['sprint-1'],
+    },
+    {
+      id: 'sprint-6',
+      title: 'Database Schema Migration',
+      startDate: addDays(now, 1),
+      endDate: addDays(now, 3),
+      progress: 0,
+      assignee: 'Sarah Chen',
+      priority: 'critical' as const,
+      status: 'not-started' as const,
+      dependencies: [],
+    },
+    {
+      id: 'sprint-7',
+      title: 'Performance Optimization',
+      startDate: addDays(now, 8),
+      endDate: addDays(now, 12),
+      progress: 0,
+      assignee: 'Mike Rodriguez',
+      priority: 'low' as const,
+      status: 'not-started' as const,
+      dependencies: ['sprint-2', 'sprint-4'],
+    },
+    {
+      id: 'sprint-8',
+      title: 'Documentation Updates',
+      startDate: addDays(now, 10),
+      endDate: addDays(now, 13),
+      progress: 0,
+      assignee: 'Jamie Foster',
+      priority: 'low' as const,
+      status: 'not-started' as const,
+      dependencies: ['sprint-5'],
+    },
+  ];
+
+  // Sarah's task list
+  const sarahTasks = [
+    {
+      id: 'sarah-1',
+      title: 'Design authentication database schema',
+      description: 'Create ERD and migration scripts for user auth tables',
+      completed: false,
+      priority: 'high' as const,
+      dueDate: addDays(now, 2),
+      tags: ['backend', 'database'],
+      assignee: 'Sarah Chen',
+    },
+    {
+      id: 'sarah-2',
+      title: 'Implement JWT token generation',
+      description: 'Set up JWT signing and verification with refresh tokens',
+      completed: false,
+      priority: 'high' as const,
+      dueDate: addDays(now, 3),
+      tags: ['backend', 'security'],
+      assignee: 'Sarah Chen',
+    },
+    {
+      id: 'sarah-3',
+      title: 'Create password hashing service',
+      description: 'Use bcrypt for secure password storage',
+      completed: false,
+      priority: 'high' as const,
+      dueDate: addDays(now, 3),
+      tags: ['backend', 'security'],
+      assignee: 'Sarah Chen',
+    },
+    {
+      id: 'sarah-4',
+      title: 'Set up OAuth2 providers',
+      description: 'Configure Google and GitHub OAuth integration',
+      completed: false,
+      priority: 'medium' as const,
+      dueDate: addDays(now, 5),
+      tags: ['backend', 'oauth'],
+      assignee: 'Sarah Chen',
+    },
+  ];
+
+  // Mike's task list
+  const mikeTasks = [
+    {
+      id: 'mike-1',
+      title: 'Integrate Stripe payment API',
+      description: 'Set up Stripe SDK and payment intent flow',
+      completed: false,
+      priority: 'high' as const,
+      dueDate: addDays(now, 4),
+      tags: ['backend', 'payments'],
+      assignee: 'Mike Rodriguez',
+    },
+    {
+      id: 'mike-2',
+      title: 'Create webhook handler for payments',
+      description: 'Handle Stripe webhook events for payment confirmations',
+      completed: false,
+      priority: 'high' as const,
+      dueDate: addDays(now, 5),
+      tags: ['backend', 'payments'],
+      assignee: 'Mike Rodriguez',
+    },
+    {
+      id: 'mike-3',
+      title: 'Implement subscription management',
+      description: 'Create APIs for subscription CRUD operations',
+      completed: false,
+      priority: 'medium' as const,
+      dueDate: addDays(now, 7),
+      tags: ['backend', 'subscriptions'],
+      assignee: 'Mike Rodriguez',
+    },
+  ];
+
+  // Alex's task list
+  const alexTasks = [
+    {
+      id: 'alex-1',
+      title: 'Build analytics dashboard layout',
+      description: 'Create responsive grid layout for dashboard widgets',
+      completed: false,
+      priority: 'high' as const,
+      dueDate: addDays(now, 3),
+      tags: ['frontend', 'ui'],
+      assignee: 'Alex Kim',
+    },
+    {
+      id: 'alex-2',
+      title: 'Design chart components',
+      description: 'Create reusable chart components (line, bar, pie)',
+      completed: false,
+      priority: 'medium' as const,
+      dueDate: addDays(now, 4),
+      tags: ['frontend', 'charts'],
+      assignee: 'Alex Kim',
+    },
+    {
+      id: 'alex-3',
+      title: 'Implement mobile breakpoints',
+      description: 'Add responsive styles for mobile/tablet screens',
+      completed: false,
+      priority: 'medium' as const,
+      dueDate: addDays(now, 6),
+      tags: ['frontend', 'mobile'],
+      assignee: 'Alex Kim',
+    },
+    {
+      id: 'alex-4',
+      title: 'Dark mode theme implementation',
+      description: 'Add dark mode toggle with theme persistence',
+      completed: false,
+      priority: 'low' as const,
+      dueDate: addDays(now, 8),
+      tags: ['frontend', 'ui'],
+      assignee: 'Alex Kim',
+    },
+  ];
+
+  // Jamie's task list
+  const jamieTasks = [
+    {
+      id: 'jamie-1',
+      title: 'Write unit tests for auth services',
+      description: 'Test JWT, password hashing, and OAuth flows',
+      completed: false,
+      priority: 'high' as const,
+      dueDate: addDays(now, 7),
+      tags: ['testing', 'backend'],
+      assignee: 'Jamie Foster',
+    },
+    {
+      id: 'jamie-2',
+      title: 'Create integration tests for API',
+      description: 'Test end-to-end API flows with test database',
+      completed: false,
+      priority: 'high' as const,
+      dueDate: addDays(now, 8),
+      tags: ['testing', 'api'],
+      assignee: 'Jamie Foster',
+    },
+    {
+      id: 'jamie-3',
+      title: 'Set up CI/CD test pipeline',
+      description: 'Configure automated testing in GitHub Actions',
+      completed: false,
+      priority: 'medium' as const,
+      dueDate: addDays(now, 10),
+      tags: ['testing', 'devops'],
+      assignee: 'Jamie Foster',
+    },
+  ];
+
+  // Code snippet for discussion
+  const authCodeSnippet = `// src/services/auth.service.ts
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+
+export class AuthService {
+  private readonly JWT_SECRET = process.env.JWT_SECRET;
+  private readonly JWT_EXPIRES_IN = '7d';
+  private readonly REFRESH_TOKEN_EXPIRES_IN = '30d';
+
+  async hashPassword(password: string): Promise<string> {
+    const saltRounds = 12;
+    return bcrypt.hash(password, saltRounds);
+  }
+
+  async verifyPassword(password: string, hash: string): Promise<boolean> {
+    return bcrypt.compare(password, hash);
+  }
+
+  generateTokens(userId: string) {
+    const accessToken = jwt.sign(
+      { userId, type: 'access' },
+      this.JWT_SECRET,
+      { expiresIn: this.JWT_EXPIRES_IN }
+    );
+
+    const refreshToken = jwt.sign(
+      { userId, type: 'refresh' },
+      this.JWT_SECRET,
+      { expiresIn: this.REFRESH_TOKEN_EXPIRES_IN }
+    );
+
+    return { accessToken, refreshToken };
+  }
+}`;
+
+  // Sprint velocity time series data
+  const sprintVelocityData = {
+    series: [
+      {
+        id: 'planned',
+        name: 'Planned Story Points',
+        data: [
+          { timestamp: subDays(now, 28).getTime(), value: 45 },
+          { timestamp: subDays(now, 14).getTime(), value: 52 },
+          { timestamp: now.getTime(), value: 48 },
+        ],
+        color: '#60A5FA',
+      },
+      {
+        id: 'completed',
+        name: 'Completed Story Points',
+        data: [
+          { timestamp: subDays(now, 28).getTime(), value: 42 },
+          { timestamp: subDays(now, 14).getTime(), value: 49 },
+          { timestamp: now.getTime(), value: 0 },
+        ],
+        color: '#34D399',
+      },
+    ],
+    yAxisLabel: 'Story Points',
+    xAxisLabel: 'Sprint',
+  };
+
+  return [
+    {
+      id: 'sprint-1',
+      content: "Hey team! 👋 Let's kick off Sprint 15 planning. I've prepared an overview of all the tasks we need to complete over the next 2 weeks.",
+      sender: { id: 'sarah', name: 'Sarah Chen', avatar: '👩‍💻' },
+      timestamp: addMinutes(now, -45),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'sprint-2',
+      content: "Here's our **Sprint 15 Timeline** with all major deliverables:\n\n**Key Highlights:**\n• 🎯 8 main tasks spanning 13 days\n• 🔴 2 critical priority items\n• 👥 All team members assigned\n• 📊 Clear dependency tracking\n\n**Focus Areas:**\n1. Authentication & Security (Sarah)\n2. Payment Integration (Mike)\n3. Dashboard UI (Alex)\n4. Testing & QA (Jamie)\n\nClick expand to see the full Gantt chart with dependencies!",
+      sender: { id: 'sarah', name: 'Sarah Chen', avatar: '👩‍💻' },
+      timestamp: addMinutes(now, -44),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'gantt',
+        data: {
+          tasks: sprintTasks,
+          mode: 'mini',
+          showDependencies: true,
+          showAssignees: true,
+          showProgress: true,
+        },
+      },
+    },
+    {
+      id: 'sprint-3',
+      content: "Perfect! Let me share my task breakdown for the authentication work:",
+      sender: { id: 'sarah', name: 'Sarah Chen', avatar: '👩‍💻' },
+      timestamp: addMinutes(now, -42),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'sprint-4',
+      content: "**Sarah's Sprint 15 Tasks** - Authentication & Security\n\n✅ Database schema (2 days)\n✅ JWT token system (1 day)\n✅ Password hashing (1 day)\n✅ OAuth2 setup (2 days)\n\n**Total:** 4 tasks, ~6 days of work",
+      sender: { id: 'sarah', name: 'Sarah Chen', avatar: '👩‍💻' },
+      timestamp: addMinutes(now, -41),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'task-list',
+        data: {
+          tasks: sarahTasks,
+          mode: 'mini',
+          showPriority: true,
+          showDueDate: true,
+          showTags: true,
+        },
+      },
+    },
+    {
+      id: 'sprint-5',
+      content: "Great! Here's what I'm tackling for payment integration:",
+      sender: { id: 'mike', name: 'Mike Rodriguez', avatar: '👨‍💻' },
+      timestamp: addMinutes(now, -39),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'sprint-6',
+      content: "**Mike's Sprint 15 Tasks** - Payment Gateway Integration\n\n💳 Stripe API integration\n🔔 Webhook handlers for events\n📱 Subscription management APIs\n\n**Total:** 3 tasks, ~5 days\n**Dependency:** Requires Sarah's auth work to be complete",
+      sender: { id: 'mike', name: 'Mike Rodriguez', avatar: '👨‍💻' },
+      timestamp: addMinutes(now, -38),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'task-list',
+        data: {
+          tasks: mikeTasks,
+          mode: 'mini',
+          showPriority: true,
+          showDueDate: true,
+          showTags: true,
+        },
+      },
+    },
+    {
+      id: 'sprint-7',
+      content: "I'll handle all the dashboard UI work!",
+      sender: { id: 'alex', name: 'Alex Kim', avatar: '🎨' },
+      timestamp: addMinutes(now, -36),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'sprint-8',
+      content: "**Alex's Sprint 15 Tasks** - Dashboard & Mobile UI\n\n📊 Analytics dashboard layout\n📈 Reusable chart components\n📱 Mobile responsive breakpoints\n🌙 Dark mode theme\n\n**Total:** 4 tasks, ~8 days\n**Split:** High priority UI first, then mobile optimization",
+      sender: { id: 'alex', name: 'Alex Kim', avatar: '🎨' },
+      timestamp: addMinutes(now, -35),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'task-list',
+        data: {
+          tasks: alexTasks,
+          mode: 'mini',
+          showPriority: true,
+          showDueDate: true,
+          showTags: true,
+        },
+      },
+    },
+    {
+      id: 'sprint-9',
+      content: "And I've got testing covered:",
+      sender: { id: 'jamie', name: 'Jamie Foster', avatar: '🧪' },
+      timestamp: addMinutes(now, -33),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'sprint-10',
+      content: "**Jamie's Sprint 15 Tasks** - Testing & Quality Assurance\n\n🧪 Unit tests for auth module\n🔗 Integration tests for APIs\n🚀 CI/CD pipeline setup\n\n**Total:** 3 tasks, ~6 days\n**Note:** Tests will run in parallel as features complete",
+      sender: { id: 'jamie', name: 'Jamie Foster', avatar: '🧪' },
+      timestamp: addMinutes(now, -32),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'task-list',
+        data: {
+          tasks: jamieTasks,
+          mode: 'mini',
+          showPriority: true,
+          showDueDate: true,
+          showTags: true,
+        },
+      },
+    },
+    {
+      id: 'sprint-11',
+      content: "Excellent breakdown everyone! 🎉 Sarah, I wanted to discuss the auth implementation approach. Can you share the code structure you're planning?",
+      sender: { id: 'mike', name: 'Mike Rodriguez', avatar: '👨‍💻' },
+      timestamp: addMinutes(now, -29),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'sprint-12',
+      content: "Sure! Here's the core AuthService class I'm building:",
+      sender: { id: 'sarah', name: 'Sarah Chen', avatar: '👩‍💻' },
+      timestamp: addMinutes(now, -28),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'sprint-13',
+      content: "**Authentication Service Implementation**\n\nThis service handles:\n• Password hashing with bcrypt (12 rounds)\n• JWT access token generation (7 day expiry)\n• Refresh token generation (30 day expiry)\n• Secure password verification\n\nI'm using environment variables for the JWT secret and configurable expiration times.",
+      sender: { id: 'sarah', name: 'Sarah Chen', avatar: '👩‍💻' },
+      timestamp: addMinutes(now, -27),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'code-editor',
+        data: {
+          code: authCodeSnippet,
+          language: 'typescript',
+          fileName: 'auth.service.ts',
+          mode: 'mini',
+          editable: false,
+          showLineNumbers: true,
+          title: 'AuthService Core Implementation',
+        },
+      },
+    },
+    {
+      id: 'sprint-14',
+      content: "Love it! 👍 The bcrypt salt rounds at 12 is perfect for security. One suggestion: should we also add rate limiting to prevent brute force attacks?",
+      sender: { id: 'mike', name: 'Mike Rodriguez', avatar: '👨‍💻' },
+      timestamp: addMinutes(now, -25),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'sprint-15',
+      content: "Great catch! Yes, I'll add express-rate-limit middleware. Let me add that to my task list.",
+      sender: { id: 'sarah', name: 'Sarah Chen', avatar: '👩‍💻' },
+      timestamp: addMinutes(now, -24),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'sprint-16',
+      content: "Before we finalize, let me show our team velocity over the last 3 sprints:",
+      sender: { id: 'sarah', name: 'Sarah Chen', avatar: '👩‍💻' },
+      timestamp: addMinutes(now, -22),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'sprint-17',
+      content: "**Team Velocity Tracking**\n\n📊 Sprint performance overview:\n\n**Sprint 13:** 42/45 points completed (93%)\n**Sprint 14:** 49/52 points completed (94%)\n**Sprint 15:** 48 points planned (current)\n\n**Analysis:**\n• Consistent ~45-50 point velocity\n• Average completion rate: 93.5%\n• Current sprint is well-scoped based on historical data\n\nWe're trending well! This sprint's 48-point plan aligns perfectly with our capacity.",
+      sender: { id: 'sarah', name: 'Sarah Chen', avatar: '👩‍💻' },
+      timestamp: addMinutes(now, -21),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'time-series-chart',
+        data: {
+          ...sprintVelocityData,
+          mode: 'mini',
+          showLegend: true,
+          showGrid: true,
+          height: 280,
+        },
+      },
+    },
+    {
+      id: 'sprint-18',
+      content: "Perfect! The numbers look solid. One last thing - here's our finalized sprint board:",
+      sender: { id: 'sarah', name: 'Sarah Chen', avatar: '👩‍💻' },
+      timestamp: addMinutes(now, -18),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'sprint-19',
+      content: "**Sprint 15 Kanban Board** - Ready to Go! 🚀\n\n**Columns:**\n• 📋 Backlog (14 tasks)\n• 🏃 In Progress (0 tasks - sprint starts tomorrow)\n• ✅ Done (0 tasks)\n\n**Team Distribution:**\n• Sarah: 4 tasks (Auth & Security)\n• Mike: 3 tasks (Payments)\n• Alex: 4 tasks (UI/UX)\n• Jamie: 3 tasks (Testing)\n\nEveryone ready to start tomorrow? 🎯",
+      sender: { id: 'sarah', name: 'Sarah Chen', avatar: '👩‍💻' },
+      timestamp: addMinutes(now, -17),
+      status: 'delivered',
+      isOwn: false,
+      interactiveComponent: {
+        type: 'kanban-board',
+        data: {
+          id: 'sprint-15',
+          title: 'Sprint 15 Kanban Board',
+          description: 'Ready to Go! 🚀',
+          columns: [
+            {
+              id: 'backlog',
+              title: 'Sprint Backlog',
+              icon: '📋',
+              wipLimit: 20,
+              cards: [
+                // Sarah's remaining tasks
+                ...sarahTasks.slice(2).map(task => ({
+                  id: task.id,
+                  title: task.title,
+                  description: task.description,
+                  priority: task.priority as 'low' | 'medium' | 'high' | 'urgent',
+                  assignees: [{ id: 'sarah', name: task.assignee || 'Sarah Chen', avatar: '👩‍💻' }],
+                  tags: task.tags?.map(tag => ({ id: tag, label: tag, color: '#3B82F6' })),
+                  dueDate: task.dueDate,
+                })),
+                // Mike's remaining tasks
+                ...mikeTasks.slice(1).map(task => ({
+                  id: task.id,
+                  title: task.title,
+                  description: task.description,
+                  priority: task.priority as 'low' | 'medium' | 'high' | 'urgent',
+                  assignees: [{ id: 'mike', name: task.assignee || 'Mike Rodriguez', avatar: '👨‍💻' }],
+                  tags: task.tags?.map(tag => ({ id: tag, label: tag, color: '#10B981' })),
+                  dueDate: task.dueDate,
+                })),
+                // Alex's remaining tasks
+                ...alexTasks.slice(2).map(task => ({
+                  id: task.id,
+                  title: task.title,
+                  description: task.description,
+                  priority: task.priority as 'low' | 'medium' | 'high' | 'urgent',
+                  assignees: [{ id: 'alex', name: task.assignee || 'Alex Kim', avatar: '🎨' }],
+                  tags: task.tags?.map(tag => ({ id: tag, label: tag, color: '#F59E0B' })),
+                  dueDate: task.dueDate,
+                })),
+                // Jamie's remaining tasks
+                ...jamieTasks.slice(1).map(task => ({
+                  id: task.id,
+                  title: task.title,
+                  description: task.description,
+                  priority: task.priority as 'low' | 'medium' | 'high' | 'urgent',
+                  assignees: [{ id: 'jamie', name: task.assignee || 'Jamie Foster', avatar: '🧪' }],
+                  tags: task.tags?.map(tag => ({ id: tag, label: tag, color: '#8B5CF6' })),
+                  dueDate: task.dueDate,
+                })),
+              ],
+            },
+            {
+              id: 'in-progress',
+              title: 'In Progress',
+              icon: '🏃',
+              wipLimit: 5,
+              cards: [
+                // Sarah - JWT implementation
+                {
+                  id: sarahTasks[1].id,
+                  title: sarahTasks[1].title,
+                  description: sarahTasks[1].description,
+                  priority: sarahTasks[1].priority as 'low' | 'medium' | 'high' | 'urgent',
+                  assignees: [{ id: 'sarah', name: sarahTasks[1].assignee || 'Sarah Chen', avatar: '👩‍💻' }],
+                  tags: sarahTasks[1].tags?.map(tag => ({ id: tag, label: tag, color: '#3B82F6' })),
+                  dueDate: sarahTasks[1].dueDate,
+                },
+                // Mike - Stripe integration
+                {
+                  id: mikeTasks[0].id,
+                  title: mikeTasks[0].title,
+                  description: mikeTasks[0].description,
+                  priority: mikeTasks[0].priority as 'low' | 'medium' | 'high' | 'urgent',
+                  assignees: [{ id: 'mike', name: mikeTasks[0].assignee || 'Mike Rodriguez', avatar: '👨‍💻' }],
+                  tags: mikeTasks[0].tags?.map(tag => ({ id: tag, label: tag, color: '#10B981' })),
+                  dueDate: mikeTasks[0].dueDate,
+                },
+                // Alex - Chart components
+                {
+                  id: alexTasks[1].id,
+                  title: alexTasks[1].title,
+                  description: alexTasks[1].description,
+                  priority: alexTasks[1].priority as 'low' | 'medium' | 'high' | 'urgent',
+                  assignees: [{ id: 'alex', name: alexTasks[1].assignee || 'Alex Kim', avatar: '🎨' }],
+                  tags: alexTasks[1].tags?.map(tag => ({ id: tag, label: tag, color: '#F59E0B' })),
+                  dueDate: alexTasks[1].dueDate,
+                },
+                // Jamie - Auth unit tests
+                {
+                  id: jamieTasks[0].id,
+                  title: jamieTasks[0].title,
+                  description: jamieTasks[0].description,
+                  priority: jamieTasks[0].priority as 'low' | 'medium' | 'high' | 'urgent',
+                  assignees: [{ id: 'jamie', name: jamieTasks[0].assignee || 'Jamie Foster', avatar: '🧪' }],
+                  tags: jamieTasks[0].tags?.map(tag => ({ id: tag, label: tag, color: '#8B5CF6' })),
+                  dueDate: jamieTasks[0].dueDate,
+                },
+              ],
+            },
+            {
+              id: 'done',
+              title: 'Done',
+              icon: '✅',
+              cards: [
+                // Sarah - Database schema (foundational work)
+                {
+                  id: sarahTasks[0].id,
+                  title: sarahTasks[0].title,
+                  description: sarahTasks[0].description,
+                  priority: sarahTasks[0].priority as 'low' | 'medium' | 'high' | 'urgent',
+                  assignees: [{ id: 'sarah', name: sarahTasks[0].assignee || 'Sarah Chen', avatar: '👩‍💻' }],
+                  tags: sarahTasks[0].tags?.map(tag => ({ id: tag, label: tag, color: '#3B82F6' })),
+                  dueDate: sarahTasks[0].dueDate,
+                },
+                // Alex - Dashboard layout
+                {
+                  id: alexTasks[0].id,
+                  title: alexTasks[0].title,
+                  description: alexTasks[0].description,
+                  priority: alexTasks[0].priority as 'low' | 'medium' | 'high' | 'urgent',
+                  assignees: [{ id: 'alex', name: alexTasks[0].assignee || 'Alex Kim', avatar: '🎨' }],
+                  tags: alexTasks[0].tags?.map(tag => ({ id: tag, label: tag, color: '#F59E0B' })),
+                  dueDate: alexTasks[0].dueDate,
+                },
+              ],
+            },
+          ],
+        },
+      },
+    },
+    {
+      id: 'sprint-20',
+      content: "Ready! 💪 Looking forward to crushing this sprint!",
+      sender: { id: 'mike', name: 'Mike Rodriguez', avatar: '👨‍💻' },
+      timestamp: addMinutes(now, -15),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'sprint-21',
+      content: "Let's do this! 🎨",
+      sender: { id: 'alex', name: 'Alex Kim', avatar: '🎨' },
+      timestamp: addMinutes(now, -14),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'sprint-22',
+      content: "Tests will be ready when you are! 🧪",
+      sender: { id: 'jamie', name: 'Jamie Foster', avatar: '🧪' },
+      timestamp: addMinutes(now, -13),
+      status: 'delivered',
+      isOwn: false,
+    },
+    {
+      id: 'sprint-23',
+      content: "Awesome! Sprint 15 is officially planned and ready to kick off tomorrow morning. Great collaboration everyone! 🎉\n\n**Next Steps:**\n1. Daily standups at 9:30 AM\n2. Mid-sprint review on Day 7\n3. Sprint demo & retro on Day 14\n\nLet's make this our best sprint yet! 🚀",
+      sender: { id: 'sarah', name: 'Sarah Chen', avatar: '👩‍💻' },
+      timestamp: addMinutes(now, -10),
+      status: 'delivered',
+      isOwn: false,
+    },
+  ];
+};
+
 const ALL_MOCK_CHATS: ChatPreview[] = [
   // Combined overview - what is Stash and why it exists
   {
@@ -4120,6 +4899,34 @@ const ALL_MOCK_CHATS: ChatPreview[] = [
       lastReadAt: new Date(),
     },
   },
+  // Sprint Planning Team Collaboration
+  {
+    id: 'chat-sprint-planning',
+    title: '🎯 Sprint 15 Planning - Team Collaboration',
+    type: 'group',
+    groupId: 'examples',
+    participants: [
+      { id: 'sarah', name: 'Sarah Chen', avatar: '👩‍💻' },
+      { id: 'mike', name: 'Mike Rodriguez', avatar: '👨‍💻' },
+      { id: 'alex', name: 'Alex Kim', avatar: '🎨' },
+      { id: 'jamie', name: 'Jamie Foster', avatar: '🧪' },
+    ],
+    lastMessage: {
+      content: 'Awesome! Sprint 15 is officially planned and ready to kick off tomorrow morning. Great collaboration everyone! 🎉',
+      timestamp: new Date(),
+      senderId: 'sarah',
+      senderName: 'Sarah Chen',
+    },
+    unreadCount: 0,
+    updatedAt: new Date(),
+    createdAt: new Date(),
+    isPinned: true,
+    isMuted: false,
+    isArchived: false,
+    metadata: {
+      lastReadAt: new Date(),
+    },
+  },
   // Media collaboration demo
   {
     id: 'chat-media',
@@ -4227,6 +5034,7 @@ export default function ChatHistoryExample() {
   const treeViewMessages = useMemo(() => getTreeViewChatMessages(), []);
   const componentShowcaseMessages = useMemo(() => getComponentShowcaseMessages(), []);
   const multiSwipeableMessages = useMemo(() => getMultiSwipeableMessages(), []);
+  const sprintPlanningMessages = useMemo(() => getSprintPlanningMessages(), []);
 
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>({
     'chat-overview': overviewMessages,
@@ -4237,6 +5045,7 @@ export default function ChatHistoryExample() {
     'chat-heatmap': heatmapMessages,
     'chat-tree-view': treeViewMessages,
     'chat-workflow': workflowMessages,
+    'chat-sprint-planning': sprintPlanningMessages,
     'chat-component-showcase': componentShowcaseMessages,
     'chat-multi-swipeable': multiSwipeableMessages,
     'chat-incident': incidentMessages,
@@ -4447,7 +5256,7 @@ export default function ChatHistoryExample() {
       sidebarWidth={320}
       mobileBreakpoint={768}
       defaultSidebarVisible={true}
-      defaultMobileVisible={true}
+      defaultMobileVisible={false}
       autoSelectFirstChat={true}
       showMenuButton={true}
       onChatSelect={handleChatSelect}

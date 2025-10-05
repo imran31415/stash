@@ -239,7 +239,7 @@ export function useWebRTC({
   }, [roomId, userId, createPeerConnection, sendSignalingMessage]);
 
   const handleOffer = useCallback(async (fromUserId: string, offer: RTCSessionDescriptionInit) => {
-    console.log('[WebRTC] Received offer from:', fromUserId);
+    console.log('[WebRTC] 📨 Received offer from:', fromUserId);
     let peer = peersRef.current.get(fromUserId);
 
     if (!peer) {
@@ -251,33 +251,48 @@ export function useWebRTC({
       console.log('[WebRTC] Using existing peer for offer');
       console.log('[WebRTC] Existing peer signaling state:', peer.connection.signalingState);
 
-      // Handle offer collision (both peers sent offers at same time)
-      if (peer.connection.signalingState === 'have-local-offer') {
-        console.log('[WebRTC] ⚠️ Offer collision detected!');
-        // Use polite/impolite pattern - lower userId is polite and rolls back
+      // Handle offer collision using perfect negotiation pattern
+      if (peer.connection.signalingState !== 'stable') {
+        console.log('[WebRTC] ⚠️ Signaling state not stable, handling collision');
+
+        // Use polite/impolite pattern - lower userId is polite
         const isPolite = userId < fromUserId;
         console.log('[WebRTC] I am', isPolite ? 'polite' : 'impolite');
 
-        if (isPolite) {
-          console.log('[WebRTC] Rolling back my offer to accept remote offer');
-          // Rollback our offer by setting remote first
-          await peer.connection.setLocalDescription({ type: 'rollback' });
-        } else {
-          console.log('[WebRTC] Ignoring remote offer, keeping my offer');
-          return; // Impolite peer ignores the collision
+        if (!isPolite) {
+          // Impolite peer: ignore if we're in the middle of creating an offer
+          console.log('[WebRTC] Ignoring remote offer (impolite peer)');
+          return;
+        }
+
+        // Polite peer: rollback local offer and accept remote
+        console.log('[WebRTC] Rolling back to accept remote offer (polite peer)');
+        try {
+          await peer.connection.setLocalDescription({ type: 'rollback' } as RTCSessionDescriptionInit);
+          console.log('[WebRTC] ✅ Rollback successful, now stable');
+        } catch (error) {
+          console.error('[WebRTC] ❌ Rollback failed:', error);
+          // Recreate peer connection on rollback failure
+          peer.connection.close();
+          const pc = createPeerConnection(fromUserId);
+          peer = { userId: fromUserId, connection: pc, stream: null };
+          peersRef.current.set(fromUserId, peer);
+          console.log('[WebRTC] Recreated peer connection');
         }
       }
     }
 
     try {
-      console.log('[WebRTC] Setting remote description from:', fromUserId);
+      console.log('[WebRTC] Setting remote description (offer) from:', fromUserId);
       await peer.connection.setRemoteDescription(new RTCSessionDescription(offer));
+      console.log('[WebRTC] ✅ Remote description set, signaling state:', peer.connection.signalingState);
 
       console.log('[WebRTC] Creating answer for:', fromUserId);
       const answer = await peer.connection.createAnswer();
       await peer.connection.setLocalDescription(answer);
+      console.log('[WebRTC] ✅ Answer created and set as local description');
 
-      console.log('[WebRTC] Sending answer to:', fromUserId);
+      console.log('[WebRTC] 📤 Sending answer to:', fromUserId);
       sendSignalingMessage({
         type: 'webrtc-answer',
         roomId,
@@ -286,27 +301,34 @@ export function useWebRTC({
         answer: peer.connection.localDescription,
       });
 
-      console.log('[WebRTC] Answer sent successfully to:', fromUserId);
+      console.log('[WebRTC] ✅ Answer sent successfully to:', fromUserId);
     } catch (error) {
-      console.error('[WebRTC] Error handling offer:', error);
+      console.error('[WebRTC] ❌ Error handling offer:', error);
       console.error('[WebRTC] Signaling state:', peer?.connection.signalingState);
+      console.error('[WebRTC] Connection state:', peer?.connection.connectionState);
     }
   }, [roomId, userId, createPeerConnection, sendSignalingMessage]);
 
   const handleAnswer = useCallback(async (fromUserId: string, answer: RTCSessionDescriptionInit) => {
-    console.log('[WebRTC] Received answer from:', fromUserId);
+    console.log('[WebRTC] 📨 Received answer from:', fromUserId);
     const peer = peersRef.current.get(fromUserId);
 
     if (peer) {
       try {
+        console.log('[WebRTC] Current signaling state:', peer.connection.signalingState);
         console.log('[WebRTC] Setting remote description (answer) from:', fromUserId);
         await peer.connection.setRemoteDescription(new RTCSessionDescription(answer));
-        console.log('[WebRTC] Answer handled successfully from:', fromUserId);
+        console.log('[WebRTC] ✅ Answer handled successfully from:', fromUserId);
+        console.log('[WebRTC] New signaling state:', peer.connection.signalingState);
+        console.log('[WebRTC] Connection state:', peer.connection.connectionState);
+        console.log('[WebRTC] ICE connection state:', peer.connection.iceConnectionState);
       } catch (error) {
-        console.error('[WebRTC] Error handling answer:', error);
+        console.error('[WebRTC] ❌ Error handling answer:', error);
+        console.error('[WebRTC] Answer signaling state was:', peer.connection.signalingState);
       }
     } else {
-      console.warn('[WebRTC] Received answer from unknown peer:', fromUserId);
+      console.warn('[WebRTC] ⚠️ Received answer from unknown peer:', fromUserId);
+      console.warn('[WebRTC] Current peers:', Array.from(peersRef.current.keys()));
     }
   }, []);
 

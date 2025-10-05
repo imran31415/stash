@@ -35,6 +35,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   onChange,
   onFileSelect,
   onExpandPress,
+  onPreviewExpandPress,
   title = 'Code Editor',
   description,
   style,
@@ -230,14 +231,26 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         {layout === 'split' && (
           <View style={[styles.previewHeader, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
             <Text style={[styles.previewTitle, { color: colors.text }]}>Preview</Text>
-            <TouchableOpacity
-              style={styles.expandButton}
-              onPress={() => setExpandedPane(expandedPane === 'preview' ? null : 'preview')}
-            >
-              <Text style={[styles.expandIcon, { color: colors.primary }]}>
-                {expandedPane === 'preview' ? '⊗' : '⛶'}
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.previewHeaderActions}>
+              {onPreviewExpandPress && (
+                <TouchableOpacity
+                  style={[styles.viewDetailButton, { backgroundColor: colors.primary }]}
+                  onPress={onPreviewExpandPress}
+                >
+                  <Text style={[styles.viewDetailText, { color: '#FFFFFF' }]}>
+                    👁️ View Detail
+                  </Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={styles.expandButton}
+                onPress={() => setExpandedPane(expandedPane === 'preview' ? null : 'preview')}
+              >
+                <Text style={[styles.expandIcon, { color: colors.primary }]}>
+                  {expandedPane === 'preview' ? '⊗' : '⛶'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
         <ErrorBoundary
@@ -255,7 +268,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           }
         >
           <View style={styles.previewContent}>
-            {renderPreview(currentCode, activeFile?.language)}
+            {renderPreview(currentCode, activeFile?.language, onPreviewExpandPress)}
           </View>
         </ErrorBoundary>
       </View>
@@ -479,9 +492,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
+  previewHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  viewDetailButton: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: 6,
+  },
+  viewDetailText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
   expandButton: {
     padding: spacing.xs,
-    marginLeft: spacing.sm,
   },
   expandIcon: {
     fontSize: 16,

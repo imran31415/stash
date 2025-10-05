@@ -53,7 +53,8 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
 
   // Determine dimensions based on mode
   const isMiniOrPreview = mode === 'mini' || mode === 'preview';
-  const containerWidth = customWidth || measuredWidth || (isMiniOrPreview ? 350 : SCREEN_WIDTH - 32);
+  const defaultMiniWidth = Math.min(measuredWidth || SCREEN_WIDTH - 32, 800);
+  const containerWidth = customWidth || measuredWidth || (isMiniOrPreview ? defaultMiniWidth : SCREEN_WIDTH - 32);
   const width = containerWidth;
   const height = customHeight || (isMiniOrPreview ? 250 : 450);
 
@@ -533,7 +534,7 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
         styles.container,
         {
           width: customWidth || '100%',
-          maxWidth: isMiniOrPreview ? 350 : undefined,
+          maxWidth: isMiniOrPreview ? 800 : undefined,
           alignSelf: 'stretch'
         }
       ]}

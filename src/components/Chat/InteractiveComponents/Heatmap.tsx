@@ -511,7 +511,8 @@ export const Heatmap: React.FC<HeatmapProps> = ({
         styles.container,
         isMini && styles.containerMini,
         {
-          width: customWidth || (isMini ? 350 : '100%'),
+          width: customWidth || '100%',
+          maxWidth: isMini ? 800 : undefined,
           alignSelf: isMini ? 'flex-start' : 'stretch',
         },
       ]}

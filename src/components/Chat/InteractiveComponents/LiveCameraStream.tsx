@@ -70,7 +70,8 @@ export const LiveCameraStream: React.FC<LiveCameraStreamProps> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  const containerWidth = maxWidth || (isMini ? 350 : screenWidth - 32);
+  const defaultMiniWidth = Math.min(screenWidth - 32, 800);
+  const containerWidth = maxWidth || (isMini ? defaultMiniWidth : screenWidth - 32);
   const containerHeight = maxHeight || (isMini ? 200 : 400);
 
   const isWeb = Platform.OS === 'web';

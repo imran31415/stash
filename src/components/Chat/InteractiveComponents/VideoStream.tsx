@@ -94,7 +94,8 @@ export const VideoStream: React.FC<VideoStreamProps> = ({
   const [error, setError] = useState<Error | null>(null);
 
   // Calculate container dimensions
-  const containerWidth = maxWidth || (isMini ? 350 : screenWidth - 32);
+  const defaultMiniWidth = Math.min(screenWidth - 32, 800);
+  const containerWidth = maxWidth || (isMini ? defaultMiniWidth : screenWidth - 32);
   const containerHeight = maxHeight || (isMini ? 200 : 400);
 
   // Get video source URL based on protocol

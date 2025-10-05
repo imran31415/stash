@@ -10,8 +10,10 @@ import {
   ScrollView,
   PanResponder,
   GestureResponderEvent,
+  Animated,
+  Modal,
 } from 'react-native';
-import Svg, { Rect, Path, Text as SvgText, Defs, Marker, G, Circle } from 'react-native-svg';
+import Svg, { Rect, Path, Text as SvgText, Defs, Marker, G, Circle, LinearGradient, Stop } from 'react-native-svg';
 import type { WorkflowProps, WorkflowNode, WorkflowEdge, PositionedNode, PositionedEdge } from './Workflow.types';
 import {
   calculateLayeredLayout,
@@ -62,6 +64,8 @@ export const Workflow: React.FC<WorkflowProps> = ({
   const [zoom, setZoom] = useState(1);
   const [panX, setPanX] = useState(0);
   const [panY, setPanY] = useState(0);
+  const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
+  const bottomSheetAnim = useRef(new Animated.Value(0)).current;
 
   const isDragging = useRef(false);
   const lastPanRef = useRef({ x: 0, y: 0 });
@@ -86,18 +90,19 @@ export const Workflow: React.FC<WorkflowProps> = ({
   const verticalSpacing = isMini ? 80 : layerSpacing;
 
   // Calculate workflow stats
-  const stats = useMemo(() => calculateWorkflowStats(data), [data]);
+  const stats = useMemo(() => data ? calculateWorkflowStats(data) : { totalNodes: 0, totalEdges: 0, layers: 0 }, [data]);
 
   // Calculate critical path if needed
   const criticalPath = useMemo(() => {
-    if (highlightCriticalPath) {
+    if (highlightCriticalPath && data?.nodes && data?.edges) {
       return new Set(findCriticalPath(data.nodes, data.edges));
     }
     return new Set<string>();
-  }, [data.nodes, data.edges, highlightCriticalPath]);
+  }, [data?.nodes, data?.edges, highlightCriticalPath]);
 
   // Calculate layout
   const positionedNodes = useMemo<PositionedNode[]>(() => {
+    if (!data?.nodes || !data?.edges) return [];
     return calculateLayeredLayout(data.nodes, data.edges, {
       width: width || 0,
       height: height || 0,
@@ -108,12 +113,13 @@ export const Workflow: React.FC<WorkflowProps> = ({
       orientation,
       algorithm: layoutAlgorithm,
     });
-  }, [data.nodes, data.edges, width, height, nodeWidth, nodeHeight, horizontalSpacing, verticalSpacing, orientation, layoutAlgorithm]);
+  }, [data?.nodes, data?.edges, width, height, nodeWidth, nodeHeight, horizontalSpacing, verticalSpacing, orientation, layoutAlgorithm]);
 
   // Calculate positioned edges
   const positionedEdges = useMemo<PositionedEdge[]>(() => {
+    if (!data?.edges || !positionedNodes.length) return [];
     return calculatePositionedEdges(data.edges, positionedNodes, nodeWidth, nodeHeight, orientation);
-  }, [data.edges, positionedNodes, nodeWidth, nodeHeight, orientation]);
+  }, [data?.edges, positionedNodes, nodeWidth, nodeHeight, orientation]);
 
   // Calculate SVG viewBox with pan support
   const viewBox = useMemo(() => {
@@ -143,10 +149,31 @@ export const Workflow: React.FC<WorkflowProps> = ({
 
       setSelectedNodeId(node.id);
       setSelectedEdgeId(null);
+      setBottomSheetVisible(true);
+
+      // Animate bottom sheet up
+      Animated.spring(bottomSheetAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 50,
+        friction: 8,
+      }).start();
+
       onNodePress?.(node);
     },
-    [onNodePress]
+    [onNodePress, bottomSheetAnim]
   );
+
+  const handleCloseBottomSheet = useCallback(() => {
+    Animated.timing(bottomSheetAnim, {
+      toValue: 0,
+      duration: 250,
+      useNativeDriver: true,
+    }).start(() => {
+      setBottomSheetVisible(false);
+      setSelectedNodeId(null);
+    });
+  }, [bottomSheetAnim]);
 
   const handleEdgePress = useCallback(
     (edge: WorkflowEdge) => {
@@ -382,30 +409,75 @@ export const Workflow: React.FC<WorkflowProps> = ({
     const icon = getNodeIcon(node);
     const label = getNodeLabel(node, isMini ? 12 : 16);
 
+    // Modern gradient colors based on node type/status
+    const getGradientColors = () => {
+      if (node.status === 'running') {
+        return { start: '#3B82F6', end: '#1D4ED8' }; // Blue gradient
+      } else if (node.status === 'success') {
+        return { start: '#10B981', end: '#059669' }; // Green gradient
+      } else if (node.status === 'failed') {
+        return { start: '#EF4444', end: '#DC2626' }; // Red gradient
+      } else if (node.status === 'waiting') {
+        return { start: '#F59E0B', end: '#D97706' }; // Amber gradient
+      }
+      return { start: '#6B7280', end: '#4B5563' }; // Gray gradient
+    };
+
+    const gradient = getGradientColors();
+    const gradientId = `node-gradient-${node.id}`;
+
     return (
       <G key={node.id} onPress={() => handleNodePress(node)}>
-        {/* Node background */}
+        {/* Outer glow effect for selected/critical path */}
+        {(isSelected || isOnCriticalPath) && (
+          <Rect
+            x={node.x - 4}
+            y={node.y - 4}
+            width={nodeWidth + 8}
+            height={nodeHeight + 8}
+            fill="none"
+            stroke={isSelected ? '#3B82F6' : '#FCD34D'}
+            strokeWidth={2}
+            rx={12}
+            ry={12}
+            opacity={0.4}
+          />
+        )}
+
+        {/* Node background with gradient */}
         <Rect
           x={node.x}
           y={node.y}
           width={nodeWidth}
           height={nodeHeight}
-          fill={color}
-          stroke={isSelected ? '#000000' : isOnCriticalPath ? '#FCD34D' : '#FFFFFF'}
-          strokeWidth={isSelected ? 3 : isOnCriticalPath ? 2.5 : 1.5}
-          rx={8}
-          ry={8}
-          opacity={0.9}
+          fill={`url(#${gradientId})`}
+          stroke={isSelected ? '#3B82F6' : isOnCriticalPath ? '#FCD34D' : 'rgba(255,255,255,0.3)'}
+          strokeWidth={isSelected ? 2.5 : isOnCriticalPath ? 2 : 1}
+          rx={10}
+          ry={10}
+          opacity={0.95}
+        />
+
+        {/* Glassmorphism overlay */}
+        <Rect
+          x={node.x}
+          y={node.y}
+          width={nodeWidth}
+          height={nodeHeight}
+          fill="rgba(255, 255, 255, 0.1)"
+          rx={10}
+          ry={10}
         />
 
         {/* Node icon */}
         <SvgText
           x={node.x + nodeWidth / 2}
-          y={node.y + nodeHeight / 2 - (showLabels ? 8 : 0)}
-          fontSize={isMini ? 16 : 20}
+          y={node.y + nodeHeight / 2 - (showLabels ? 10 : 0)}
+          fontSize={isMini ? 18 : 24}
           fill="#FFFFFF"
           textAnchor="middle"
           alignmentBaseline="middle"
+          opacity={0.95}
         >
           {icon}
         </SvgText>
@@ -414,35 +486,55 @@ export const Workflow: React.FC<WorkflowProps> = ({
         {showLabels && (
           <SvgText
             x={node.x + nodeWidth / 2}
-            y={node.y + nodeHeight / 2 + 12}
-            fontSize={isMini ? 9 : 11}
+            y={node.y + nodeHeight / 2 + 14}
+            fontSize={isMini ? 10 : 12}
             fontWeight="600"
             fill="#FFFFFF"
             textAnchor="middle"
             alignmentBaseline="middle"
+            opacity={0.9}
           >
             {label}
           </SvgText>
         )}
 
-        {/* Status indicator */}
+        {/* Status indicator with glow */}
         {showStatus && node.status && (
-          <Circle
-            cx={node.x + nodeWidth - 8}
-            cy={node.y + 8}
-            r={5}
-            fill={
-              node.status === 'running'
-                ? '#60A5FA'
-                : node.status === 'success'
-                ? '#34D399'
-                : node.status === 'failed'
-                ? '#F87171'
-                : '#9CA3AF'
-            }
-            stroke="#FFFFFF"
-            strokeWidth={1.5}
-          />
+          <G>
+            {/* Glow effect */}
+            <Circle
+              cx={node.x + nodeWidth - 10}
+              cy={node.y + 10}
+              r={8}
+              fill={
+                node.status === 'running'
+                  ? '#3B82F6'
+                  : node.status === 'success'
+                  ? '#10B981'
+                  : node.status === 'failed'
+                  ? '#EF4444'
+                  : '#9CA3AF'
+              }
+              opacity={0.3}
+            />
+            {/* Main indicator */}
+            <Circle
+              cx={node.x + nodeWidth - 10}
+              cy={node.y + 10}
+              r={5}
+              fill={
+                node.status === 'running'
+                  ? '#60A5FA'
+                  : node.status === 'success'
+                  ? '#34D399'
+                  : node.status === 'failed'
+                  ? '#F87171'
+                  : '#9CA3AF'
+              }
+              stroke="rgba(255, 255, 255, 0.8)"
+              strokeWidth={2}
+            />
+          </G>
         )}
       </G>
     );
@@ -456,66 +548,249 @@ export const Workflow: React.FC<WorkflowProps> = ({
       criticalPath.has(edge.target);
     const color = getEdgeColor(edge);
     const strokeDashArray = getEdgeStrokeDashArray(edge);
+    const edgeGradientId = `edge-gradient-${edge.id}`;
+
+    // Determine edge style based on condition type
+    const getEdgeStyle = () => {
+      if (isOnCriticalPath) {
+        return {
+          stroke: `url(#${edgeGradientId}-critical)`,
+          width: isSelected ? 3.5 : 3,
+        };
+      } else if (isSelected) {
+        return {
+          stroke: `url(#${edgeGradientId})`,
+          width: 3,
+        };
+      } else if (edge.conditionType === 'failure') {
+        return {
+          stroke: 'rgba(239, 68, 68, 0.6)', // Red with transparency
+          width: edge.width || 2,
+        };
+      } else if (edge.conditionType === 'success') {
+        return {
+          stroke: 'rgba(16, 185, 129, 0.6)', // Green with transparency
+          width: edge.width || 2,
+        };
+      }
+      return {
+        stroke: 'rgba(107, 114, 128, 0.5)', // Gray with transparency
+        width: edge.width || 2,
+      };
+    };
+
+    const edgeStyle = getEdgeStyle();
 
     return (
       <G key={edge.id}>
-        {/* Edge path */}
+        {/* Edge shadow/glow for selected edges */}
+        {isSelected && (
+          <Path
+            d={edge.path}
+            stroke={isOnCriticalPath ? '#FCD34D' : '#3B82F6'}
+            strokeWidth={6}
+            fill="none"
+            opacity={0.2}
+          />
+        )}
+
+        {/* Main edge path */}
         <Path
           d={edge.path}
-          stroke={isOnCriticalPath ? '#FCD34D' : color}
-          strokeWidth={isSelected ? 3 : isOnCriticalPath ? 2.5 : edge.width || 2}
+          stroke={edgeStyle.stroke}
+          strokeWidth={edgeStyle.width}
           fill="none"
-          markerEnd="url(#arrowhead)"
+          markerEnd={`url(#arrowhead-${isOnCriticalPath ? 'critical' : edge.conditionType || 'default'})`}
           strokeDasharray={strokeDashArray}
-          opacity={0.8}
+          opacity={isSelected ? 1 : 0.85}
         />
 
-        {/* Edge label */}
+        {/* Edge label with background */}
         {showEdgeLabels && edge.label && (
-          <SvgText
-            x={(edge.sourceX + edge.targetX) / 2}
-            y={(edge.sourceY + edge.targetY) / 2 - 5}
-            fontSize={isMini ? 8 : 10}
-            fill="#6B7280"
-            textAnchor="middle"
-            alignmentBaseline="middle"
-          >
-            {edge.label}
-          </SvgText>
+          <G>
+            {/* Label background */}
+            <Rect
+              x={(edge.sourceX + edge.targetX) / 2 - 20}
+              y={(edge.sourceY + edge.targetY) / 2 - 12}
+              width={40}
+              height={18}
+              fill="rgba(255, 255, 255, 0.95)"
+              stroke="rgba(107, 114, 128, 0.3)"
+              strokeWidth={1}
+              rx={4}
+            />
+            {/* Label text */}
+            <SvgText
+              x={(edge.sourceX + edge.targetX) / 2}
+              y={(edge.sourceY + edge.targetY) / 2 - 3}
+              fontSize={isMini ? 9 : 10}
+              fontWeight="500"
+              fill="#374151"
+              textAnchor="middle"
+              alignmentBaseline="middle"
+            >
+              {edge.label}
+            </SvgText>
+          </G>
         )}
       </G>
     );
   };
 
-  const renderSelectedNodeDetails = () => {
-    if (!selectedNodeId || !showMetadata) return null;
+  const renderBottomSheet = () => {
+    if (!bottomSheetVisible || !selectedNodeId) return null;
 
-    const node = data.nodes.find((n) => n.id === selectedNodeId);
-    if (!node || !node.metadata) return null;
+    const node = data?.nodes.find((n) => n.id === selectedNodeId);
+    if (!node) return null;
+
+    const translateY = bottomSheetAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [500, 0],
+    });
+
+    const backdropOpacity = bottomSheetAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 0.5],
+    });
 
     return (
-      <View style={styles.detailsPanel}>
-        <Text style={styles.detailsTitle}>{node.label}</Text>
-        {node.description && (
-          <Text style={styles.detailsDescription}>{node.description}</Text>
-        )}
-        {node.status && (
-          <Text style={styles.detailsText}>Status: {node.status}</Text>
-        )}
-        {node.metadata.duration && (
-          <Text style={styles.detailsText}>
-            Duration: {formatDuration(node.metadata.duration)}
-          </Text>
-        )}
-        {node.metadata.retries !== undefined && (
-          <Text style={styles.detailsText}>Retries: {node.metadata.retries}</Text>
-        )}
-        {node.metadata.error && (
-          <Text style={[styles.detailsText, styles.errorText]}>
-            Error: {node.metadata.error}
-          </Text>
-        )}
-      </View>
+      <Modal
+        visible={bottomSheetVisible}
+        transparent
+        animationType="none"
+        onRequestClose={handleCloseBottomSheet}
+      >
+        <TouchableOpacity
+          style={styles.bottomSheetBackdrop}
+          activeOpacity={1}
+          onPress={handleCloseBottomSheet}
+        >
+          <Animated.View style={[styles.bottomSheetBackdropOverlay, { opacity: backdropOpacity }]} />
+        </TouchableOpacity>
+
+        <Animated.View
+          style={[
+            styles.bottomSheetContainer,
+            {
+              transform: [{ translateY }],
+            },
+          ]}
+        >
+          {/* Drag Handle */}
+          <View style={styles.bottomSheetHandle}>
+            <View style={styles.bottomSheetHandlebar} />
+          </View>
+
+          {/* Header */}
+          <View style={styles.bottomSheetHeader}>
+            <View style={styles.bottomSheetHeaderContent}>
+              <Text style={styles.bottomSheetIcon}>{getNodeIcon(node)}</Text>
+              <View style={styles.bottomSheetHeaderText}>
+                <Text style={styles.bottomSheetTitle}>{node.label}</Text>
+                <Text style={styles.bottomSheetSubtitle}>{node.type}</Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.bottomSheetCloseButton}
+              onPress={handleCloseBottomSheet}
+            >
+              <Text style={styles.bottomSheetCloseButtonText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Content */}
+          <ScrollView style={styles.bottomSheetContent}>
+            {node.description && (
+              <View style={styles.bottomSheetRow}>
+                <Text style={styles.bottomSheetLabel}>Description</Text>
+                <Text style={styles.bottomSheetValue}>{node.description}</Text>
+              </View>
+            )}
+
+            {node.status && (
+              <View style={styles.bottomSheetRow}>
+                <Text style={styles.bottomSheetLabel}>Status</Text>
+                <View style={styles.bottomSheetStatusBadge}>
+                  <View
+                    style={[
+                      styles.bottomSheetStatusIndicator,
+                      {
+                        backgroundColor:
+                          node.status === 'running'
+                            ? '#60A5FA'
+                            : node.status === 'success'
+                            ? '#34D399'
+                            : node.status === 'failed'
+                            ? '#F87171'
+                            : node.status === 'waiting'
+                            ? '#FBBF24'
+                            : '#9CA3AF',
+                      },
+                    ]}
+                  />
+                  <Text style={styles.bottomSheetStatusText}>{node.status}</Text>
+                </View>
+              </View>
+            )}
+
+            {node.metadata && (
+              <>
+                {node.metadata.duration !== undefined && (
+                  <View style={styles.bottomSheetRow}>
+                    <Text style={styles.bottomSheetLabel}>Duration</Text>
+                    <Text style={styles.bottomSheetValue}>
+                      {formatDuration(node.metadata.duration)}
+                    </Text>
+                  </View>
+                )}
+
+                {node.metadata.startTime && (
+                  <View style={styles.bottomSheetRow}>
+                    <Text style={styles.bottomSheetLabel}>Start Time</Text>
+                    <Text style={styles.bottomSheetValue}>
+                      {new Date(node.metadata.startTime).toLocaleString()}
+                    </Text>
+                  </View>
+                )}
+
+                {node.metadata.endTime && (
+                  <View style={styles.bottomSheetRow}>
+                    <Text style={styles.bottomSheetLabel}>End Time</Text>
+                    <Text style={styles.bottomSheetValue}>
+                      {new Date(node.metadata.endTime).toLocaleString()}
+                    </Text>
+                  </View>
+                )}
+
+                {node.metadata.retries !== undefined && (
+                  <View style={styles.bottomSheetRow}>
+                    <Text style={styles.bottomSheetLabel}>Retries</Text>
+                    <Text style={styles.bottomSheetValue}>{node.metadata.retries}</Text>
+                  </View>
+                )}
+
+                {node.metadata.error && (
+                  <View style={styles.bottomSheetRow}>
+                    <Text style={styles.bottomSheetLabel}>Error</Text>
+                    <Text style={[styles.bottomSheetValue, styles.errorText]}>
+                      {node.metadata.error}
+                    </Text>
+                  </View>
+                )}
+
+                {node.metadata.logs && (
+                  <View style={styles.bottomSheetRow}>
+                    <Text style={styles.bottomSheetLabel}>Logs</Text>
+                    <View style={styles.bottomSheetLogsContainer}>
+                      <Text style={styles.bottomSheetLogsText}>{node.metadata.logs}</Text>
+                    </View>
+                  </View>
+                )}
+              </>
+            )}
+          </ScrollView>
+        </Animated.View>
+      </Modal>
     );
   };
 
@@ -557,9 +832,8 @@ export const Workflow: React.FC<WorkflowProps> = ({
       <View
         ref={containerRef}
         style={styles.svgContainer}
-        {...(isMini ? {} : panResponder.panHandlers)}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        {...(isMini || Platform.OS === 'web' ? {} : panResponder.panHandlers)}
+        {...(Platform.OS !== 'web' ? { onTouchMove: handleTouchMove, onTouchEnd: handleTouchEnd } : {})}
       >
         <Svg
           width={isMini ? (width || 0) : (width || 0) * zoom}
@@ -568,9 +842,65 @@ export const Workflow: React.FC<WorkflowProps> = ({
           preserveAspectRatio="xMidYMid meet"
         >
           <Defs>
-            {/* Arrow marker for directed edges */}
+            {/* Node gradients */}
+            {positionedNodes.map((node) => {
+              const getGradientColors = () => {
+                if (node.status === 'running') {
+                  return { start: '#3B82F6', end: '#1D4ED8' };
+                } else if (node.status === 'success') {
+                  return { start: '#10B981', end: '#059669' };
+                } else if (node.status === 'failed') {
+                  return { start: '#EF4444', end: '#DC2626' };
+                } else if (node.status === 'waiting') {
+                  return { start: '#F59E0B', end: '#D97706' };
+                }
+                return { start: '#6B7280', end: '#4B5563' };
+              };
+              const gradient = getGradientColors();
+              return (
+                <LinearGradient
+                  key={`gradient-${node.id}`}
+                  id={`node-gradient-${node.id}`}
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <Stop offset="0" stopColor={gradient.start} stopOpacity="1" />
+                  <Stop offset="1" stopColor={gradient.end} stopOpacity="1" />
+                </LinearGradient>
+              );
+            })}
+
+            {/* Edge gradients for selected edges */}
+            {positionedEdges.map((edge) => (
+              <G key={`edge-gradients-${edge.id}`}>
+                <LinearGradient
+                  id={`edge-gradient-${edge.id}`}
+                  x1="0"
+                  y1="0"
+                  x2="1"
+                  y2="0"
+                >
+                  <Stop offset="0" stopColor="#3B82F6" stopOpacity="0.8" />
+                  <Stop offset="1" stopColor="#60A5FA" stopOpacity="0.8" />
+                </LinearGradient>
+                <LinearGradient
+                  id={`edge-gradient-${edge.id}-critical`}
+                  x1="0"
+                  y1="0"
+                  x2="1"
+                  y2="0"
+                >
+                  <Stop offset="0" stopColor="#FCD34D" stopOpacity="0.9" />
+                  <Stop offset="1" stopColor="#F59E0B" stopOpacity="0.9" />
+                </LinearGradient>
+              </G>
+            ))}
+
+            {/* Arrow markers for different edge types */}
             <Marker
-              id="arrowhead"
+              id="arrowhead-default"
               markerWidth="10"
               markerHeight="10"
               refX="9"
@@ -578,7 +908,43 @@ export const Workflow: React.FC<WorkflowProps> = ({
               orient="auto"
               markerUnits="strokeWidth"
             >
-              <Path d="M0,0 L0,6 L9,3 z" fill="#6B7280" />
+              <Path d="M0,0 L0,6 L9,3 z" fill="rgba(107, 114, 128, 0.7)" />
+            </Marker>
+
+            <Marker
+              id="arrowhead-success"
+              markerWidth="10"
+              markerHeight="10"
+              refX="9"
+              refY="3"
+              orient="auto"
+              markerUnits="strokeWidth"
+            >
+              <Path d="M0,0 L0,6 L9,3 z" fill="rgba(16, 185, 129, 0.8)" />
+            </Marker>
+
+            <Marker
+              id="arrowhead-failure"
+              markerWidth="10"
+              markerHeight="10"
+              refX="9"
+              refY="3"
+              orient="auto"
+              markerUnits="strokeWidth"
+            >
+              <Path d="M0,0 L0,6 L9,3 z" fill="rgba(239, 68, 68, 0.8)" />
+            </Marker>
+
+            <Marker
+              id="arrowhead-critical"
+              markerWidth="10"
+              markerHeight="10"
+              refX="9"
+              refY="3"
+              orient="auto"
+              markerUnits="strokeWidth"
+            >
+              <Path d="M0,0 L0,6 L9,3 z" fill="#FCD34D" />
             </Marker>
           </Defs>
 
@@ -625,8 +991,8 @@ export const Workflow: React.FC<WorkflowProps> = ({
         </View>
       )}
 
-      {/* Selected node details */}
-      {renderSelectedNodeDetails()}
+      {/* Bottom Sheet for node details */}
+      {renderBottomSheet()}
 
       {/* Expand button */}
       {mode === 'mini' && onExpandPress && (
@@ -640,11 +1006,11 @@ export const Workflow: React.FC<WorkflowProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F9FAFB',
     borderRadius: borderRadius.md,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(229, 231, 235, 0.6)',
     ...shadows.md,
   },
   header: {
@@ -711,26 +1077,27 @@ const styles = StyleSheet.create({
     bottom: 12,
     left: 12,
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(229, 231, 235, 0.5)',
     overflow: 'hidden',
+    backdropFilter: 'blur(10px)',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowColor: '#3B82F6',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 3,
+        elevation: 4,
       },
     }),
   },
   zoomButton: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
     minWidth: 44,
@@ -742,7 +1109,7 @@ const styles = StyleSheet.create({
   },
   zoomResetText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#6B7280',
   },
   panControls: {
@@ -750,20 +1117,21 @@ const styles = StyleSheet.create({
     top: 12,
     right: 12,
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    padding: 2,
+    borderColor: 'rgba(229, 231, 235, 0.5)',
+    padding: 4,
+    backdropFilter: 'blur(10px)',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowColor: '#3B82F6',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 3,
+        elevation: 4,
       },
     }),
   },
@@ -772,17 +1140,17 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   panButton: {
-    width: 28,
-    height: 28,
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 6,
+    backgroundColor: 'rgba(249, 250, 251, 0.8)',
+    borderRadius: 8,
     margin: 1,
   },
   panButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     color: '#3B82F6',
   },
   expandButton: {
@@ -790,24 +1158,24 @@ const styles = StyleSheet.create({
     bottom: 12,
     right: 12,
     backgroundColor: '#3B82F6',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 24,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
+        shadowColor: '#3B82F6',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 4,
+        elevation: 6,
       },
     }),
   },
   expandButtonText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#FFFFFF',
   },
   emptyState: {
@@ -818,5 +1186,151 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 14,
     color: '#9CA3AF',
+  },
+  bottomSheetBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  bottomSheetBackdropOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#000000',
+  },
+  bottomSheetContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '80%',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+  bottomSheetHandle: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  bottomSheetHandlebar: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 2,
+  },
+  bottomSheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  bottomSheetHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  bottomSheetIcon: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  bottomSheetHeaderText: {
+    flex: 1,
+  },
+  bottomSheetTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  bottomSheetSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    textTransform: 'capitalize',
+  },
+  bottomSheetCloseButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
+  },
+  bottomSheetCloseButtonText: {
+    fontSize: 18,
+    color: '#6B7280',
+    fontWeight: '600',
+  },
+  bottomSheetContent: {
+    maxHeight: 400,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  bottomSheetRow: {
+    marginBottom: 20,
+  },
+  bottomSheetLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#6B7280',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  bottomSheetValue: {
+    fontSize: 15,
+    color: '#1F2937',
+    lineHeight: 22,
+  },
+  bottomSheetStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+  },
+  bottomSheetStatusIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  bottomSheetStatusText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1F2937',
+    textTransform: 'capitalize',
+  },
+  bottomSheetLogsContainer: {
+    backgroundColor: '#1F2937',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 4,
+  },
+  bottomSheetLogsText: {
+    fontSize: 12,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    color: '#10B981',
+    lineHeight: 18,
   },
 });

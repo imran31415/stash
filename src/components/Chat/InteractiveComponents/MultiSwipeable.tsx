@@ -49,7 +49,8 @@ export const MultiSwipeable: React.FC<MultiSwipeableProps> = ({
 
   // Calculate dimensions - cap at reasonable maximum
   const maxWidth = Math.min(screenWidth, 1200); // Never exceed screen width or 1200px
-  const calculatedWidth = containerWidth > 0 && containerWidth < maxWidth ? containerWidth : (isMini ? 350 : isPreview ? 600 : maxWidth);
+  const defaultMiniWidth = Math.min(containerWidth || screenWidth - 32, 800);
+  const calculatedWidth = containerWidth > 0 && containerWidth < maxWidth ? containerWidth : (isMini ? defaultMiniWidth : isPreview ? 600 : maxWidth);
   const itemWidth = calculatedWidth;
   const itemHeight = isMini ? 300 : isPreview ? 400 : 500;
   // Total container height includes header, content, dots, and footer

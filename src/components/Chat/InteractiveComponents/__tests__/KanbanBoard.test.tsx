@@ -281,7 +281,7 @@ describe('KanbanBoard', () => {
       );
 
       // Find and click expand button in ComponentHeader
-      const expandButton = getByLabelText('Expand');
+      const expandButton = getByLabelText('Expand to fullscreen');
       fireEvent.press(expandButton);
       expect(onExpandPress).toHaveBeenCalled();
     });

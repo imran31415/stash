@@ -30,13 +30,14 @@ export interface CodeEditorProps {
   showHeader?: boolean;
 
   // Preview rendering
-  renderPreview?: (code: string, language?: SupportedLanguage) => React.ReactNode;
+  renderPreview?: (code: string, language?: SupportedLanguage, onExpandPress?: () => void) => React.ReactNode;
   previewErrorFallback?: (error: Error) => React.ReactNode;
 
   // Callbacks
   onChange?: (code: string, fileId?: string) => void;
   onFileSelect?: (file: CodeFile) => void;
   onExpandPress?: () => void;
+  onPreviewExpandPress?: () => void;
 
   // Styling
   title?: string;

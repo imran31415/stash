@@ -115,7 +115,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
 
   // Calculate dimensions
-  const containerWidth = customWidth || measuredWidth || (isMini ? 350 : SCREEN_WIDTH - 32);
+  // In mini mode, use full available width (up to a max width for very large screens)
+  const defaultMiniWidth = Math.min(measuredWidth || SCREEN_WIDTH - 32, 800);
+  const containerWidth = customWidth || measuredWidth || (isMini ? defaultMiniWidth : SCREEN_WIDTH - 32);
   const containerHeight = customHeight || (isMini ? 400 : 600);
 
   const handleLayout = (event: LayoutChangeEvent) => {
@@ -445,7 +447,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         styles.container,
         {
           height: containerHeight,
-          width: customWidth || (isMini ? 350 : '100%'),
+          width: customWidth || '100%',
+          maxWidth: isMini ? 800 : undefined,
           alignSelf: isMini ? 'flex-start' : 'stretch'
         },
       ]}

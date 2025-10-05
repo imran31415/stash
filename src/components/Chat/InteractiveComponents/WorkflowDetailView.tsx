@@ -129,8 +129,15 @@ export const WorkflowDetailView: React.FC<WorkflowDetailViewProps> = ({
         </View>
       )}
 
-      <ScrollView style={styles.workflowScrollView}>
-        <View style={styles.workflowContainer}>
+      <ScrollView
+        style={styles.workflowScrollView}
+        horizontal={true}
+        contentContainerStyle={styles.workflowScrollContent}
+      >
+        <ScrollView
+          style={styles.workflowScrollViewVertical}
+          contentContainerStyle={styles.workflowScrollContentVertical}
+        >
           <Workflow
             data={filteredData}
             mode="full"
@@ -149,129 +156,129 @@ export const WorkflowDetailView: React.FC<WorkflowDetailViewProps> = ({
             width={SCREEN_WIDTH - 32}
             height={SCREEN_HEIGHT - 400}
           />
-        </View>
-
-        {/* Node/Edge Details Panel - shown below workflow */}
-        {(selectedNode || selectedEdge) && (
-          <View style={styles.inlineDetailsPanel}>
-            {selectedNode && (
-              <View style={styles.detailsSection}>
-                <View style={styles.detailsHeader}>
-                  <Text style={styles.detailsIcon}>{getNodeIcon(selectedNode)}</Text>
-                  <View style={styles.detailsHeaderText}>
-                    <Text style={styles.detailsTitle}>{selectedNode.label}</Text>
-                    <Text style={styles.detailsSubtitle}>{selectedNode.type}</Text>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.closeDetailsButton}
-                    onPress={() => setSelectedNode(null)}
-                  >
-                    <Text style={styles.closeDetailsText}>✕</Text>
-                  </TouchableOpacity>
-                </View>
-
-                {selectedNode.description && (
-                  <View style={styles.detailsRow}>
-                    <Text style={styles.detailsLabel}>Description</Text>
-                    <Text style={styles.detailsValue}>{selectedNode.description}</Text>
-                  </View>
-                )}
-
-                {selectedNode.status && (
-                  <View style={styles.detailsRow}>
-                    <Text style={styles.detailsLabel}>Status</Text>
-                    <View style={styles.statusBadge}>
-                      <View
-                        style={[
-                          styles.statusIndicator,
-                          {
-                            backgroundColor:
-                              selectedNode.status === 'running'
-                                ? '#60A5FA'
-                                : selectedNode.status === 'success'
-                                ? '#34D399'
-                                : selectedNode.status === 'failed'
-                                ? '#F87171'
-                                : '#9CA3AF',
-                          },
-                        ]}
-                      />
-                      <Text style={styles.statusText}>{selectedNode.status}</Text>
-                    </View>
-                  </View>
-                )}
-
-                {selectedNode.metadata && (
-                  <>
-                    {selectedNode.metadata.duration !== undefined && (
-                      <View style={styles.detailsRow}>
-                        <Text style={styles.detailsLabel}>Duration</Text>
-                        <Text style={styles.detailsValue}>
-                          {formatDuration(selectedNode.metadata.duration)}
-                        </Text>
-                      </View>
-                    )}
-
-                    {selectedNode.metadata.retries !== undefined && (
-                      <View style={styles.detailsRow}>
-                        <Text style={styles.detailsLabel}>Retries</Text>
-                        <Text style={styles.detailsValue}>{selectedNode.metadata.retries}</Text>
-                      </View>
-                    )}
-
-                    {selectedNode.metadata.error && (
-                      <View style={styles.detailsRow}>
-                        <Text style={styles.detailsLabel}>Error</Text>
-                        <Text style={[styles.detailsValue, styles.errorText]}>
-                          {selectedNode.metadata.error}
-                        </Text>
-                      </View>
-                    )}
-                  </>
-                )}
-              </View>
-            )}
-
-            {selectedEdge && (
-              <View style={styles.detailsSection}>
-                <View style={styles.detailsHeader}>
-                  <Text style={styles.detailsTitle}>Edge Details</Text>
-                  <TouchableOpacity
-                    style={styles.closeDetailsButton}
-                    onPress={() => setSelectedEdge(null)}
-                  >
-                    <Text style={styles.closeDetailsText}>✕</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.detailsRow}>
-                  <Text style={styles.detailsLabel}>Source</Text>
-                  <Text style={styles.detailsValue}>{selectedEdge.source}</Text>
-                </View>
-
-                <View style={styles.detailsRow}>
-                  <Text style={styles.detailsLabel}>Target</Text>
-                  <Text style={styles.detailsValue}>{selectedEdge.target}</Text>
-                </View>
-
-                {selectedEdge.label && (
-                  <View style={styles.detailsRow}>
-                    <Text style={styles.detailsLabel}>Label</Text>
-                    <Text style={styles.detailsValue}>{selectedEdge.label}</Text>
-                  </View>
-                )}
-
-                {selectedEdge.conditionType && (
-                  <View style={styles.detailsRow}>
-                    <Text style={styles.detailsLabel}>Condition Type</Text>
-                    <Text style={styles.detailsValue}>{selectedEdge.conditionType}</Text>
-                  </View>
-                )}
-              </View>
-            )}
-          </View>
-        )}
+        </ScrollView>
       </ScrollView>
+
+      {/* Node/Edge Details Panel - shown below workflow */}
+      {(selectedNode || selectedEdge) && (
+        <View style={styles.inlineDetailsPanel}>
+          {selectedNode && (
+            <View style={styles.detailsSection}>
+              <View style={styles.detailsHeader}>
+                <Text style={styles.detailsIcon}>{getNodeIcon(selectedNode)}</Text>
+                <View style={styles.detailsHeaderText}>
+                  <Text style={styles.detailsTitle}>{selectedNode.label}</Text>
+                  <Text style={styles.detailsSubtitle}>{selectedNode.type}</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.closeDetailsButton}
+                  onPress={() => setSelectedNode(null)}
+                >
+                  <Text style={styles.closeDetailsText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
+              {selectedNode.description && (
+                <View style={styles.detailsRow}>
+                  <Text style={styles.detailsLabel}>Description</Text>
+                  <Text style={styles.detailsValue}>{selectedNode.description}</Text>
+                </View>
+              )}
+
+              {selectedNode.status && (
+                <View style={styles.detailsRow}>
+                  <Text style={styles.detailsLabel}>Status</Text>
+                  <View style={styles.statusBadge}>
+                    <View
+                      style={[
+                        styles.statusIndicator,
+                        {
+                          backgroundColor:
+                            selectedNode.status === 'running'
+                              ? '#60A5FA'
+                              : selectedNode.status === 'success'
+                              ? '#34D399'
+                              : selectedNode.status === 'failed'
+                              ? '#F87171'
+                              : '#9CA3AF',
+                        },
+                      ]}
+                    />
+                    <Text style={styles.statusText}>{selectedNode.status}</Text>
+                  </View>
+                </View>
+              )}
+
+              {selectedNode.metadata && (
+                <>
+                  {selectedNode.metadata.duration !== undefined && (
+                    <View style={styles.detailsRow}>
+                      <Text style={styles.detailsLabel}>Duration</Text>
+                      <Text style={styles.detailsValue}>
+                        {formatDuration(selectedNode.metadata.duration)}
+                      </Text>
+                    </View>
+                  )}
+
+                  {selectedNode.metadata.retries !== undefined && (
+                    <View style={styles.detailsRow}>
+                      <Text style={styles.detailsLabel}>Retries</Text>
+                      <Text style={styles.detailsValue}>{selectedNode.metadata.retries}</Text>
+                    </View>
+                  )}
+
+                  {selectedNode.metadata.error && (
+                    <View style={styles.detailsRow}>
+                      <Text style={styles.detailsLabel}>Error</Text>
+                      <Text style={[styles.detailsValue, styles.errorText]}>
+                        {selectedNode.metadata.error}
+                      </Text>
+                    </View>
+                  )}
+                </>
+              )}
+            </View>
+          )}
+
+          {selectedEdge && (
+            <View style={styles.detailsSection}>
+              <View style={styles.detailsHeader}>
+                <Text style={styles.detailsTitle}>Edge Details</Text>
+                <TouchableOpacity
+                  style={styles.closeDetailsButton}
+                  onPress={() => setSelectedEdge(null)}
+                >
+                  <Text style={styles.closeDetailsText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsLabel}>Source</Text>
+                <Text style={styles.detailsValue}>{selectedEdge.source}</Text>
+              </View>
+
+              <View style={styles.detailsRow}>
+                <Text style={styles.detailsLabel}>Target</Text>
+                <Text style={styles.detailsValue}>{selectedEdge.target}</Text>
+              </View>
+
+              {selectedEdge.label && (
+                <View style={styles.detailsRow}>
+                  <Text style={styles.detailsLabel}>Label</Text>
+                  <Text style={styles.detailsValue}>{selectedEdge.label}</Text>
+                </View>
+              )}
+
+              {selectedEdge.conditionType && (
+                <View style={styles.detailsRow}>
+                  <Text style={styles.detailsLabel}>Condition Type</Text>
+                  <Text style={styles.detailsValue}>{selectedEdge.conditionType}</Text>
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+      )}
     </View>
   );
 
@@ -717,6 +724,16 @@ const styles = StyleSheet.create({
   },
   workflowScrollView: {
     flex: 1,
+  },
+  workflowScrollContent: {
+    minWidth: '100%',
+  },
+  workflowScrollViewVertical: {
+    flex: 1,
+  },
+  workflowScrollContentVertical: {
+    minHeight: '100%',
+    paddingHorizontal: 16,
   },
   workflowContainer: {
     paddingHorizontal: 16,

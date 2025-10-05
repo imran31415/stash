@@ -29,6 +29,17 @@ import {
 import { streamingCallbackRegistry } from './StreamingCallbackRegistry';
 import { borderRadius, spacing, typography, shadows } from './shared';
 
+// Normalize timestamps in series data (convert strings to Date objects)
+const normalizeSeries = (series: TimeSeriesSeries[]): TimeSeriesSeries[] => {
+  return series.map(s => ({
+    ...s,
+    data: s.data.map(d => ({
+      ...d,
+      timestamp: d.timestamp instanceof Date ? d.timestamp : new Date(d.timestamp),
+    })),
+  }));
+};
+
 export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
   series,
   mode = 'full',
@@ -67,6 +78,9 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
   const [selectedPoint, setSelectedPoint] = useState<any>(null);
   const [internalPaused, setInternalPaused] = useState(false);
 
+  // Normalize timestamps from strings to Date objects (for data from JSON/WebSocket)
+  const normalizedSeries = useMemo(() => normalizeSeries(series), [series]);
+
   // Track actual container width via onLayout
   const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
 
@@ -84,8 +98,8 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
   const isPaused = streamingPaused !== undefined ? streamingPaused : internalPaused;
 
   // Live streaming state - use ref for fixed memory management
-  const streamingDataRef = useRef<TimeSeriesSeries[]>(series);
-  const [streamingSeries, setStreamingSeries] = useState<TimeSeriesSeries[]>(series);
+  const streamingDataRef = useRef<TimeSeriesSeries[]>(normalizedSeries);
+  const [streamingSeries, setStreamingSeries] = useState<TimeSeriesSeries[]>(normalizedSeries);
 
   // Keep track of the data buffer with fixed size
   const maintainFixedMemory = useCallback((newSeries: TimeSeriesSeries[]): TimeSeriesSeries[] => {
@@ -99,14 +113,14 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
   useEffect(() => {
     if (enableLiveStreaming && !isPaused) {
       // Apply fixed memory constraint
-      const constrainedSeries = maintainFixedMemory(series);
+      const constrainedSeries = maintainFixedMemory(normalizedSeries);
       streamingDataRef.current = constrainedSeries;
       setStreamingSeries(constrainedSeries);
 
       // Notify parent of data update
       onDataUpdate?.(constrainedSeries);
     }
-  }, [series, enableLiveStreaming, isPaused, maintainFixedMemory, onDataUpdate]);
+  }, [normalizedSeries, enableLiveStreaming, isPaused, maintainFixedMemory, onDataUpdate]);
 
   // Handle streaming toggle
   const handleStreamingToggle = useCallback(() => {
@@ -125,8 +139,8 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
 
   // Use streaming series if enabled, otherwise use original series
   const activeSeries = useMemo(
-    () => enableLiveStreaming ? streamingSeries : series,
-    [enableLiveStreaming, streamingSeries, series]
+    () => enableLiveStreaming ? streamingSeries : normalizedSeries,
+    [enableLiveStreaming, streamingSeries, normalizedSeries]
   );
 
   // Assign colors to series
@@ -530,7 +544,7 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
         isMini && styles.containerMini,
         {
           width: customWidth || '100%',
-          maxWidth: '100%',
+          maxWidth: isMini ? 800 : undefined,
           alignSelf: 'stretch'
         }
       ]}
