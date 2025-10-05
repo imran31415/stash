@@ -47,11 +47,24 @@ export const MultiSwipeable: React.FC<MultiSwipeableProps> = ({
   const isMini = mode === 'mini';
   const isPreview = mode === 'preview';
 
-  // Calculate dimensions
-  const itemWidth = containerWidth > 0 ? containerWidth : (isMini ? 350 : isPreview ? 600 : screenWidth);
+  // Calculate dimensions - cap at reasonable maximum
+  const maxWidth = Math.min(screenWidth, 1200); // Never exceed screen width or 1200px
+  const calculatedWidth = containerWidth > 0 && containerWidth < maxWidth ? containerWidth : (isMini ? 350 : isPreview ? 600 : maxWidth);
+  const itemWidth = calculatedWidth;
   const itemHeight = isMini ? 300 : isPreview ? 400 : 500;
   // Total container height includes header, content, dots, and footer
   const containerHeight = itemHeight + 120; // header + dots + footer padding
+
+  console.log('[MultiSwipeable] Render:', {
+    itemsCount: items.length,
+    mode,
+    currentIndex,
+    containerWidth,
+    itemWidth,
+    itemHeight,
+    containerHeight,
+    screenWidth,
+  });
 
   // Handle auto-advance
   useEffect(() => {
@@ -129,12 +142,27 @@ export const MultiSwipeable: React.FC<MultiSwipeableProps> = ({
 
   const handleLayout = (event: any) => {
     const { width } = event.nativeEvent.layout;
-    if (width > 0 && width !== containerWidth) {
+    // Reject unreasonable widths (max 2000px to be safe)
+    const maxReasonableWidth = Math.min(screenWidth * 2, 2000);
+    if (width > 0 && width < maxReasonableWidth && width !== containerWidth) {
+      console.log('[MultiSwipeable.handleLayout] Setting containerWidth:', width);
       setContainerWidth(width);
+    } else if (width >= maxReasonableWidth) {
+      console.warn('[MultiSwipeable.handleLayout] Rejecting unreasonable width:', width, 'using maxWidth:', maxReasonableWidth);
     }
   };
 
   const renderItem = (item: SwipeableItem, index: number) => {
+    console.log('[MultiSwipeable.renderItem]', {
+      index,
+      type: item.type,
+      title: item.title,
+      hasData: !!item.data,
+      dataKeys: item.data ? Object.keys(item.data) : [],
+      itemHeight,
+      itemWidth,
+    });
+
     const isActive = index === currentIndex;
 
     // Create handlers that pass the item index
@@ -154,6 +182,15 @@ export const MultiSwipeable: React.FC<MultiSwipeableProps> = ({
       height: itemHeight - 16, // Subtract padding
       width: itemWidth - 16, // Subtract padding
     };
+
+    console.log('[MultiSwipeable.renderItem] componentProps:', {
+      type: item.type,
+      propsKeys: Object.keys(componentProps),
+      height: componentProps.height,
+      width: componentProps.width,
+      mode: componentProps.mode,
+      hasTasksOrData: 'tasks' in componentProps || 'data' in componentProps,
+    });
 
     switch (item.type) {
       case 'gantt-chart':
@@ -384,6 +421,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
     overflow: 'hidden',
+    maxWidth: '100%',
+    width: '100%',
   },
   header: {
     paddingHorizontal: 16,
