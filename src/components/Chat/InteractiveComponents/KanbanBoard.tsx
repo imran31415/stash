@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import type { KanbanBoardProps, KanbanColumn, KanbanCard } from './KanbanBoard.types';
 import {
@@ -37,7 +37,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   const stats = useMemo(() => calculateBoardStats(data), [data]);
 
-  const renderCard = (card: KanbanCard, column: KanbanColumn) => {
+  const renderCard = useCallback((card: KanbanCard, column: KanbanColumn) => {
     const isOverdue = isCardOverdue(card);
     const priorityColor = getPriorityColor(card.priority);
     const priorityIcon = getPriorityIcon(card.priority);
@@ -52,6 +52,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         ]}
         onPress={() => onCardPress?.(card, column)}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={`Card: ${card.title}${card.priority ? `, ${card.priority} priority` : ''}${isOverdue ? ', overdue' : ''}`}
+        accessibilityHint="Double tap to view card details"
       >
         {/* Priority indicator */}
         {card.priority && (
@@ -177,9 +180,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         </View>
       </TouchableOpacity>
     );
-  };
+  }, [colors, isMini, onCardPress]);
 
-  const renderColumn = (column: KanbanColumn) => {
+  const renderColumn = useCallback((column: KanbanColumn) => {
     const isOverLimit = isColumnOverWIPLimit(column);
     const wipUtilization = getWIPUtilization(column);
 
@@ -197,6 +200,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           style={[styles.columnHeader, { borderBottomColor: colors.border }]}
           onPress={() => onColumnPress?.(column)}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={`Column: ${column.title}, ${column.cards.length} card${column.cards.length !== 1 ? 's' : ''}`}
+          accessibilityHint="Double tap to view column options"
         >
           <View style={styles.columnHeaderContent}>
             {column.icon && <Text style={styles.columnIcon}>{column.icon}</Text>}
@@ -246,7 +252,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         </ScrollView>
       </View>
     );
-  };
+  }, [colors, isMini, renderCard, onColumnPress]);
 
   return (
     <View style={[styles.container, { height }]}>

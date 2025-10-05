@@ -13,6 +13,7 @@ app.use(express.json());
 // In-memory storage
 const messages = new Map(); // userId -> messages[]
 const connections = new Map(); // userId -> ws connection
+const rooms = new Map(); // roomId -> { roomName, participants: Set<{userId, userName, ws, isStreaming}> }
 
 // AI responses for demo
 const AI_RESPONSES = [
@@ -64,6 +65,42 @@ wss.on('connection', (ws) => {
         case 'ping':
           ws.send(JSON.stringify({ type: 'pong' }));
           break;
+
+        case 'list-rooms':
+          handleListRooms(ws);
+          break;
+
+        case 'join-room':
+          handleJoinRoom(message, ws);
+          break;
+
+        case 'leave-room':
+          handleLeaveRoom(message, ws);
+          break;
+
+        case 'start-streaming':
+          handleStartStreaming(message, ws);
+          break;
+
+        case 'stop-streaming':
+          handleStopStreaming(message, ws);
+          break;
+
+        case 'chat-message':
+          handleRoomChatMessage(message, ws);
+          break;
+
+        case 'webrtc-offer':
+          handleWebRTCOffer(message, ws);
+          break;
+
+        case 'webrtc-answer':
+          handleWebRTCAnswer(message, ws);
+          break;
+
+        case 'webrtc-ice-candidate':
+          handleWebRTCIceCandidate(message, ws);
+          break;
       }
     } catch (error) {
       console.error('❌ Error handling message:', error);
@@ -78,6 +115,39 @@ wss.on('connection', (ws) => {
     console.log('🔌 WebSocket disconnected');
     if (userId) {
       connections.delete(userId);
+
+      // Remove user from all rooms
+      rooms.forEach((room, roomId) => {
+        const participant = Array.from(room.participants).find(p => p.userId === userId);
+        if (participant) {
+          room.participants.delete(participant);
+          console.log(`👋 User ${userId} removed from room ${roomId} on disconnect`);
+
+          const participantsList = Array.from(room.participants).map(p => ({
+            userId: p.userId,
+            userName: p.userName,
+            isStreaming: p.isStreaming
+          }));
+
+          // Notify remaining participants
+          room.participants.forEach(p => {
+            if (p.ws.readyState === WebSocket.OPEN) {
+              p.ws.send(JSON.stringify({
+                type: 'user-left',
+                roomId,
+                userId,
+                participants: participantsList
+              }));
+            }
+          });
+
+          // Delete room if empty
+          if (room.participants.size === 0) {
+            rooms.delete(roomId);
+            console.log(`🗑️ Deleted empty room: ${roomId}`);
+          }
+        }
+      });
     }
   });
 
@@ -150,6 +220,257 @@ function broadcastTyping(message, senderWs) {
       ws.send(JSON.stringify(typingData));
     }
   });
+}
+
+// Video streaming room handlers
+
+function handleListRooms(ws) {
+  const roomsList = Array.from(rooms.entries()).map(([roomId, room]) => ({
+    roomId,
+    roomName: room.roomName,
+    participantCount: room.participants.size
+  }));
+
+  ws.send(JSON.stringify({
+    type: 'rooms-list',
+    rooms: roomsList
+  }));
+  console.log(`📋 Sent rooms list: ${roomsList.length} rooms`);
+}
+
+function handleJoinRoom(message, ws) {
+  const { roomId, userId, userName, roomName } = message;
+
+  if (!rooms.has(roomId)) {
+    rooms.set(roomId, {
+      roomName: roomName || roomId,
+      participants: new Set()
+    });
+    console.log(`🏠 Created new room: ${roomName || roomId}`);
+  }
+
+  const room = rooms.get(roomId);
+  const participant = { userId, userName, ws, isStreaming: false };
+  room.participants.add(participant);
+
+  const participantsList = Array.from(room.participants).map(p => ({
+    userId: p.userId,
+    userName: p.userName,
+    isStreaming: p.isStreaming
+  }));
+
+  // Send room-joined to the user
+  ws.send(JSON.stringify({
+    type: 'room-joined',
+    roomId,
+    roomName: room.roomName,
+    participants: participantsList
+  }));
+
+  // Broadcast user-joined to other participants
+  room.participants.forEach(p => {
+    if (p.ws !== ws && p.ws.readyState === WebSocket.OPEN) {
+      p.ws.send(JSON.stringify({
+        type: 'user-joined',
+        roomId,
+        userId,
+        userName,
+        participants: participantsList
+      }));
+    }
+  });
+
+  console.log(`👤 ${userName} joined room ${roomName || roomId} (${room.participants.size} participants)`);
+}
+
+function handleLeaveRoom(message, ws) {
+  const { roomId, userId } = message;
+
+  if (!rooms.has(roomId)) return;
+
+  const room = rooms.get(roomId);
+  const participant = Array.from(room.participants).find(p => p.userId === userId);
+
+  if (participant) {
+    room.participants.delete(participant);
+
+    const participantsList = Array.from(room.participants).map(p => ({
+      userId: p.userId,
+      userName: p.userName,
+      isStreaming: p.isStreaming
+    }));
+
+    // Broadcast user-left to remaining participants
+    room.participants.forEach(p => {
+      if (p.ws.readyState === WebSocket.OPEN) {
+        p.ws.send(JSON.stringify({
+          type: 'user-left',
+          roomId,
+          userId,
+          participants: participantsList
+        }));
+      }
+    });
+
+    // Delete room if empty
+    if (room.participants.size === 0) {
+      rooms.delete(roomId);
+      console.log(`🗑️ Deleted empty room: ${roomId}`);
+    }
+
+    console.log(`👋 User ${userId} left room ${roomId}`);
+  }
+}
+
+function handleStartStreaming(message, ws) {
+  const { roomId, userId } = message;
+
+  if (!rooms.has(roomId)) return;
+
+  const room = rooms.get(roomId);
+  const participant = Array.from(room.participants).find(p => p.userId === userId);
+
+  if (participant) {
+    participant.isStreaming = true;
+
+    const participantsList = Array.from(room.participants).map(p => ({
+      userId: p.userId,
+      userName: p.userName,
+      isStreaming: p.isStreaming
+    }));
+
+    // Broadcast streaming-started to all participants
+    room.participants.forEach(p => {
+      if (p.ws.readyState === WebSocket.OPEN) {
+        p.ws.send(JSON.stringify({
+          type: 'user-streaming-started',
+          roomId,
+          userId,
+          participants: participantsList
+        }));
+      }
+    });
+
+    console.log(`📹 User ${userId} started streaming in room ${roomId}`);
+  }
+}
+
+function handleStopStreaming(message, ws) {
+  const { roomId, userId } = message;
+
+  if (!rooms.has(roomId)) return;
+
+  const room = rooms.get(roomId);
+  const participant = Array.from(room.participants).find(p => p.userId === userId);
+
+  if (participant) {
+    participant.isStreaming = false;
+
+    const participantsList = Array.from(room.participants).map(p => ({
+      userId: p.userId,
+      userName: p.userName,
+      isStreaming: p.isStreaming
+    }));
+
+    // Broadcast streaming-stopped to all participants
+    room.participants.forEach(p => {
+      if (p.ws.readyState === WebSocket.OPEN) {
+        p.ws.send(JSON.stringify({
+          type: 'user-streaming-stopped',
+          roomId,
+          userId,
+          participants: participantsList
+        }));
+      }
+    });
+
+    console.log(`⏹️ User ${userId} stopped streaming in room ${roomId}`);
+  }
+}
+
+function handleRoomChatMessage(message, ws) {
+  const { roomId, userId, content } = message;
+
+  if (!rooms.has(roomId)) return;
+
+  const room = rooms.get(roomId);
+  const sender = Array.from(room.participants).find(p => p.userId === userId);
+
+  if (sender) {
+    // Broadcast message to all participants in room
+    room.participants.forEach(p => {
+      if (p.ws.readyState === WebSocket.OPEN) {
+        p.ws.send(JSON.stringify({
+          type: 'chat-message',
+          roomId,
+          userId,
+          userName: sender.userName,
+          content
+        }));
+      }
+    });
+
+    console.log(`💬 Chat message in room ${roomId} from ${sender.userName}: ${content}`);
+  }
+}
+
+// WebRTC signaling handlers
+
+function handleWebRTCOffer(message, ws) {
+  const { roomId, fromUserId, toUserId, offer } = message;
+
+  if (!rooms.has(roomId)) return;
+
+  const room = rooms.get(roomId);
+  const targetParticipant = Array.from(room.participants).find(p => p.userId === toUserId);
+
+  if (targetParticipant && targetParticipant.ws.readyState === WebSocket.OPEN) {
+    targetParticipant.ws.send(JSON.stringify({
+      type: 'webrtc-offer',
+      roomId,
+      fromUserId,
+      offer
+    }));
+    console.log(`📡 Relayed WebRTC offer from ${fromUserId} to ${toUserId}`);
+  }
+}
+
+function handleWebRTCAnswer(message, ws) {
+  const { roomId, fromUserId, toUserId, answer } = message;
+
+  if (!rooms.has(roomId)) return;
+
+  const room = rooms.get(roomId);
+  const targetParticipant = Array.from(room.participants).find(p => p.userId === toUserId);
+
+  if (targetParticipant && targetParticipant.ws.readyState === WebSocket.OPEN) {
+    targetParticipant.ws.send(JSON.stringify({
+      type: 'webrtc-answer',
+      roomId,
+      fromUserId,
+      answer
+    }));
+    console.log(`📡 Relayed WebRTC answer from ${fromUserId} to ${toUserId}`);
+  }
+}
+
+function handleWebRTCIceCandidate(message, ws) {
+  const { roomId, fromUserId, toUserId, candidate } = message;
+
+  if (!rooms.has(roomId)) return;
+
+  const room = rooms.get(roomId);
+  const targetParticipant = Array.from(room.participants).find(p => p.userId === toUserId);
+
+  if (targetParticipant && targetParticipant.ws.readyState === WebSocket.OPEN) {
+    targetParticipant.ws.send(JSON.stringify({
+      type: 'webrtc-ice-candidate',
+      roomId,
+      fromUserId,
+      candidate
+    }));
+    console.log(`📡 Relayed ICE candidate from ${fromUserId} to ${toUserId}`);
+  }
 }
 
 // HTTP API endpoints

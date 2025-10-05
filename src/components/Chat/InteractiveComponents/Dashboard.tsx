@@ -23,39 +23,14 @@ import { TreeView } from './TreeView';
 import { KanbanBoard } from './KanbanBoard';
 import { VideoStream } from './VideoStream';
 import { LiveCameraStream } from './LiveCameraStream';
+import {
+  borderRadius,
+  spacing,
+  typography,
+  useResponsiveMode,
+} from './shared';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-
-const borderRadius = {
-  sm: 4,
-  base: 8,
-  md: 12,
-  lg: 16,
-};
-
-const spacing = {
-  1: 4,
-  2: 8,
-  3: 12,
-  4: 16,
-  5: 20,
-  6: 24,
-};
-
-const typography = {
-  fontSize: {
-    xs: 12,
-    sm: 14,
-    base: 16,
-    lg: 18,
-    xl: 20,
-  },
-  fontWeight: {
-    medium: '500' as const,
-    semibold: '600' as const,
-    bold: '700' as const,
-  },
-};
 
 const colors = {
   surface: {
@@ -155,8 +130,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     [config.gridSize, config.customGrid]
   );
 
-  const gridSpacing = config.spacing ?? spacing[3];
-  const gridPadding = config.padding ?? spacing[2]; // Reduced from spacing[4] (16px) to spacing[2] (8px)
+  const gridSpacing = config.spacing ?? spacing.md;
+  const gridPadding = config.padding ?? spacing.sm;
 
   // Account for header height - use actual measured heights
   // Mini header with expand button: ~50px, Full header: ~70px, with description: ~110px
@@ -385,7 +360,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       // Check bounds
       if (row >= gridDimensions.rows || col >= gridDimensions.cols) {
-        console.warn(`Item ${item.id} position out of bounds`);
+        // Item position out of bounds - skip rendering
         return;
       }
 
@@ -503,8 +478,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3],
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.default,
     backgroundColor: colors.surface.secondary,
@@ -523,14 +498,14 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: typography.fontSize.sm,
     color: colors.text.secondary,
-    marginTop: spacing[1],
+    marginTop: spacing.xs,
   },
   subtitleMini: {
     fontSize: typography.fontSize.xs,
   },
   descriptionContainer: {
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[2],
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
     backgroundColor: colors.surface.secondary,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.default,
@@ -541,11 +516,11 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   expandButton: {
-    paddingVertical: spacing[1],
-    paddingHorizontal: spacing[3],
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
     borderRadius: borderRadius.base,
     backgroundColor: colors.primary[500],
-    marginLeft: spacing[2],
+    marginLeft: spacing.sm,
   },
   expandButtonText: {
     fontSize: typography.fontSize.sm,
@@ -589,7 +564,7 @@ const styles = StyleSheet.create({
   },
   videoPlaceholderText: {
     fontSize: 48,
-    marginBottom: spacing[2],
+    marginBottom: spacing.sm,
   },
   videoPlaceholderTitle: {
     fontSize: typography.fontSize.base,

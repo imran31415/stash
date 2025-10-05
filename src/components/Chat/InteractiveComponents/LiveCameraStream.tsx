@@ -9,6 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import { borderRadius, spacing } from './shared';
 
 export interface LiveCameraStreamProps {
   mode?: 'mini' | 'full';
@@ -44,17 +45,6 @@ const colors = {
   success: {
     500: '#10B981',
   },
-};
-
-const borderRadius = {
-  base: 8,
-  lg: 16,
-};
-
-const spacing = {
-  2: 8,
-  3: 12,
-  4: 16,
 };
 
 export const LiveCameraStream: React.FC<LiveCameraStreamProps> = ({
@@ -99,7 +89,6 @@ export const LiveCameraStream: React.FC<LiveCameraStreamProps> = ({
 
   const handleStartStreamWeb = async () => {
     try {
-      console.log('[LiveCameraStream] Requesting camera access...');
       const constraints = {
         video: {
           facingMode: facing === 'front' ? 'user' : 'environment',
@@ -110,7 +99,6 @@ export const LiveCameraStream: React.FC<LiveCameraStreamProps> = ({
       };
 
       const stream = await (navigator as any)?.mediaDevices.getUserMedia(constraints);
-      console.log('[LiveCameraStream] Got stream:', (stream as any)?.getTracks());
       streamRef.current = stream;
 
       setWebPermissionGranted(true);
@@ -119,17 +107,15 @@ export const LiveCameraStream: React.FC<LiveCameraStreamProps> = ({
       // Wait for next tick to ensure video element is rendered
       setTimeout(() => {
         if (videoRef.current && streamRef.current) {
-          console.log('[LiveCameraStream] Attaching stream to video element');
           (videoRef.current as any).srcObject = streamRef.current;
-          (videoRef.current as any).play().catch((e: any) => console.error('[LiveCameraStream] Play error:', e));
-        } else {
-          console.error('[LiveCameraStream] Video ref not available:', videoRef.current);
+          (videoRef.current as any).play().catch(() => {
+            // Failed to play video
+          });
         }
       }, 100);
 
       onStreamStart?.();
     } catch (error) {
-      console.error('[LiveCameraStream] Camera error:', error);
       const err = error instanceof Error ? error : new Error('Failed to access camera');
       onError?.(err);
       Alert.alert('Camera Error', err.message);
@@ -198,7 +184,6 @@ export const LiveCameraStream: React.FC<LiveCameraStreamProps> = ({
 
     try {
       setIsRecording(true);
-      console.log('[LiveCameraStream] Recording started');
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Recording failed');
       onError?.(err);
@@ -211,7 +196,6 @@ export const LiveCameraStream: React.FC<LiveCameraStreamProps> = ({
 
     try {
       setIsRecording(false);
-      console.log('[LiveCameraStream] Recording stopped');
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Stop recording failed');
       onError?.(err);
@@ -379,12 +363,12 @@ const styles = StyleSheet.create({
   },
   liveBadge: {
     position: 'absolute',
-    top: spacing[2],
-    left: spacing[2],
+    top: spacing.sm,
+    left: spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.error[500],
-    paddingHorizontal: spacing[2],
+    paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: borderRadius.base,
     zIndex: 10,
@@ -407,7 +391,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingVertical: spacing[3],
+    paddingVertical: spacing.md,
   },
   controlButtons: {
     flexDirection: 'row',
@@ -421,7 +405,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: spacing[2],
+    marginHorizontal: spacing.sm,
   },
   controlButtonText: {
     fontSize: 24,
@@ -433,7 +417,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: spacing[2],
+    marginHorizontal: spacing.sm,
   },
   recordButtonActive: {
     backgroundColor: colors.error[500],
@@ -457,7 +441,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: spacing[2],
+    marginHorizontal: spacing.sm,
   },
   stopButtonText: {
     fontSize: 24,
@@ -465,12 +449,12 @@ const styles = StyleSheet.create({
   },
   recordingIndicator: {
     position: 'absolute',
-    top: spacing[2],
-    right: spacing[2],
+    top: spacing.sm,
+    right: spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingHorizontal: spacing[2],
+    paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: borderRadius.base,
     zIndex: 10,
@@ -490,27 +474,27 @@ const styles = StyleSheet.create({
   permissionContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing[4],
+    padding: spacing.lg,
   },
   permissionIcon: {
     fontSize: 48,
-    marginBottom: spacing[3],
+    marginBottom: spacing.md,
   },
   permissionTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: colors.text.inverse,
-    marginBottom: spacing[2],
+    marginBottom: spacing.sm,
   },
   permissionText: {
     fontSize: 14,
     color: colors.text.secondary,
     textAlign: 'center',
-    marginBottom: spacing[4],
+    marginBottom: spacing.lg,
   },
   permissionButton: {
-    paddingVertical: spacing[2],
-    paddingHorizontal: spacing[4],
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
     backgroundColor: colors.accent[500],
     borderRadius: borderRadius.base,
   },
@@ -522,27 +506,27 @@ const styles = StyleSheet.create({
   startContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing[4],
+    padding: spacing.lg,
   },
   startIcon: {
     fontSize: 48,
-    marginBottom: spacing[3],
+    marginBottom: spacing.md,
   },
   startTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: colors.text.inverse,
-    marginBottom: spacing[2],
+    marginBottom: spacing.sm,
   },
   startText: {
     fontSize: 14,
     color: colors.text.secondary,
     textAlign: 'center',
-    marginBottom: spacing[4],
+    marginBottom: spacing.lg,
   },
   startButton: {
-    paddingVertical: spacing[2],
-    paddingHorizontal: spacing[4],
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
     backgroundColor: colors.success[500],
     borderRadius: borderRadius.base,
   },

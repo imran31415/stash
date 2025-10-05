@@ -1,0 +1,78 @@
+/**
+ * Shared Constants for Interactive Components
+ * Centralized numeric constants to eliminate magic numbers
+ */
+
+// Layout & Dimensions
+export const LAYOUT_CONSTANTS = {
+  MIN_NODE_RADIUS: 50,
+  MAX_NODE_RADIUS: 200,
+  DEFAULT_NODE_RADIUS: 60,
+  DEFAULT_GRAPH_WIDTH: 800,
+  DEFAULT_GRAPH_HEIGHT: 600,
+  LABEL_SPACE_THRESHOLD: 100,
+  COLLISION_ITERATIONS: 120,
+  SIMULATION_ITERATIONS: 80,
+} as const;
+
+// Time & Duration
+export const TIME_CONSTANTS = {
+  MIN_LOADING_TIME_MS: 50,
+  DEFAULT_TIMEOUT_MS: 100,
+  DEBOUNCE_MS: 300,
+  ANIMATION_DURATION_MS: 200,
+  TOOLTIP_DELAY_MS: 500,
+  ONE_HOUR_MS: 3600000,
+  ONE_DAY_MS: 86400000,
+  ONE_WEEK_MS: 604800000,
+} as const;
+
+// Pagination & Limits
+export const PAGINATION_CONSTANTS = {
+  LINES_PER_PAGE: 100,
+  DEFAULT_PAGE_SIZE: 10,
+  MAX_DATA_POINTS: 1000,
+  STREAMING_WINDOW_SIZE: 500,
+} as const;
+
+// Video Stream Quality
+export const VIDEO_QUALITY_THRESHOLDS = {
+  EXCELLENT_BITRATE: 5000,
+  GOOD_BITRATE: 2500,
+  FAIR_BITRATE: 1000,
+  EXCELLENT_PACKET_LOSS: 0.01,
+  GOOD_PACKET_LOSS: 0.05,
+  POOR_PACKET_LOSS: 0.1,
+} as const;
+
+// Network & Topology
+export const NETWORK_CONSTANTS = {
+  NODE_RADIUS: 100,
+  MIN_NODE_DISTANCE: 80,
+  REPULSION_STRENGTH: 120,
+  ATTRACTION_STRENGTH: 100,
+} as const;
+
+// Format & Display
+export const FORMAT_CONSTANTS = {
+  MAX_LABEL_LENGTH: 20,
+  TRUNCATE_SUFFIX: '...',
+  DECIMAL_PLACES: 2,
+} as const;
+
+// Preview Dimensions
+export const PREVIEW_DIMENSIONS = {
+  DASHBOARD_HEIGHT: 120,
+  DEFAULT_ITEM_HEIGHT: 200,
+  MIN_ITEM_WIDTH: 150,
+} as const;
+
+// Time Formatting
+export const TIME_FORMAT_STEPS = {
+  FIVE_SECONDS: 5,
+  TEN_SECONDS: 10,
+  THIRTY_SECONDS: 30,
+  ONE_MINUTE: 60,
+  FIVE_MINUTES: 300,
+  THIRTY_MINUTES: 1800,
+} as const;

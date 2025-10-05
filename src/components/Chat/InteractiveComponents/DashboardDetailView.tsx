@@ -55,7 +55,6 @@ export const DashboardDetailView: React.FC<DashboardDetailViewProps> = ({
             xAxisLabel={expandedItem.data.xAxisLabel}
             yAxisLabel={expandedItem.data.yAxisLabel}
             onClose={handleCloseExpanded}
-            onDataPointPress={(dataPoint, series) => console.log('Data point pressed:', dataPoint, series)}
           />
         )}
 
@@ -66,7 +65,6 @@ export const DashboardDetailView: React.FC<DashboardDetailViewProps> = ({
             title={expandedItem.data.title}
             subtitle={expandedItem.data.subtitle}
             onClose={handleCloseExpanded}
-            onTaskPress={(task: any) => console.log('Task pressed:', task)}
           />
         )}
 
@@ -77,8 +75,6 @@ export const DashboardDetailView: React.FC<DashboardDetailViewProps> = ({
             title={expandedItem.data.title}
             subtitle={expandedItem.data.subtitle}
             onClose={handleCloseExpanded}
-            onNodePress={(node) => console.log('Node pressed:', node)}
-            onEdgePress={(edge) => console.log('Edge pressed:', edge)}
           />
         )}
 
@@ -90,7 +86,6 @@ export const DashboardDetailView: React.FC<DashboardDetailViewProps> = ({
             fileName={expandedItem.data.fileName}
             title={expandedItem.data.title}
             onClose={handleCloseExpanded}
-            onCopy={() => console.log('Code copied')}
           />
         )}
 
@@ -109,7 +104,6 @@ export const DashboardDetailView: React.FC<DashboardDetailViewProps> = ({
             title={expandedItem.data.title}
             subtitle={expandedItem.data.subtitle}
             onClose={handleCloseExpanded}
-            onTaskPress={(task) => console.log('Task pressed:', task)}
           />
         )}
       </SafeAreaView>

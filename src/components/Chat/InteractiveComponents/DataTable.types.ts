@@ -2,7 +2,10 @@ export type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'currency' | '
 export type SortDirection = 'asc' | 'desc';
 export type FilterOperator = 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'greaterThan' | 'lessThan' | 'between';
 
-export interface ColumnDefinition {
+// Supported cell value types
+export type CellValue = string | number | boolean | Date | null | undefined;
+
+export interface ColumnDefinition<T = RowData> {
   id: string;
   header: string;
   accessor: string; // Key to access the value in the row data
@@ -15,14 +18,14 @@ export interface ColumnDefinition {
   resizable?: boolean;
   align?: 'left' | 'center' | 'right';
   priority?: number; // Lower number = higher priority (1 = always show, 2 = hide on small, 3 = hide on medium)
-  renderCell?: (value: any, row: RowData) => React.ReactNode;
+  renderCell?: (value: CellValue, row: T) => React.ReactNode;
   renderHeader?: () => React.ReactNode;
-  format?: (value: any) => string; // For formatting numbers, dates, currency, etc.
+  format?: (value: CellValue) => string; // For formatting numbers, dates, currency, etc.
 }
 
 export interface RowData {
   id: string | number;
-  [key: string]: any;
+  [key: string]: CellValue;
 }
 
 export interface SortConfig {
@@ -33,8 +36,8 @@ export interface SortConfig {
 export interface FilterConfig {
   columnId: string;
   operator: FilterOperator;
-  value: any;
-  value2?: any; // For 'between' operator
+  value: CellValue;
+  value2?: CellValue; // For 'between' operator
 }
 
 export interface PaginationConfig {

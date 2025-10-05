@@ -86,6 +86,14 @@ export const TreeView: React.FC<TreeViewProps> = ({
           onPress={() => !isDisabled && handleNodePress(node, [...path, node])}
           disabled={isDisabled}
           activeOpacity={0.7}
+          accessibilityRole={hasChildren ? "button" : "text"}
+          accessibilityLabel={`${node.label}${hasChildren ? `, ${node.children!.length} item${node.children!.length !== 1 ? 's' : ''}` : ''}${isSelected ? ', selected' : ''}${isDisabled ? ', disabled' : ''}`}
+          accessibilityHint={hasChildren ? `Double tap to ${isExpanded ? 'collapse' : 'expand'}` : undefined}
+          accessibilityState={{
+            expanded: hasChildren ? isExpanded : undefined,
+            disabled: isDisabled,
+            selected: isSelected,
+          }}
         >
           {/* Indent lines */}
           {showLines && depth > 0 && (

@@ -26,7 +26,15 @@ import {
   getMediaTypeColor,
   calculateFitDimensions,
 } from './Media.utils';
+import {
+  borderRadius,
+  spacing,
+  typography,
+  shadows,
+  useResponsiveMode,
+} from './shared';
 
+// Media-specific colors that aren't in shared tokens
 const colors = {
   surface: {
     primary: '#FFFFFF',
@@ -46,51 +54,6 @@ const colors = {
   },
   accent: {
     500: '#3B82F6',
-  },
-};
-
-const borderRadius = {
-  sm: 4,
-  base: 8,
-  md: 12,
-  lg: 16,
-};
-
-const spacing = {
-  1: 4,
-  2: 8,
-  3: 12,
-  4: 16,
-};
-
-const typography = {
-  fontSize: {
-    xs: 12,
-    sm: 14,
-    base: 16,
-    lg: 18,
-  },
-  fontWeight: {
-    medium: '500' as const,
-    semibold: '600' as const,
-    bold: '700' as const,
-  },
-};
-
-const shadows = {
-  xs: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  sm: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
   },
 };
 
@@ -176,7 +139,7 @@ export const Media: React.FC<MediaProps> = ({
         setIsPlaying(true);
       }
     } catch (error) {
-      console.error('Error playing/pausing video:', error);
+      // Failed to play/pause video
     }
   };
 
@@ -213,8 +176,8 @@ export const Media: React.FC<MediaProps> = ({
             audio.currentTime = 0;
           });
 
-          audio.addEventListener('error', (e: any) => {
-            console.error('Audio playback error:', e);
+          audio.addEventListener('error', () => {
+            // Audio playback error
             setIsLoading(false);
           });
 
@@ -265,7 +228,7 @@ export const Media: React.FC<MediaProps> = ({
         }
       }
     } catch (error) {
-      console.error('Error playing/pausing audio:', error);
+      // Failed to play/pause audio
       setIsLoading(false);
     }
   };
@@ -298,7 +261,7 @@ export const Media: React.FC<MediaProps> = ({
         }
       }
     } catch (error) {
-      console.error('Error seeking audio:', error);
+      // Failed to seek audio
     }
   };
 
@@ -821,8 +784,8 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
   },
   header: {
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3],
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.default,
     backgroundColor: colors.surface.secondary,
@@ -835,7 +798,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: typography.fontSize.sm,
     color: colors.text.secondary,
-    marginTop: spacing[1],
+    marginTop: spacing.xs,
   },
   mediaContainer: {
     position: 'relative',
@@ -845,20 +808,20 @@ const styles = StyleSheet.create({
   },
   typeBadge: {
     position: 'absolute',
-    top: spacing[2],
-    left: spacing[2],
+    top: spacing.sm,
+    left: spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[1],
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
     borderRadius: borderRadius.base,
     borderWidth: 1,
     zIndex: 10,
-    ...shadows.xs,
+    ...shadows.sm,
   },
   typeBadgeIcon: {
     fontSize: typography.fontSize.sm,
-    marginRight: spacing[1],
+    marginRight: spacing.xs,
   },
   typeBadgeText: {
     fontSize: typography.fontSize.xs,
@@ -891,8 +854,8 @@ const styles = StyleSheet.create({
   },
   pauseButton: {
     position: 'absolute',
-    top: spacing[2],
-    right: spacing[2],
+    top: spacing.sm,
+    right: spacing.sm,
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -912,11 +875,11 @@ const styles = StyleSheet.create({
   },
   durationBadge: {
     position: 'absolute',
-    bottom: spacing[2],
-    right: spacing[2],
+    bottom: spacing.sm,
+    right: spacing.sm,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[1],
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
     borderRadius: borderRadius.sm,
   },
   durationText: {
@@ -931,25 +894,25 @@ const styles = StyleSheet.create({
   },
   audioIcon: {
     fontSize: 48,
-    marginBottom: spacing[3],
+    marginBottom: spacing.md,
   },
   audioTitle: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.semibold,
     color: colors.text.primary,
     textAlign: 'center',
-    paddingHorizontal: spacing[4],
-    marginBottom: spacing[2],
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
   },
   audioDuration: {
     fontSize: typography.fontSize.sm,
     color: colors.text.secondary,
-    marginBottom: spacing[4],
+    marginBottom: spacing.lg,
   },
   audioControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing[3],
+    gap: spacing.md,
   },
   audioControlButton: {
     width: 50,
@@ -967,15 +930,15 @@ const styles = StyleSheet.create({
   audioFormat: {
     fontSize: typography.fontSize.xs,
     color: colors.text.tertiary,
-    marginTop: spacing[2],
+    marginTop: spacing.sm,
   },
   progressBarContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    paddingHorizontal: spacing[4],
-    marginVertical: spacing[3],
-    gap: spacing[2],
+    paddingHorizontal: spacing.lg,
+    marginVertical: spacing.md,
+    gap: spacing.sm,
   },
   timeText: {
     fontSize: typography.fontSize.xs,
@@ -1010,10 +973,10 @@ const styles = StyleSheet.create({
   },
   expandButton: {
     position: 'absolute',
-    top: spacing[2],
-    right: spacing[2],
-    paddingVertical: spacing[1],
-    paddingHorizontal: spacing[2],
+    top: spacing.sm,
+    right: spacing.sm,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
     borderRadius: borderRadius.base,
     backgroundColor: colors.accent[500],
     flexDirection: 'row',
@@ -1025,8 +988,8 @@ const styles = StyleSheet.create({
     color: colors.text.inverse,
   },
   captionContainer: {
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3],
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.light,
   },
@@ -1039,8 +1002,8 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.xs,
   },
   metadataContainer: {
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3],
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.light,
     backgroundColor: colors.surface.secondary,
@@ -1049,12 +1012,12 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.semibold,
     color: colors.text.primary,
-    marginBottom: spacing[2],
+    marginBottom: spacing.sm,
   },
   metadataGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing[3],
+    gap: spacing.md,
   },
   metadataItem: {
     flex: 1,
@@ -1063,7 +1026,7 @@ const styles = StyleSheet.create({
   metadataLabel: {
     fontSize: typography.fontSize.xs,
     color: colors.text.tertiary,
-    marginBottom: spacing[1],
+    marginBottom: spacing.xs,
   },
   metadataValue: {
     fontSize: typography.fontSize.sm,
@@ -1071,7 +1034,7 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   galleryControls: {
-    paddingVertical: spacing[3],
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.light,
   },
@@ -1079,8 +1042,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing[4],
-    marginBottom: spacing[2],
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
   },
   navButton: {
     width: 40,
@@ -1103,9 +1066,9 @@ const styles = StyleSheet.create({
     color: colors.text.tertiary,
   },
   galleryIndicator: {
-    marginHorizontal: spacing[4],
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[1],
+    marginHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
     backgroundColor: colors.surface.secondary,
     borderRadius: borderRadius.base,
   },
@@ -1115,10 +1078,10 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   thumbnailScroll: {
-    paddingHorizontal: spacing[4],
+    paddingHorizontal: spacing.lg,
   },
   thumbnailContainer: {
-    gap: spacing[2],
+    gap: spacing.sm,
   },
   thumbnail: {
     width: 60,
@@ -1147,16 +1110,16 @@ const styles = StyleSheet.create({
   },
   actionsContainer: {
     flexDirection: 'row',
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3],
-    gap: spacing[2],
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    gap: spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.light,
   },
   actionButton: {
     flex: 1,
-    paddingVertical: spacing[2],
-    paddingHorizontal: spacing[3],
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
     backgroundColor: colors.accent[500],
     borderRadius: borderRadius.base,
     alignItems: 'center',
@@ -1167,15 +1130,15 @@ const styles = StyleSheet.create({
     color: colors.text.inverse,
   },
   tagsContainer: {
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3],
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   tag: {
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[1],
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
     backgroundColor: colors.surface.secondary,
     borderRadius: borderRadius.base,
-    marginRight: spacing[2],
+    marginRight: spacing.sm,
     borderWidth: 1,
     borderColor: colors.border.default,
   },

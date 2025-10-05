@@ -26,51 +26,7 @@ import {
   calculateMilestonePosition,
   sortTasksByStartDate,
 } from './GanttChart.utils';
-
-const borderRadius = {
-  sm: 4,
-  base: 8,
-  md: 12,
-  lg: 16,
-};
-
-const spacing = {
-  1: 4,
-  2: 8,
-  3: 12,
-  4: 16,
-};
-
-const typography = {
-  fontSize: {
-    xs: 12,
-    sm: 14,
-    base: 16,
-    lg: 18,
-  },
-  fontWeight: {
-    medium: '500' as const,
-    semibold: '600' as const,
-    bold: '700' as const,
-  },
-};
-
-const shadows = {
-  xs: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  sm: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-};
+import { borderRadius, spacing, typography, shadows } from './shared';
 
 export const GanttChart: React.FC<GanttChartProps> = ({
   tasks,
@@ -590,8 +546,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3],
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.default,
     backgroundColor: colors.surface.secondary,
@@ -603,7 +559,7 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.semibold,
     color: colors.text.primary,
-    marginBottom: spacing[1],
+    marginBottom: spacing.xs,
   },
   titleMini: {
     fontSize: typography.fontSize.base,
@@ -617,11 +573,11 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.xs,
   },
   expandButton: {
-    paddingVertical: spacing[1],
-    paddingHorizontal: spacing[2],
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
     borderRadius: borderRadius.base,
     backgroundColor: colors.accent[500],
-    marginLeft: spacing[2],
+    marginLeft: spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -641,7 +597,7 @@ const styles = StyleSheet.create({
   },
   sidebarHeader: {
     justifyContent: 'center',
-    paddingHorizontal: spacing[3],
+    paddingHorizontal: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.default,
   },
@@ -658,7 +614,7 @@ const styles = StyleSheet.create({
   },
   taskSidebar: {
     justifyContent: 'center',
-    paddingHorizontal: spacing[3],
+    paddingHorizontal: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.light,
   },
@@ -675,7 +631,7 @@ const styles = StyleSheet.create({
   },
   taskStatusIcon: {
     fontSize: typography.fontSize.sm,
-    marginRight: spacing[2],
+    marginRight: spacing.sm,
   },
   taskTitle: {
     fontSize: typography.fontSize.sm,
@@ -689,7 +645,7 @@ const styles = StyleSheet.create({
   taskDuration: {
     fontSize: typography.fontSize.xs,
     color: colors.text.tertiary,
-    marginTop: spacing[1],
+    marginTop: spacing.xs,
   },
   timelineScroll: {
     flex: 1,
@@ -781,8 +737,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing[2],
-    ...shadows.xs,
+    paddingHorizontal: spacing.sm,
+    ...shadows.sm,
   },
   taskProgress: {
     position: 'absolute',
@@ -797,7 +753,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: spacing[2],
+    gap: spacing.sm,
     zIndex: 1,
   },
   taskBarText: {
@@ -845,20 +801,20 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.xs,
     color: colors.text.primary,
     backgroundColor: colors.surface.glass,
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[1],
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
     borderRadius: borderRadius.sm,
-    marginLeft: spacing[2],
-    ...shadows.xs,
+    marginLeft: spacing.sm,
+    ...shadows.sm,
   },
   legend: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: spacing[3],
+    padding: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.border.default,
     backgroundColor: colors.surface.secondary,
-    gap: spacing[3],
+    gap: spacing.md,
   },
   legendItem: {
     flexDirection: 'row',
@@ -868,14 +824,14 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: borderRadius.sm,
-    marginRight: spacing[2],
+    marginRight: spacing.sm,
     borderWidth: 1,
     borderColor: colors.border.default,
   },
   legendMilestoneContainer: {
     width: 16,
     height: 16,
-    marginRight: spacing[2],
+    marginRight: spacing.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -895,15 +851,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3],
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.border.default,
     backgroundColor: colors.surface.secondary,
   },
   paginationButton: {
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[2],
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
     borderRadius: borderRadius.base,
     backgroundColor: colors.accent[500],
     minWidth: 100,
@@ -924,7 +880,7 @@ const styles = StyleSheet.create({
   paginationInfo: {
     alignItems: 'center',
     flex: 1,
-    paddingHorizontal: spacing[2],
+    paddingHorizontal: spacing.sm,
   },
   paginationText: {
     fontSize: typography.fontSize.sm,
@@ -934,7 +890,7 @@ const styles = StyleSheet.create({
   paginationSubtext: {
     fontSize: typography.fontSize.xs,
     color: colors.text.secondary,
-    marginTop: spacing[1],
+    marginTop: spacing.xs,
   },
 });
 

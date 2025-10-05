@@ -3,6 +3,9 @@ import { View, StyleSheet, TouchableOpacity, Text, TextInput, FlatList, Activity
 import { Chat } from '../../src/components/Chat';
 import type { Message } from '../../src/components/Chat/types';
 import { addMinutes } from 'date-fns';
+import { useWebRTC } from './useWebRTC';
+import { RemoteVideoPlayer } from './RemoteVideoPlayer';
+import { LocalVideoPlayer } from './LocalVideoPlayer';
 
 /**
  * MultiUserStreamingExample - Real multi-user video chat room with lobby
@@ -24,15 +27,15 @@ const getWebSocketURL = () => {
       return 'wss://stash.scalebase.io/ws';
     }
 
-    // Local development
+    // Local development - connect to mock server on port 8082
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'ws://localhost:9001';
+      return 'ws://localhost:8082/ws';
     }
 
     // Default fallback
-    return `${protocol}//${hostname}:9001`;
+    return `${protocol}//${hostname}:8082/ws`;
   }
-  return 'ws://localhost:9001';
+  return 'ws://localhost:8082/ws';
 };
 
 const WS_URL = getWebSocketURL();
@@ -55,11 +58,15 @@ interface RoomInfo {
 }
 
 const MultiUserStreamingExample: React.FC = () => {
+  // Demo mode - works without backend server (falls back automatically if server unavailable)
+  const [demoMode, setDemoMode] = useState(false);
+
   // Connection state
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('Connecting...');
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<any>(null);
+  const reconnectAttempts = useRef(0);
 
   // Room state
   const [currentRoom, setCurrentRoom] = useState<string | null>(null);
@@ -67,15 +74,58 @@ const MultiUserStreamingExample: React.FC = () => {
   const [availableRooms, setAvailableRooms] = useState<RoomInfo[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [myStreamActive, setMyStreamActive] = useState(false);
+  const myStreamActiveRef = useRef(false); // Track streaming state for WebSocket handlers (avoid stale closures)
 
   // UI state
   const [userName, setUserName] = useState(`User${SESSION_USER_ID.slice(-4)}`);
   const [newRoomName, setNewRoomName] = useState('');
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
+  const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
+  const localStreamRef = useRef<MediaStream | null>(null);
+
+  // WebRTC hooks
+  const webrtc = useWebRTC({
+    roomId: currentRoom,
+    userId: SESSION_USER_ID,
+    onRemoteStream: (userId, stream) => {
+      console.log('[App] Received remote stream from:', userId);
+      console.log('[App] Stream ID:', stream.id);
+      console.log('[App] Stream tracks:', stream.getTracks().map(t => ({ kind: t.kind, id: t.id, enabled: t.enabled, readyState: t.readyState })));
+      setRemoteStreams(prev => {
+        const updated = new Map(prev).set(userId, stream);
+        console.log('[App] Updated remoteStreams map, size:', updated.size);
+        return updated;
+      });
+    },
+    onRemoteStreamEnded: (userId) => {
+      console.log('[App] Remote stream ended from:', userId);
+      setRemoteStreams(prev => {
+        const next = new Map(prev);
+        next.delete(userId);
+        return next;
+      });
+    },
+    sendSignalingMessage: (message) => {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify(message));
+      }
+    },
+  });
+
+  // Sync myStreamActive state to ref (avoid stale closures in WebSocket handlers)
+  useEffect(() => {
+    myStreamActiveRef.current = myStreamActive;
+  }, [myStreamActive]);
 
   // WebSocket connection
   useEffect(() => {
-    connectToServer();
+    if (demoMode) {
+      // Demo mode - simulate connection
+      setIsConnected(true);
+      setConnectionStatus('Demo Mode (No Server Required)');
+    } else {
+      connectToServer();
+    }
 
     return () => {
       if (reconnectTimeoutRef.current) {
@@ -85,7 +135,7 @@ const MultiUserStreamingExample: React.FC = () => {
         wsRef.current.close();
       }
     };
-  }, []);
+  }, [demoMode]);
 
   const connectToServer = () => {
     try {
@@ -117,12 +167,22 @@ const MultiUserStreamingExample: React.FC = () => {
               setCurrentRoom(message.roomId);
               setParticipants(message.participants.filter((p: Participant) => p.userId !== SESSION_USER_ID));
               initializeChatMessages(message.roomId);
+              // Don't create offers here - wait for already-streaming users to send offers to us
               break;
 
             case 'user-joined':
-              console.log('[WebSocket] User joined:', message.userName);
+              console.log('[WebSocket] User joined:', message.userName, 'userId:', message.userId);
+              console.log('[WebSocket] My streaming state - myStreamActiveRef:', myStreamActiveRef.current, 'hasLocalStream:', !!localStreamRef.current);
               setParticipants(message.participants.filter((p: Participant) => p.userId !== SESSION_USER_ID));
               addSystemMessage(`${message.userName} joined the room`);
+
+              // If I'm currently streaming, create an offer to the new user (use ref to avoid stale closure)
+              if (myStreamActiveRef.current && localStreamRef.current) {
+                console.log('[WebRTC] ✅ I am streaming, creating offer to newly joined user:', message.userId);
+                webrtc.createOffer(message.userId);
+              } else {
+                console.log('[WebRTC] ❌ NOT creating offer - myStreamActiveRef:', myStreamActiveRef.current, 'localStream:', !!localStreamRef.current);
+              }
               break;
 
             case 'user-left':
@@ -131,6 +191,8 @@ const MultiUserStreamingExample: React.FC = () => {
               const leftUser = participants.find(p => p.userId === message.userId);
               if (leftUser) {
                 addSystemMessage(`${leftUser.userName} left the room`);
+                // Clean up peer connection
+                webrtc.removePeer(message.userId);
               }
               break;
 
@@ -140,6 +202,7 @@ const MultiUserStreamingExample: React.FC = () => {
               const streamingUser = message.participants.find((p: Participant) => p.userId === message.userId);
               if (streamingUser && streamingUser.userId !== SESSION_USER_ID) {
                 addSystemMessage(`📹 ${streamingUser.userName} started streaming`);
+                // Don't create offer here - the newly streaming user will create offers to everyone
               }
               break;
 
@@ -149,6 +212,8 @@ const MultiUserStreamingExample: React.FC = () => {
               const stoppedUser = message.participants.find((p: Participant) => p.userId === message.userId);
               if (stoppedUser && stoppedUser.userId !== SESSION_USER_ID) {
                 addSystemMessage(`⏹️ ${stoppedUser.userName} stopped streaming`);
+                // Remove the peer connection since they're no longer streaming
+                webrtc.removePeer(message.userId);
               }
               break;
 
@@ -159,6 +224,21 @@ const MultiUserStreamingExample: React.FC = () => {
               break;
 
             case 'pong':
+              break;
+
+            case 'webrtc-offer':
+              console.log('[WebSocket] Received WebRTC offer from:', message.fromUserId);
+              webrtc.handleOffer(message.fromUserId, message.offer);
+              break;
+
+            case 'webrtc-answer':
+              console.log('[WebSocket] Received WebRTC answer from:', message.fromUserId);
+              webrtc.handleAnswer(message.fromUserId, message.answer);
+              break;
+
+            case 'webrtc-ice-candidate':
+              console.log('[WebSocket] Received ICE candidate from:', message.fromUserId);
+              webrtc.handleIceCandidate(message.fromUserId, message.candidate);
               break;
 
             default:
@@ -177,13 +257,24 @@ const MultiUserStreamingExample: React.FC = () => {
       ws.onclose = () => {
         console.log('[WebSocket] Disconnected');
         setIsConnected(false);
-        setConnectionStatus('Disconnected - Reconnecting...');
         setCurrentRoom(null);
 
-        reconnectTimeoutRef.current = setTimeout(() => {
-          console.log('[WebSocket] Attempting to reconnect...');
-          connectToServer();
-        }, 3000);
+        // Limit reconnection attempts to prevent infinite loop
+        if (reconnectAttempts.current < 3) {
+          reconnectAttempts.current += 1;
+          setConnectionStatus(`Reconnecting... (${reconnectAttempts.current}/3)`);
+
+          reconnectTimeoutRef.current = setTimeout(() => {
+            console.log('[WebSocket] Attempting to reconnect...', reconnectAttempts.current);
+            connectToServer();
+          }, 3000);
+        } else {
+          setConnectionStatus('Cannot connect to server. Switching to Demo Mode.');
+          setTimeout(() => {
+            setDemoMode(true);
+            reconnectAttempts.current = 0;
+          }, 2000);
+        }
       };
     } catch (error) {
       console.error('[WebSocket] Connection error:', error);
@@ -192,23 +283,52 @@ const MultiUserStreamingExample: React.FC = () => {
   };
 
   const createRoom = () => {
-    if (!newRoomName.trim()) return;
+    if (!newRoomName.trim()) {
+      console.log('[CreateRoom] Room name is empty');
+      return;
+    }
 
+    if (!demoMode && (!isConnected || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN)) {
+      console.log('[CreateRoom] Not connected to server');
+      return;
+    }
+
+    console.log('[CreateRoom] Creating room:', newRoomName);
     const roomId = generateRoomId();
-    joinRoom(roomId, newRoomName);
+
+    if (demoMode) {
+      // Demo mode - simulate room creation
+      setCurrentRoom(roomId);
+      setCurrentRoomName(newRoomName);
+      initializeChatMessages(roomId);
+    } else {
+      joinRoom(roomId, newRoomName);
+    }
+
     setNewRoomName('');
   };
 
   const joinRoom = (roomId: string, roomName?: string) => {
+    console.log('[JoinRoom] Attempting to join room:', roomId, roomName);
+    console.log('[JoinRoom] WebSocket state:', wsRef.current?.readyState);
+
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       setCurrentRoomName(roomName || roomId);
-      wsRef.current.send(JSON.stringify({
+      const message = {
         type: 'join-room',
         roomId,
         userId: SESSION_USER_ID,
         userName,
         roomName: roomName || roomId,
-      }));
+      };
+      console.log('[JoinRoom] Sending message:', message);
+      wsRef.current.send(JSON.stringify(message));
+    } else {
+      console.error('[JoinRoom] WebSocket not ready:', {
+        exists: !!wsRef.current,
+        readyState: wsRef.current?.readyState,
+        expectedState: WebSocket.OPEN,
+      });
     }
   };
 
@@ -228,20 +348,55 @@ const MultiUserStreamingExample: React.FC = () => {
     }
   };
 
-  const handleStreamStart = () => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        type: 'start-streaming',
-        roomId: currentRoom,
-        userId: SESSION_USER_ID,
-      }));
-      setMyStreamActive(true);
-      addSystemMessage('📹 You started streaming');
+  const handleStreamStart = async () => {
+    try {
+      // Get user's camera/microphone
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+      });
+
+      localStreamRef.current = stream;
+      webrtc.startStreaming(stream);
+
+      if (demoMode) {
+        setMyStreamActive(true);
+        addSystemMessage('📹 You started streaming');
+      } else if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        // Notify server
+        wsRef.current.send(JSON.stringify({
+          type: 'start-streaming',
+          roomId: currentRoom,
+          userId: SESSION_USER_ID,
+        }));
+        setMyStreamActive(true);
+        addSystemMessage('📹 You started streaming');
+
+        // Create peer connections to ALL participants (so they can receive our stream)
+        participants.forEach(participant => {
+          console.log('[WebRTC] Creating offer to participant:', participant.userId);
+          webrtc.createOffer(participant.userId);
+        });
+      }
+    } catch (error) {
+      console.error('[Stream] Error starting stream:', error);
+      addSystemMessage('❌ Failed to access camera/microphone');
     }
   };
 
   const handleStreamStop = () => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+    // Stop local media tracks
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(track => track.stop());
+      localStreamRef.current = null;
+    }
+
+    webrtc.stopStreaming();
+
+    if (demoMode) {
+      setMyStreamActive(false);
+      addSystemMessage('⏹️ You stopped streaming');
+    } else if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({
         type: 'stop-streaming',
         roomId: currentRoom,
@@ -309,8 +464,8 @@ const MultiUserStreamingExample: React.FC = () => {
     };
     setChatMessages([...chatMessages, newMessage]);
 
-    // Send to server
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+    // Send to server (if not in demo mode)
+    if (!demoMode && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({
         type: 'chat-message',
         roomId: currentRoom,
@@ -335,7 +490,7 @@ const MultiUserStreamingExample: React.FC = () => {
     const streamMessages: Message[] = [];
 
     // Add my stream
-    if (myStreamActive) {
+    if (myStreamActive && localStreamRef.current) {
       streamMessages.push({
         id: 'my-stream',
         content: `📹 **Your Camera** (${userName})`,
@@ -344,20 +499,13 @@ const MultiUserStreamingExample: React.FC = () => {
         status: 'delivered',
         isOwn: true,
         interactiveComponent: {
-          type: 'live-camera-stream',
+          type: 'custom',
           data: {
-            mode: 'full',
-            autoStart: false,
-            showControls: true,
-            enableFlip: true,
+            stream: localStreamRef.current,
           },
-          onAction: (action: string) => {
-            if (action === 'stream-start') {
-              handleStreamStart();
-            } else if (action === 'stream-stop') {
-              handleStreamStop();
-            }
-          },
+          customRenderer: () => (
+            <LocalVideoPlayer stream={localStreamRef.current!} />
+          ),
         },
       });
     }
@@ -365,28 +513,38 @@ const MultiUserStreamingExample: React.FC = () => {
     // Add other participants' streams
     participants.forEach((participant) => {
       if (participant.isStreaming) {
+        const remoteStream = remoteStreams.get(participant.userId);
+
         streamMessages.push({
           id: `stream-${participant.userId}`,
-          content: `🔴 **${participant.userName}** is streaming`,
-          sender: { id: participant.userId, name: participant.userName, avatar: '👤' },
+          content: remoteStream
+            ? `🎥 **${participant.userName}** is live`
+            : `🔴 **${participant.userName}** is streaming (connecting...)`,
+          sender: { id: participant.userId, name: participant.userName, avatar: '📹' },
           timestamp: new Date(),
           status: 'delivered',
           isOwn: false,
-          interactiveComponent: {
-            type: 'live-camera-stream',
+          interactiveComponent: remoteStream ? {
+            type: 'custom',
             data: {
-              mode: 'full',
-              autoStart: false,
-              showControls: false,
-              enableFlip: false,
+              stream: remoteStream,
+              userName: participant.userName,
             },
-          },
+            customRenderer: () => (
+              <RemoteVideoPlayer
+                stream={remoteStream}
+                userName={participant.userName}
+              />
+            ),
+          } : undefined,
         });
       }
     });
 
     // Update messages with streams
+    console.log('[RenderStreams] Rendering streams - participants:', participants.length, 'myStreamActive:', myStreamActive, 'remoteStreams:', remoteStreams.size);
     if (streamMessages.length > 0) {
+      console.log('[RenderStreams] Adding', streamMessages.length, 'stream messages to chat');
       setChatMessages(prev => {
         // Remove old stream messages
         const withoutStreams = prev.filter(m => !m.id.startsWith('stream-') && m.id !== 'my-stream');
@@ -396,7 +554,7 @@ const MultiUserStreamingExample: React.FC = () => {
         return [...welcomeMessages, ...streamMessages, ...chatMessages];
       });
     }
-  }, [participants, myStreamActive, currentRoom]);
+  }, [participants, myStreamActive, currentRoom, remoteStreams, userName]);
 
   // Lobby view
   if (!currentRoom) {
@@ -405,8 +563,13 @@ const MultiUserStreamingExample: React.FC = () => {
         <View style={styles.lobbyHeader}>
           <Text style={styles.lobbyTitle}>🎥 Video Chat Rooms</Text>
           <Text style={styles.lobbySubtitle}>
-            {isConnected ? '🟢 Connected' : `🔴 ${connectionStatus}`}
+            {demoMode ? '🟢 Demo Mode - No Server Required' : (isConnected ? '🟢 Connected' : `🔴 ${connectionStatus}`)}
           </Text>
+          {demoMode && (
+            <Text style={styles.demoNotice}>
+              Running in demo mode. Create a room and test the live camera streaming!
+            </Text>
+          )}
         </View>
 
         {/* User name input */}
@@ -538,6 +701,12 @@ const styles = StyleSheet.create({
   lobbySubtitle: {
     fontSize: 16,
     color: '#666',
+  },
+  demoNotice: {
+    fontSize: 14,
+    color: '#007AFF',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   section: {
     marginBottom: 24,

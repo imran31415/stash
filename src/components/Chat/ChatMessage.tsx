@@ -449,6 +449,16 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             onItemAction={(action, actionData, itemIndex) => onAction?.('item-action', { action, data: actionData, itemIndex })}
           />
         );
+      case 'custom':
+        // Custom renderer for user-defined components
+        console.log('[ChatMessage] Custom renderer case - has customRenderer?', !!message.interactiveComponent?.customRenderer);
+        if (message.interactiveComponent?.customRenderer) {
+          console.log('[ChatMessage] Calling customRenderer function');
+          const rendered = message.interactiveComponent.customRenderer();
+          console.log('[ChatMessage] customRenderer returned:', rendered);
+          return rendered;
+        }
+        return null;
       default:
         return null;
     }

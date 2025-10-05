@@ -27,44 +27,7 @@ import {
   generateXAxisTicks,
 } from './TimeSeriesChart.utils';
 import { streamingCallbackRegistry } from './StreamingCallbackRegistry';
-
-const borderRadius = {
-  sm: 4,
-  base: 8,
-  md: 12,
-  lg: 16,
-};
-
-const spacing = {
-  1: 4,
-  2: 8,
-  3: 12,
-  4: 16,
-};
-
-const typography = {
-  fontSize: {
-    xs: 12,
-    sm: 14,
-    base: 16,
-    lg: 18,
-  },
-  fontWeight: {
-    medium: '500' as const,
-    semibold: '600' as const,
-    bold: '700' as const,
-  },
-};
-
-const shadows = {
-  sm: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-};
+import { borderRadius, spacing, typography, shadows } from './shared';
 
 export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
   series,
@@ -610,8 +573,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3],
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.default,
     backgroundColor: colors.surface.secondary,
@@ -623,7 +586,7 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.semibold,
     color: colors.text.primary,
-    marginBottom: spacing[1],
+    marginBottom: spacing.xs,
   },
   titleMini: {
     fontSize: typography.fontSize.base,
@@ -637,11 +600,11 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.xs,
   },
   expandButton: {
-    paddingVertical: spacing[1],
-    paddingHorizontal: spacing[2],
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
     borderRadius: borderRadius.base,
     backgroundColor: colors.primary[500],
-    marginLeft: spacing[2],
+    marginLeft: spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -653,9 +616,9 @@ const styles = StyleSheet.create({
   legend: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[2],
-    gap: spacing[3],
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    gap: spacing.md,
     backgroundColor: colors.surface.secondary,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.default,
@@ -668,7 +631,7 @@ const styles = StyleSheet.create({
     width: 16,
     height: 3,
     borderRadius: borderRadius.sm,
-    marginRight: spacing[2],
+    marginRight: spacing.sm,
   },
   legendText: {
     fontSize: typography.fontSize.xs,
@@ -676,10 +639,10 @@ const styles = StyleSheet.create({
     maxWidth: 100,
   },
   chartScrollContent: {
-    paddingVertical: spacing[2],
+    paddingVertical: spacing.sm,
   },
   selectedPointInfo: {
-    padding: spacing[3],
+    padding: spacing.md,
     backgroundColor: colors.surface.secondary,
     borderTopWidth: 1,
     borderTopColor: colors.border.default,
@@ -688,13 +651,13 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.semibold,
     color: colors.text.primary,
-    marginBottom: spacing[1],
+    marginBottom: spacing.xs,
   },
   selectedPointValue: {
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.bold,
     color: colors.text.primary,
-    marginBottom: spacing[1],
+    marginBottom: spacing.xs,
   },
   selectedPointTime: {
     fontSize: typography.fontSize.xs,
@@ -704,12 +667,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[4],
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     backgroundColor: colors.surface.secondary,
     borderTopWidth: 1,
     borderTopColor: colors.border.default,
-    gap: spacing[3],
+    gap: spacing.md,
   },
   paginationButton: {
     width: 36,
@@ -739,8 +702,8 @@ const styles = StyleSheet.create({
   liveIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: spacing[1],
-    gap: spacing[1],
+    marginTop: spacing.xs,
+    gap: spacing.xs,
   },
   liveDot: {
     width: 8,
@@ -764,8 +727,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[2],
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
     backgroundColor: colors.surface.secondary,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.default,
@@ -773,9 +736,9 @@ const styles = StyleSheet.create({
   controlButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing[2],
-    paddingVertical: spacing[1],
-    paddingHorizontal: spacing[3],
+    gap: spacing.sm,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
     borderRadius: borderRadius.base,
     backgroundColor: colors.primary[500],
   },
@@ -790,7 +753,7 @@ const styles = StyleSheet.create({
   streamingStats: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing[2],
+    gap: spacing.sm,
   },
   streamingStatsText: {
     fontSize: typography.fontSize.xs,

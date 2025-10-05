@@ -30,7 +30,7 @@ export const sortRows = (
         comparison = Number(aValue) - Number(bValue);
         break;
       case 'date':
-        comparison = new Date(aValue).getTime() - new Date(bValue).getTime();
+        comparison = new Date(aValue as string | number | Date).getTime() - new Date(bValue as string | number | Date).getTime();
         break;
       case 'boolean':
         comparison = (aValue === bValue) ? 0 : aValue ? -1 : 1;
@@ -96,7 +96,7 @@ const matchesFilter = (
         return Number(value) > Number(filterValue);
       }
       if (column.type === 'date') {
-        return new Date(value).getTime() > new Date(filterValue).getTime();
+        return new Date(value as string | number | Date).getTime() > new Date(filterValue as string | number | Date).getTime();
       }
       return String(value) > String(filterValue);
 
@@ -105,7 +105,7 @@ const matchesFilter = (
         return Number(value) < Number(filterValue);
       }
       if (column.type === 'date') {
-        return new Date(value).getTime() < new Date(filterValue).getTime();
+        return new Date(value as string | number | Date).getTime() < new Date(filterValue as string | number | Date).getTime();
       }
       return String(value) < String(filterValue);
 
@@ -116,9 +116,9 @@ const matchesFilter = (
         return numValue >= Number(filterValue) && numValue <= Number(value2);
       }
       if (column.type === 'date') {
-        const dateValue = new Date(value).getTime();
-        return dateValue >= new Date(filterValue).getTime() &&
-               dateValue <= new Date(value2).getTime();
+        const dateValue = new Date(value as string | number | Date).getTime();
+        return dateValue >= new Date(filterValue as string | number | Date).getTime() &&
+               dateValue <= new Date(value2 as string | number | Date).getTime();
       }
       return false;
 

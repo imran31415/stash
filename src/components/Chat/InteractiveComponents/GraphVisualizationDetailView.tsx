@@ -164,7 +164,7 @@ export const GraphVisualizationDetailView: React.FC<GraphVisualizationDetailView
           setLayoutProgress(100);
         }
       } catch (error) {
-        console.error('Layout computation error:', error);
+        // Layout computation failed - reset state
         if (!isCancelled) {
           setIsLayouting(false);
         }
@@ -504,10 +504,7 @@ export const GraphVisualizationDetailView: React.FC<GraphVisualizationDetailView
             opacity={nodeOpacity}
             stroke={strokeColor}
             strokeWidth={strokeWidth / scale}
-            onPress={() => {
-              console.log('[GraphVisualizationDetailView] Circle pressed:', node.id);
-              handleNodePress(node);
-            }}
+            onPress={() => handleNodePress(node)}
           />
 
           {/* Node label - only show if there's space or it's important (focused/neighbor) */}

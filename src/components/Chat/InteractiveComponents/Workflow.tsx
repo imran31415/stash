@@ -89,8 +89,8 @@ export const Workflow: React.FC<WorkflowProps> = ({
   // Calculate layout
   const positionedNodes = useMemo<PositionedNode[]>(() => {
     return calculateLayeredLayout(data.nodes, data.edges, {
-      width,
-      height,
+      width: width || 0,
+      height: height || 0,
       nodeWidth,
       nodeHeight,
       horizontalSpacing,
@@ -365,8 +365,8 @@ export const Workflow: React.FC<WorkflowProps> = ({
         scrollEnabled={!isMini}
       >
         <Svg
-          width={isMini ? width : width * zoom}
-          height={isMini ? (height - (title || subtitle ? 60 : 0)) : (height - (title || subtitle ? 60 : 0) - (mode === 'full' ? 60 : 0)) * zoom}
+          width={isMini ? (width || 0) : (width || 0) * zoom}
+          height={isMini ? ((height || 0) - (title || subtitle ? 60 : 0)) : ((height || 0) - (title || subtitle ? 60 : 0) - (mode === 'full' ? 60 : 0)) * zoom}
           viewBox={viewBox}
           preserveAspectRatio="xMidYMid meet"
         >

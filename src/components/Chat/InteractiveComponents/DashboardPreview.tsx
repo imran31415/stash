@@ -1,32 +1,9 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, Pressable, Dimensions, ScrollView, TouchableOpacity } from 'react-native';
 import type { DashboardPreviewProps, DashboardConfig } from './Dashboard.types';
+import { borderRadius, spacing, typography } from './shared';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-
-const borderRadius = {
-  base: 8,
-  md: 12,
-};
-
-const spacing = {
-  2: 8,
-  3: 12,
-  4: 16,
-};
-
-const typography = {
-  fontSize: {
-    xs: 12,
-    sm: 14,
-    base: 16,
-  },
-  fontWeight: {
-    medium: '500' as const,
-    semibold: '600' as const,
-    bold: '700' as const,
-  },
-};
 
 const colors = {
   surface: {
@@ -149,8 +126,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[3],
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.default,
     backgroundColor: colors.surface.secondary,
@@ -166,14 +143,14 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: typography.fontSize.xs,
     color: colors.text.secondary,
-    marginTop: spacing[2] / 2,
+    marginTop: spacing.xs,
   },
   badge: {
     backgroundColor: colors.primary[500],
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[2] / 2,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
     borderRadius: borderRadius.base,
-    marginLeft: spacing[2],
+    marginLeft: spacing.sm,
   },
   badgeText: {
     fontSize: typography.fontSize.xs,
@@ -184,9 +161,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface.secondary,
   },
   previewScrollContent: {
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[3],
-    gap: spacing[2],
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    gap: spacing.sm,
   },
   previewCell: {
     backgroundColor: colors.surface.primary,
@@ -195,8 +172,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border.default,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing[2],
-    marginRight: spacing[2],
+    padding: spacing.sm,
+    marginRight: spacing.sm,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -205,7 +182,7 @@ const styles = StyleSheet.create({
   },
   previewCellIcon: {
     fontSize: 36,
-    marginBottom: spacing[2] / 2,
+    marginBottom: spacing.xs,
   },
   previewCellLabel: {
     fontSize: typography.fontSize.xs,
@@ -214,8 +191,8 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.medium,
   },
   expandButton: {
-    paddingVertical: spacing[3],
-    paddingHorizontal: spacing[4],
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     borderTopWidth: 1,
     borderTopColor: colors.border.default,
     backgroundColor: colors.primary[500],

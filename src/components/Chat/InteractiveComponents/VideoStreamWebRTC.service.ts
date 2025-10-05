@@ -1,13 +1,57 @@
 import type { WebRTCConfig } from './VideoStream.types';
 import { createPeerConnectionConfig } from './VideoStream.utils';
 
-// Type definitions for WebRTC (these would come from react-native-webrtc in production)
-type RTCPeerConnection = any;
-type MediaStream = any;
-type RTCPeerConnectionState = string;
-type RTCIceCandidate = any;
-type RTCSessionDescription = any;
-type RTCStatsReport = any;
+/**
+ * Type definitions for WebRTC
+ * These are placeholder types until react-native-webrtc is installed
+ * In production, import from: import { RTCPeerConnection, MediaStream, etc } from 'react-native-webrtc'
+ */
+export type RTCPeerConnectionState = 'new' | 'connecting' | 'connected' | 'disconnected' | 'failed' | 'closed';
+
+export interface RTCIceCandidate {
+  candidate: string;
+  sdpMLineIndex: number | null;
+  sdpMid: string | null;
+}
+
+export interface RTCSessionDescription {
+  type: 'offer' | 'answer' | 'pranswer' | 'rollback';
+  sdp: string;
+}
+
+export interface MediaStreamTrack {
+  id: string;
+  kind: 'audio' | 'video';
+  enabled: boolean;
+  stop: () => void;
+}
+
+export interface MediaStream {
+  id: string;
+  active: boolean;
+  getTracks: () => MediaStreamTrack[];
+  getAudioTracks: () => MediaStreamTrack[];
+  getVideoTracks: () => MediaStreamTrack[];
+}
+
+export interface RTCStatsReport {
+  forEach: (callback: (value: any, key: string) => void) => void;
+}
+
+export interface RTCPeerConnection {
+  connectionState: RTCPeerConnectionState;
+  addTrack: (track: MediaStreamTrack, stream: MediaStream) => void;
+  createOffer: () => Promise<RTCSessionDescription>;
+  createAnswer: () => Promise<RTCSessionDescription>;
+  setLocalDescription: (description: RTCSessionDescription) => Promise<void>;
+  setRemoteDescription: (description: RTCSessionDescription) => Promise<void>;
+  addIceCandidate: (candidate: RTCIceCandidate) => Promise<void>;
+  getStats: () => Promise<RTCStatsReport>;
+  close: () => void;
+  onicecandidate: ((event: { candidate: RTCIceCandidate | null }) => void) | null;
+  ontrack: ((event: { streams: MediaStream[] }) => void) | null;
+  onconnectionstatechange: (() => void) | null;
+}
 
 export class VideoStreamWebRTCService {
   private peerConnection: RTCPeerConnection | null = null;
@@ -125,13 +169,13 @@ export class VideoStreamWebRTCService {
       }
     };
 
-    // ICE connection state change
-    this.peerConnection.oniceconnectionstatechange = () => {
-      const state = this.peerConnection?.iceConnectionState;
-      console.log('[WebRTC] ICE connection state:', state);
+    // Connection state change
+    this.peerConnection.onconnectionstatechange = () => {
+      const state = this.peerConnection?.connectionState;
+      console.log('[WebRTC] Connection state:', state);
 
       if (state === 'failed') {
-        this.onErrorCallback?.(new Error('ICE connection failed'));
+        this.onErrorCallback?.(new Error('Connection failed'));
       }
     };
   }

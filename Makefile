@@ -140,3 +140,20 @@ test-build: ## Test build without pushing
 	@echo "Testing Docker build..."
 	docker buildx build --platform linux/amd64 -f example/Dockerfile -t stash-example:test .
 	@echo "✅ Test build successful"
+
+.PHONY: test
+test: ## Run all unit tests
+	@echo "Running tests..."
+	yarn test
+	@echo "✅ Tests completed"
+
+.PHONY: test-watch
+test-watch: ## Run tests in watch mode
+	@echo "Running tests in watch mode..."
+	yarn test:watch
+
+.PHONY: test-coverage
+test-coverage: ## Run tests with coverage report
+	@echo "Running tests with coverage..."
+	yarn test:coverage
+	@echo "✅ Coverage report generated"

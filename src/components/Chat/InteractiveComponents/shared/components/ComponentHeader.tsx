@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useThemeColors } from '../../../../../../src/theme';
+import { useThemeColors } from '../../../../../theme';
 import { spacing, typography, borderRadius } from '../tokens';
 
 export interface ComponentHeaderProps {
@@ -41,7 +41,14 @@ export const ComponentHeader: React.FC<ComponentHeaderProps> = ({
         {children}
       </View>
       {isMini && onExpandPress && showExpandButton && (
-        <TouchableOpacity style={styles.expandButton} onPress={onExpandPress} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.expandButton}
+          onPress={onExpandPress}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Expand"
+          accessibilityHint="Double tap to expand component"
+        >
           <Text style={[styles.expandIcon, { color: colors.textSecondary }]}>⤢</Text>
         </TouchableOpacity>
       )}

@@ -300,6 +300,9 @@ export const MultiSwipeable: React.FC<MultiSwipeableProps> = ({
             style={[styles.arrow, styles.arrowLeft]}
             onPress={handlePrevious}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Previous item"
+            accessibilityHint={`View ${items[currentIndex - 1]?.title || 'previous item'}`}
           >
             <Text style={styles.arrowText}>‹</Text>
           </TouchableOpacity>
@@ -333,6 +336,9 @@ export const MultiSwipeable: React.FC<MultiSwipeableProps> = ({
             style={[styles.arrow, styles.arrowRight]}
             onPress={handleNext}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Next item"
+            accessibilityHint={`View ${items[currentIndex + 1]?.title || 'next item'}`}
           >
             <Text style={styles.arrowText}>›</Text>
           </TouchableOpacity>

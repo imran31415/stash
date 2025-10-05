@@ -56,7 +56,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
         Alert.alert('Copied!', 'Code copied to clipboard');
       }
     } catch (error) {
-      console.error('Failed to copy:', error);
+      // Failed to copy to clipboard
     }
   };
 

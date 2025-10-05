@@ -19,6 +19,7 @@ import type {
   LiveStreamStats,
   WebSocketStreamChunk,
 } from './VideoStream.types';
+import { borderRadius, spacing } from './shared';
 
 const colors = {
   surface: {
@@ -46,19 +47,6 @@ const colors = {
   success: {
     500: '#10B981',
   },
-};
-
-const borderRadius = {
-  base: 8,
-  md: 12,
-  lg: 16,
-};
-
-const spacing = {
-  1: 4,
-  2: 8,
-  3: 12,
-  4: 16,
 };
 
 export const VideoStream: React.FC<VideoStreamProps> = ({
@@ -154,7 +142,6 @@ export const VideoStream: React.FC<VideoStreamProps> = ({
       ws.binaryType = 'arraybuffer';
 
       ws.onopen = () => {
-        console.log('[VideoStream] WebSocket connected');
         setStreamState(prev => ({ ...prev, status: 'idle' }));
       };
 
@@ -164,7 +151,7 @@ export const VideoStream: React.FC<VideoStreamProps> = ({
         }
       };
 
-      ws.onerror = (event) => {
+      ws.onerror = () => {
         const error = new Error('WebSocket streaming error');
         setError(error);
         setStreamState(prev => ({ ...prev, status: 'error', error }));
@@ -172,7 +159,6 @@ export const VideoStream: React.FC<VideoStreamProps> = ({
       };
 
       ws.onclose = () => {
-        console.log('[VideoStream] WebSocket disconnected');
         if (streamState.status === 'playing') {
           setStreamState(prev => ({ ...prev, status: 'ended' }));
         }
@@ -197,7 +183,6 @@ export const VideoStream: React.FC<VideoStreamProps> = ({
     // Note: In React Native, WebSocket binary streaming would need a native module
     // or convert chunks to base64 and create a blob URL
     // This is a simplified implementation for demonstration
-    console.log('[VideoStream] Received chunk:', chunk.sequence);
   };
 
   // Handle playback status updates
@@ -264,7 +249,7 @@ export const VideoStream: React.FC<VideoStreamProps> = ({
     try {
       await videoRef.current.setPositionAsync(time * 1000);
     } catch (err) {
-      console.error('[VideoStream] Seek error:', err);
+      // Failed to seek video
     }
   };
 
@@ -275,7 +260,7 @@ export const VideoStream: React.FC<VideoStreamProps> = ({
       await videoRef.current.setVolumeAsync(volume);
       setStreamState(prev => ({ ...prev, volume }));
     } catch (err) {
-      console.error('[VideoStream] Volume change error:', err);
+      // Failed to change volume
     }
   };
 
@@ -512,7 +497,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface.dark,
   },
   metadata: {
-    padding: spacing[3],
+    padding: spacing.md,
     backgroundColor: colors.surface.secondary,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.default,
@@ -521,12 +506,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: colors.text.primary,
-    marginBottom: spacing[1],
+    marginBottom: spacing.xs,
   },
   metadataDescription: {
     fontSize: 14,
     color: colors.text.secondary,
-    marginBottom: spacing[1],
+    marginBottom: spacing.xs,
   },
   metadataAuthor: {
     fontSize: 12,
@@ -534,13 +519,13 @@ const styles = StyleSheet.create({
   },
   liveBadge: {
     position: 'absolute',
-    top: spacing[2],
-    left: spacing[2],
+    top: spacing.sm,
+    left: spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.error[500],
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[1],
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
     borderRadius: borderRadius.base,
     zIndex: 10,
   },
@@ -549,7 +534,7 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
     backgroundColor: colors.text.inverse,
-    marginRight: spacing[1],
+    marginRight: spacing.xs,
   },
   liveBadgeText: {
     fontSize: 12,
@@ -558,11 +543,11 @@ const styles = StyleSheet.create({
   },
   viewerCount: {
     position: 'absolute',
-    top: spacing[2],
-    right: spacing[2],
+    top: spacing.sm,
+    right: spacing.sm,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[1],
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
     borderRadius: borderRadius.base,
     zIndex: 10,
   },
@@ -573,8 +558,8 @@ const styles = StyleSheet.create({
   },
   qualitySelector: {
     position: 'absolute',
-    top: spacing[2],
-    right: spacing[2],
+    top: spacing.sm,
+    right: spacing.sm,
     flexDirection: 'row',
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     borderRadius: borderRadius.base,
@@ -582,8 +567,8 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   qualityButton: {
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[1],
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
   },
   qualityButtonActive: {
     backgroundColor: colors.accent[500],
@@ -604,8 +589,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
   progressContainer: {
-    paddingHorizontal: spacing[2],
-    paddingTop: spacing[2],
+    paddingHorizontal: spacing.sm,
+    paddingTop: spacing.sm,
   },
   progressTrack: {
     height: 4,
@@ -628,8 +613,8 @@ const styles = StyleSheet.create({
   controlButtons: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[2],
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
   },
   controlButton: {
     width: 40,
@@ -638,7 +623,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing[2],
+    marginRight: spacing.sm,
   },
   controlButtonText: {
     fontSize: 18,
@@ -653,7 +638,7 @@ const styles = StyleSheet.create({
     color: colors.text.inverse,
   },
   expandButton: {
-    padding: spacing[2],
+    padding: spacing.sm,
   },
   expandButtonText: {
     fontSize: 18,
@@ -666,7 +651,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   loadingText: {
-    marginTop: spacing[2],
+    marginTop: spacing.sm,
     fontSize: 14,
     color: colors.text.inverse,
   },
@@ -674,17 +659,17 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing[4],
+    padding: spacing.lg,
   },
   errorIcon: {
     fontSize: 48,
-    marginBottom: spacing[2],
+    marginBottom: spacing.sm,
   },
   errorText: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.text.inverse,
-    marginBottom: spacing[1],
+    marginBottom: spacing.xs,
   },
   errorMessage: {
     fontSize: 12,
