@@ -79,8 +79,23 @@ wss.on('connection', (ws) => {
       console.log('Received message:', message);
 
       switch (message.type) {
+        case 'list-rooms': {
+          // Send list of available rooms
+          const roomsList = Array.from(rooms.values()).map(room => ({
+            roomId: room.roomId,
+            roomName: room.roomName || room.roomId,
+            participantCount: room.participants.size,
+          }));
+
+          ws.send(JSON.stringify({
+            type: 'rooms-list',
+            rooms: roomsList,
+          }));
+          break;
+        }
+
         case 'join-room': {
-          const { roomId, userId, userName } = message;
+          const { roomId, userId, userName, roomName } = message;
           currentUserId = userId;
           currentRoomId = roomId;
 
@@ -88,6 +103,7 @@ wss.on('connection', (ws) => {
           if (!rooms.has(roomId)) {
             rooms.set(roomId, {
               roomId,
+              roomName: roomName || roomId,
               participants: new Map(),
               createdAt: Date.now(),
             });

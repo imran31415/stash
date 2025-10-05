@@ -202,17 +202,14 @@ export const GraphVisualizationDetailView: React.FC<GraphVisualizationDetailView
   }, [focusedNodeId, initialLayout]);
 
   const handleNodePress = useCallback((node: GraphNode) => {
-    console.log('[GraphVisualizationDetailView] Node pressed:', node.id);
     setSelectedNode(node);
 
     // Toggle focus mode
     if (focusedNodeId === node.id) {
-      console.log('[GraphVisualizationDetailView] Unfocusing node');
       setFocusedNodeId(null);
       setFocusedLayout(null);
       setBaseLayout(initialLayout);
     } else {
-      console.log('[GraphVisualizationDetailView] Focusing on node:', node.id);
       // Show loading state FIRST
       setIsFocusing(true);
       setFocusProgress(0);
@@ -223,7 +220,6 @@ export const GraphVisualizationDetailView: React.FC<GraphVisualizationDetailView
         const minLoadingTime = 50; // Minimum 50ms to ensure loading state is visible
 
         try {
-          console.log('[GraphVisualizationDetailView] Starting focused layout computation');
           const focused = await applyFocusedLayoutAsync(
             filteredNodes,
             filteredEdges,
@@ -232,16 +228,13 @@ export const GraphVisualizationDetailView: React.FC<GraphVisualizationDetailView
             height,
             baseLayout || initialLayout,
             (progress) => {
-              console.log('[GraphVisualizationDetailView] Focus progress:', progress);
               setFocusProgress(progress);
             }
           );
 
-          console.log('[GraphVisualizationDetailView] Focused layout computed, applying...');
           // Set focused node and layout together
           setFocusedNodeId(node.id);
           setFocusedLayout(focused);
-          console.log('[GraphVisualizationDetailView] Focused layout applied');
 
           // Ensure loading state shows for minimum duration
           const elapsed = Date.now() - startTime;
@@ -251,9 +244,8 @@ export const GraphVisualizationDetailView: React.FC<GraphVisualizationDetailView
             await new Promise(resolve => setTimeout(resolve, remaining));
           }
         } catch (error) {
-          console.error('[GraphVisualizationDetailView] Error applying focused layout:', error);
+          // Failed to apply focused layout - reset state
         } finally {
-          console.log('[GraphVisualizationDetailView] Hiding loading state');
           setIsFocusing(false);
         }
       }, 50); // Small delay to ensure UI renders loading state

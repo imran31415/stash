@@ -147,7 +147,6 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
 
   // Handle streaming toggle
   const handleStreamingToggle = useCallback(() => {
-    console.log('[TimeSeriesChart] Toggle button clicked, isPaused:', isPaused, 'callbackId:', streamingCallbackId);
     const newPausedState = !isPaused;
     if (streamingPaused === undefined) {
       setInternalPaused(newPausedState);
@@ -155,10 +154,8 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
 
     // Try callback registry first (for serialized messages), then direct callback
     if (streamingCallbackId) {
-      const called = streamingCallbackRegistry.call(streamingCallbackId, !newPausedState);
-      console.log('[TimeSeriesChart] Callback registry call result:', called, 'streaming value:', !newPausedState);
+      streamingCallbackRegistry.call(streamingCallbackId, !newPausedState);
     } else {
-      console.log('[TimeSeriesChart] Using direct callback');
       onStreamingToggle?.(!newPausedState);
     }
   }, [isPaused, streamingPaused, onStreamingToggle, streamingCallbackId]);

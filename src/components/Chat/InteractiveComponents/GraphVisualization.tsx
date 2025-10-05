@@ -134,7 +134,7 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
           setLayoutProgress(100);
         }
       } catch (error) {
-        console.error('Layout computation error:', error);
+        // Layout computation failed - reset state
         if (!isCancelled) {
           setIsLayouting(false);
         }
@@ -242,7 +242,7 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
             await new Promise(resolve => setTimeout(resolve, remaining));
           }
         } catch (error) {
-          console.error('Error applying focused layout:', error);
+          // Failed to apply focused layout - reset state
         } finally {
           setIsFocusing(false);
         }
@@ -463,15 +463,9 @@ export const GraphVisualization: React.FC<GraphVisualizationProps> = ({
             stroke={strokeColor}
             strokeWidth={strokeWidth}
             {...(Platform.OS === 'web' ? {
-              onClick: () => {
-                console.log('[GraphVisualization] Circle pressed:', node.id);
-                handleNodePress(node);
-              }
+              onClick: () => handleNodePress(node)
             } : {
-              onPress: () => {
-                console.log('[GraphVisualization] Circle pressed:', node.id);
-                handleNodePress(node);
-              }
+              onPress: () => handleNodePress(node)
             })}
           />
 

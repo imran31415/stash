@@ -180,7 +180,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
           </Text>
         )}
       </View>
-      {isMini && onExpandPress && (
+      {mode !== 'full' && onExpandPress && (
         <TouchableOpacity
           style={styles.expandButton}
           onPress={onExpandPress}
@@ -456,7 +456,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
         {
           height: dimensions.chartHeight,
           width: customWidth || '100%',
-          maxWidth: isMini ? 350 : undefined,
+          maxWidth: mode !== 'full' ? 350 : undefined,
           alignSelf: 'stretch'
         }
       ]}

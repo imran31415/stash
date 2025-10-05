@@ -767,8 +767,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     marginVertical: 4,
-    paddingLeft: 4,
-    paddingRight: 4,
+    paddingHorizontal: 8,
   },
   ownContainer: {
     justifyContent: 'flex-end',
@@ -796,8 +795,8 @@ const styles = StyleSheet.create({
     width: 44,
   },
   messageWrapper: {
-    maxWidth: '95%',
-    minWidth: '30%',
+    flex: 1,
+    maxWidth: '80%',
   },
   ownMessageWrapper: {
     alignItems: 'flex-end',
