@@ -23,6 +23,7 @@ export function useWebRTC({
 }: UseWebRTCProps) {
   const peersRef = useRef<Map<string, WebRTCPeer>>(new Map());
   const localStreamRef = useRef<MediaStream | null>(null);
+  const pendingCandidatesRef = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
 
   const ICE_SERVERS = {
     iceServers: [
@@ -238,6 +239,23 @@ export function useWebRTC({
     }
   }, [roomId, userId, createPeerConnection, sendSignalingMessage]);
 
+  const processPendingCandidates = useCallback(async (remoteUserId: string, peerConnection: RTCPeerConnection) => {
+    const pending = pendingCandidatesRef.current.get(remoteUserId);
+    if (pending && pending.length > 0) {
+      console.log('[WebRTC] 📦 Processing', pending.length, 'pending ICE candidates for:', remoteUserId);
+      for (const candidate of pending) {
+        try {
+          await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+          console.log('[WebRTC] ✅ Added pending ICE candidate');
+        } catch (error) {
+          console.error('[WebRTC] ❌ Error adding pending ICE candidate:', error);
+        }
+      }
+      pendingCandidatesRef.current.delete(remoteUserId);
+      console.log('[WebRTC] ✅ All pending candidates processed for:', remoteUserId);
+    }
+  }, []);
+
   const handleOffer = useCallback(async (fromUserId: string, offer: RTCSessionDescriptionInit) => {
     console.log('[WebRTC] 📨 Received offer from:', fromUserId);
     let peer = peersRef.current.get(fromUserId);
@@ -287,6 +305,9 @@ export function useWebRTC({
       await peer.connection.setRemoteDescription(new RTCSessionDescription(offer));
       console.log('[WebRTC] ✅ Remote description set, signaling state:', peer.connection.signalingState);
 
+      // Process any pending ICE candidates now that remote description is set
+      await processPendingCandidates(fromUserId, peer.connection);
+
       console.log('[WebRTC] Creating answer for:', fromUserId);
       const answer = await peer.connection.createAnswer();
       await peer.connection.setLocalDescription(answer);
@@ -307,7 +328,7 @@ export function useWebRTC({
       console.error('[WebRTC] Signaling state:', peer?.connection.signalingState);
       console.error('[WebRTC] Connection state:', peer?.connection.connectionState);
     }
-  }, [roomId, userId, createPeerConnection, sendSignalingMessage]);
+  }, [roomId, userId, createPeerConnection, sendSignalingMessage, processPendingCandidates]);
 
   const handleAnswer = useCallback(async (fromUserId: string, answer: RTCSessionDescriptionInit) => {
     console.log('[WebRTC] 📨 Received answer from:', fromUserId);
@@ -322,6 +343,9 @@ export function useWebRTC({
         console.log('[WebRTC] New signaling state:', peer.connection.signalingState);
         console.log('[WebRTC] Connection state:', peer.connection.connectionState);
         console.log('[WebRTC] ICE connection state:', peer.connection.iceConnectionState);
+
+        // Process any pending ICE candidates now that remote description is set
+        await processPendingCandidates(fromUserId, peer.connection);
       } catch (error) {
         console.error('[WebRTC] ❌ Error handling answer:', error);
         console.error('[WebRTC] Answer signaling state was:', peer.connection.signalingState);
@@ -330,18 +354,35 @@ export function useWebRTC({
       console.warn('[WebRTC] ⚠️ Received answer from unknown peer:', fromUserId);
       console.warn('[WebRTC] Current peers:', Array.from(peersRef.current.keys()));
     }
-  }, []);
+  }, [processPendingCandidates]);
 
   const handleIceCandidate = useCallback(async (fromUserId: string, candidate: RTCIceCandidateInit) => {
     const peer = peersRef.current.get(fromUserId);
 
     if (peer) {
       try {
-        await peer.connection.addIceCandidate(new RTCIceCandidate(candidate));
-        console.log('[WebRTC] Added ICE candidate from:', fromUserId);
+        // Check if remote description is set
+        if (peer.connection.remoteDescription) {
+          await peer.connection.addIceCandidate(new RTCIceCandidate(candidate));
+          console.log('[WebRTC] ✅ Added ICE candidate from:', fromUserId);
+        } else {
+          // Queue the candidate to be added after remote description is set
+          console.log('[WebRTC] 📦 Queuing ICE candidate from:', fromUserId, '(remote description not set yet)');
+          const pending = pendingCandidatesRef.current.get(fromUserId) || [];
+          pending.push(candidate);
+          pendingCandidatesRef.current.set(fromUserId, pending);
+          console.log('[WebRTC] Pending candidates for', fromUserId + ':', pending.length);
+        }
       } catch (error) {
-        console.error('[WebRTC] Error adding ICE candidate:', error);
+        console.error('[WebRTC] ❌ Error adding ICE candidate:', error);
       }
+    } else {
+      console.warn('[WebRTC] ⚠️ Received ICE candidate from unknown peer:', fromUserId);
+      // Queue it anyway in case the peer connection is created later
+      const pending = pendingCandidatesRef.current.get(fromUserId) || [];
+      pending.push(candidate);
+      pendingCandidatesRef.current.set(fromUserId, pending);
+      console.log('[WebRTC] Queued ICE candidate for future peer:', fromUserId);
     }
   }, []);
 
@@ -350,6 +391,7 @@ export function useWebRTC({
     if (peer) {
       peer.connection.close();
       peersRef.current.delete(remoteUserId);
+      pendingCandidatesRef.current.delete(remoteUserId);
       onRemoteStreamEnded(remoteUserId);
       console.log('[WebRTC] Removed peer:', remoteUserId);
     }
@@ -361,6 +403,7 @@ export function useWebRTC({
       peer.connection.close();
     });
     peersRef.current.clear();
+    pendingCandidatesRef.current.clear();
     console.log('[WebRTC] Cleaned up all connections');
   }, [stopStreaming]);
 
