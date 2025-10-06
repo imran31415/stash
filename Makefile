@@ -4,7 +4,7 @@
 REGISTRY := registry.digitalocean.com/resourceloop
 IMAGE_NAME := stash-example
 NAMESPACE := stash-example
-VERSION := $(shell git rev-parse --short HEAD)
+VERSION := $(shell cd example && git rev-parse --short HEAD)
 TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 IMAGE_TAG := $(VERSION)-$(TIMESTAMP)
 FULL_IMAGE := $(REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
