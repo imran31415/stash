@@ -384,10 +384,13 @@ const MultiUserStreamingExample: React.FC = () => {
         setMyStreamActive(true);
         addSystemMessage('📹 You started streaming');
 
-        // DON'T create any offers when starting streaming
-        // Wait for other streaming users to create offers to us
-        // Or we'll create offers when we receive their user-streaming-started message
-        console.log('[WebRTC] Started streaming, waiting for offers from existing streamers');
+        // Create offers to users who are ALREADY streaming
+        const alreadyStreamingUsers = participants.filter(p => p.isStreaming);
+        console.log('[WebRTC] Started streaming. Found', alreadyStreamingUsers.length, 'already-streaming users');
+        alreadyStreamingUsers.forEach(user => {
+          console.log('[WebRTC] ✅ Creating offer to already-streaming user:', user.userId);
+          webrtc.createOffer(user.userId);
+        });
       }
     } catch (error) {
       console.error('[Stream] Error starting stream:', error);
