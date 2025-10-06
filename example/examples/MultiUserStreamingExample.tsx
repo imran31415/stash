@@ -155,7 +155,7 @@ const MultiUserStreamingExample: React.FC = () => {
       ws.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
-          console.log('[WebSocket] Received:', message);
+          console.log('[WebSocket] Received message type:', message.type, 'full message:', message);
 
           switch (message.type) {
             case 'rooms-list':
@@ -202,7 +202,13 @@ const MultiUserStreamingExample: React.FC = () => {
               const streamingUser = message.participants.find((p: Participant) => p.userId === message.userId);
               if (streamingUser && streamingUser.userId !== SESSION_USER_ID) {
                 addSystemMessage(`📹 ${streamingUser.userName} started streaming`);
-                // Don't create offer here - the newly streaming user will create offers to everyone
+                // If I'm currently streaming, create offer to the newly streaming user
+                if (myStreamActiveRef.current && localStreamRef.current) {
+                  console.log('[WebRTC] ✅ I am streaming, creating offer to newly streaming user:', message.userId);
+                  webrtc.createOffer(message.userId);
+                } else {
+                  console.log('[WebRTC] ❌ I am not streaming, not creating offer');
+                }
               }
               break;
 
@@ -372,10 +378,17 @@ const MultiUserStreamingExample: React.FC = () => {
         setMyStreamActive(true);
         addSystemMessage('📹 You started streaming');
 
-        // Create peer connections to ALL participants (so they can receive our stream)
+        // Create peer connections ONLY to participants who are already streaming
+        // (so they can receive our stream)
+        console.log('[WebRTC] 📊 Checking', participants.length, 'participants to create offers');
         participants.forEach(participant => {
-          console.log('[WebRTC] Creating offer to participant:', participant.userId);
-          webrtc.createOffer(participant.userId);
+          console.log('[WebRTC] 🔍 Participant:', participant.userId, 'isStreaming:', participant.isStreaming);
+          if (participant.isStreaming) {
+            console.log('[WebRTC] ✅ Creating offer to already-streaming participant:', participant.userId);
+            webrtc.createOffer(participant.userId);
+          } else {
+            console.log('[WebRTC] ⏭️ Skipping participant (not streaming):', participant.userId);
+          }
         });
       }
     } catch (error) {

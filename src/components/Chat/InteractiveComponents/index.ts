@@ -168,6 +168,60 @@ export type {
   MultiSwipeableProps,
 } from './MultiSwipeable.types';
 
+export type {
+  FieldType,
+  FieldOption,
+  ValidationRule,
+  FormField,
+  FormSection,
+  FormBuilderData,
+  FormBuilderMode,
+  FormBuilderProps,
+  FormBuilderDetailViewProps,
+  FormBuilderStats,
+} from './FormBuilder.types';
+
+export type {
+  CellType,
+  ComparisonResult,
+  ComparisonCell,
+  ComparisonRow,
+  ComparisonColumn,
+  ComparisonTableData,
+  ComparisonTableMode,
+  ComparisonTableProps,
+  ComparisonTableDetailViewProps,
+  ComparisonTableStats,
+} from './ComparisonTable.types';
+
+export type {
+  SankeyNode,
+  SankeyLink,
+  SankeyDiagramData,
+  SankeyDiagramMode,
+  SankeyOrientation,
+  SankeyDiagramProps,
+  SankeyDiagramDetailViewProps,
+  SankeyDiagramStats,
+  PositionedSankeyNode,
+  PositionedSankeyLink,
+} from './SankeyDiagram.types';
+
+export type {
+  NodeType,
+  NodeStatus,
+  ConnectionType,
+  ConnectionStatus,
+  NetworkNode,
+  NetworkConnection,
+  NetworkTopologyData,
+  NetworkTopologyMode,
+  NetworkLayout,
+  NetworkTopologyProps,
+  NetworkTopologyDetailViewProps,
+  NetworkTopologyStats,
+} from './NetworkTopology.types';
+
 export { TaskList } from './TaskList';
 export { TaskDetailModal } from './TaskDetailModal';
 export { TaskDetailBottomSheet } from './TaskDetailBottomSheet';
@@ -206,5 +260,13 @@ export { KanbanBoardDetailView } from './KanbanBoardDetailView';
 export { LoadingState } from './LoadingState';
 export type { LoadingStateProps } from './LoadingState';
 export { MultiSwipeable } from './MultiSwipeable';
+export { FormBuilder } from './FormBuilder';
+export { FormBuilderDetailView } from './FormBuilderDetailView';
+export { ComparisonTable } from './ComparisonTable';
+export { ComparisonTableDetailView } from './ComparisonTableDetailView';
+export { SankeyDiagram } from './SankeyDiagram';
+export { SankeyDiagramDetailView } from './SankeyDiagramDetailView';
+export { NetworkTopology } from './NetworkTopology';
+export { NetworkTopologyDetailView } from './NetworkTopologyDetailView';
 
 // All interactive chat components for rich, embedded visualizations

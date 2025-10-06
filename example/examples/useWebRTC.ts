@@ -21,16 +21,57 @@ export function useWebRTC({
   onRemoteStreamEnded,
   sendSignalingMessage,
 }: UseWebRTCProps) {
+  console.log('🚀🚀🚀 useWebRTC HOOK INITIALIZED - CODE VERSION 3.0 🚀🚀🚀');
   const peersRef = useRef<Map<string, WebRTCPeer>>(new Map());
   const localStreamRef = useRef<MediaStream | null>(null);
   const pendingCandidatesRef = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
+  const candidateStatsRef = useRef<Map<string, { host: number; srflx: number; relay: number }>>(new Map());
 
   const ICE_SERVERS = {
     iceServers: [
-      // STUN servers for NAT traversal
+      // STUN servers
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'stun:stun2.l.google.com:19302' },
+
+      // Twilio TURN servers (known to work well)
+      {
+        urls: 'turn:global.turn.twilio.com:3478?transport=udp',
+        username: 'f4b4035eaa76f4a55de5f4351567653ee4ff6fa97b50b6b334fcc1be4afc8e48',
+        credential: 'w1uxM55V9yVoqyVFjt+mxDBV0F87AUCemaYVQGxsPLw=',
+      },
+      {
+        urls: 'turn:global.turn.twilio.com:3478?transport=tcp',
+        username: 'f4b4035eaa76f4a55de5f4351567653ee4ff6fa97b50b6b334fcc1be4afc8e48',
+        credential: 'w1uxM55V9yVoqyVFjt+mxDBV0F87AUCemaYVQGxsPLw=',
+      },
+      {
+        urls: 'turn:global.turn.twilio.com:443?transport=tcp',
+        username: 'f4b4035eaa76f4a55de5f4351567653ee4ff6fa97b50b6b334fcc1be4afc8e48',
+        credential: 'w1uxM55V9yVoqyVFjt+mxDBV0F87AUCemaYVQGxsPLw=',
+      },
+
+      // Metered TURN servers (alternative)
+      {
+        urls: 'turn:a.relay.metered.ca:80',
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
+      {
+        urls: 'turn:a.relay.metered.ca:80?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
+      {
+        urls: 'turn:a.relay.metered.ca:443',
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
+      {
+        urls: 'turn:a.relay.metered.ca:443?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
+
       // Your dedicated TURN server
       {
         urls: 'turn:209.38.172.46:3478',
@@ -42,25 +83,33 @@ export function useWebRTC({
         username: 'stash',
         credential: 'stashTurn2024!',
       },
-      // Backup free TURN server (in case your server is down)
-      {
-        urls: 'turn:openrelay.metered.ca:80',
-        username: 'openrelayproject',
-        credential: 'openrelayproject',
-      },
     ],
     iceCandidatePoolSize: 10,
     iceTransportPolicy: 'all' as RTCIceTransportPolicy,
+    bundlePolicy: 'max-bundle' as RTCBundlePolicy,
+    rtcpMuxPolicy: 'require' as RTCRtcpMuxPolicy,
   };
 
   const createPeerConnection = useCallback((remoteUserId: string): RTCPeerConnection => {
+    console.log('[WebRTC] 🔧🔧🔧 Creating new peer connection for:', remoteUserId, '(VERSION 2.0)');
+    console.log('[WebRTC] ICE servers configured:', ICE_SERVERS.iceServers.length, 'servers');
+    console.log('[WebRTC] ICE servers:', ICE_SERVERS.iceServers.map(s => typeof s.urls === 'string' ? s.urls : s.urls[0]));
+
     const pc = new RTCPeerConnection(ICE_SERVERS);
+    console.log('[WebRTC] RTCPeerConnection object created successfully');
 
     // Add local stream tracks if available
     if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => {
-        pc.addTrack(track, localStreamRef.current!);
+      const tracks = localStreamRef.current.getTracks();
+      console.log('[WebRTC] ✅ Adding', tracks.length, 'local tracks to peer connection for:', remoteUserId);
+      tracks.forEach(track => {
+        console.log('[WebRTC]   - Adding track:', track.kind, track.id, 'enabled:', track.enabled, 'readyState:', track.readyState);
+        const sender = pc.addTrack(track, localStreamRef.current!);
+        console.log('[WebRTC]   - Track added, sender:', sender.track?.id);
       });
+      console.log('[WebRTC] Total senders after adding tracks:', pc.getSenders().length);
+    } else {
+      console.log('[WebRTC] ⚠️ No local stream available when creating peer connection for:', remoteUserId);
     }
 
     // Handle remote stream
@@ -97,8 +146,27 @@ export function useWebRTC({
     };
 
     // Handle ICE candidates
+    console.log('[WebRTC] 🎯 Setting up onicecandidate handler for:', remoteUserId);
     pc.onicecandidate = (event) => {
+      console.log('[WebRTC] 🎯🎯 onicecandidate event fired for:', remoteUserId, 'candidate:', event.candidate);
       if (event.candidate) {
+        const candidateType = event.candidate.type || 'unknown';
+
+        // Track candidate statistics
+        const stats = candidateStatsRef.current.get(remoteUserId) || { host: 0, srflx: 0, relay: 0 };
+        if (candidateType === 'host') stats.host++;
+        else if (candidateType === 'srflx') stats.srflx++;
+        else if (candidateType === 'relay') stats.relay++;
+        candidateStatsRef.current.set(remoteUserId, stats);
+
+        console.log('[WebRTC] 🧊 Generated ICE candidate for', remoteUserId);
+        console.log('[WebRTC]   Type:', candidateType, '(host:', stats.host, 'srflx:', stats.srflx, 'relay:', stats.relay + ')');
+        console.log('[WebRTC]   Protocol:', event.candidate.protocol);
+        console.log('[WebRTC]   Address:', event.candidate.address || 'N/A');
+        console.log('[WebRTC]   Port:', event.candidate.port);
+        console.log('[WebRTC]   Priority:', event.candidate.priority);
+        console.log('[WebRTC]   Full candidate string:', event.candidate.candidate);
+
         sendSignalingMessage({
           type: 'webrtc-ice-candidate',
           roomId,
@@ -106,6 +174,15 @@ export function useWebRTC({
           toUserId: remoteUserId,
           candidate: event.candidate,
         });
+      } else {
+        const stats = candidateStatsRef.current.get(remoteUserId) || { host: 0, srflx: 0, relay: 0 };
+        console.log('[WebRTC] ✅ ICE gathering complete for:', remoteUserId);
+        console.log('[WebRTC]   Final candidate count - host:', stats.host, 'srflx:', stats.srflx, 'relay:', stats.relay);
+
+        if (stats.relay === 0) {
+          console.warn('[WebRTC] ⚠️ WARNING: No TURN relay candidates generated! Connection may fail on restrictive networks.');
+          console.warn('[WebRTC] ⚠️ This usually means TURN servers are not responding or are misconfigured.');
+        }
       }
     };
 
@@ -213,29 +290,41 @@ export function useWebRTC({
     console.log('[WebRTC] Peer connection transceivers:', peer.connection.getTransceivers().length);
 
     try {
-      // Create offer with proper configuration for localhost testing
+      // Create offer with proper configuration
       const offerOptions: RTCOfferOptions = {
         offerToReceiveAudio: true,
         offerToReceiveVideo: true,
       };
 
+      console.log('[WebRTC] Creating offer with options:', offerOptions);
       const offer = await peer.connection.createOffer(offerOptions);
+
+      console.log('[WebRTC] Offer created, setting as local description');
+      console.log('[WebRTC] Offer SDP preview:', offer.sdp?.substring(0, 200) + '...');
+
       await peer.connection.setLocalDescription(offer);
 
-      console.log('[WebRTC] ✅ Offer created successfully');
+      console.log('[WebRTC] ✅ Offer created and set as local description');
       console.log('[WebRTC] Offer SDP type:', offer.type);
+      console.log('[WebRTC] Local description type:', peer.connection.localDescription?.type);
+      console.log('[WebRTC] Signaling state after setLocalDescription:', peer.connection.signalingState);
       console.log('[WebRTC] Sending offer to:', remoteUserId, 'roomId:', roomId);
+
+      const offerToSend = peer.connection.localDescription;
+      console.log('[WebRTC] Offer to send - type:', offerToSend?.type, 'sdp length:', offerToSend?.sdp?.length);
+
       sendSignalingMessage({
         type: 'webrtc-offer',
         roomId,
         fromUserId: userId,
         toUserId: remoteUserId,
-        offer: peer.connection.localDescription,
+        offer: offerToSend,
       });
 
-      console.log('[WebRTC] Offer sent successfully to:', remoteUserId);
+      console.log('[WebRTC] ✅ Offer sent successfully to:', remoteUserId);
     } catch (error) {
       console.error('[WebRTC] ❌ Error creating offer:', error);
+      console.error('[WebRTC] Error stack:', (error as Error).stack);
     }
   }, [roomId, userId, createPeerConnection, sendSignalingMessage]);
 
@@ -275,6 +364,7 @@ export function useWebRTC({
 
         // Use polite/impolite pattern - lower userId is polite
         const isPolite = userId < fromUserId;
+        console.log('[WebRTC] Politeness check: myUserId=' + userId + ' < remoteUserId=' + fromUserId + ' = ' + isPolite);
         console.log('[WebRTC] I am', isPolite ? 'polite' : 'impolite');
 
         if (!isPolite) {
@@ -302,16 +392,40 @@ export function useWebRTC({
 
     try {
       console.log('[WebRTC] Setting remote description (offer) from:', fromUserId);
+      console.log('[WebRTC] Offer SDP preview:', offer.sdp?.substring(0, 200) + '...');
+      console.log('[WebRTC] Current signaling state before setRemoteDescription:', peer.connection.signalingState);
+
       await peer.connection.setRemoteDescription(new RTCSessionDescription(offer));
-      console.log('[WebRTC] ✅ Remote description set, signaling state:', peer.connection.signalingState);
+
+      console.log('[WebRTC] ✅ Remote description (offer) set successfully');
+      console.log('[WebRTC] New signaling state:', peer.connection.signalingState);
+      console.log('[WebRTC] Remote description type:', peer.connection.remoteDescription?.type);
+      console.log('[WebRTC] Number of transceivers:', peer.connection.getTransceivers().length);
+      peer.connection.getTransceivers().forEach((transceiver, index) => {
+        console.log(`[WebRTC] Transceiver ${index}:`, {
+          direction: transceiver.direction,
+          currentDirection: transceiver.currentDirection,
+          mid: transceiver.mid,
+        });
+      });
 
       // Process any pending ICE candidates now that remote description is set
       await processPendingCandidates(fromUserId, peer.connection);
 
       console.log('[WebRTC] Creating answer for:', fromUserId);
       const answer = await peer.connection.createAnswer();
+
+      console.log('[WebRTC] Answer created, setting as local description');
+      console.log('[WebRTC] Answer SDP preview:', answer.sdp?.substring(0, 200) + '...');
+
       await peer.connection.setLocalDescription(answer);
-      console.log('[WebRTC] ✅ Answer created and set as local description');
+
+      console.log('[WebRTC] ✅ Answer set as local description');
+      console.log('[WebRTC] Signaling state after setLocalDescription:', peer.connection.signalingState);
+      console.log('[WebRTC] Local description type:', peer.connection.localDescription?.type);
+
+      const answerToSend = peer.connection.localDescription;
+      console.log('[WebRTC] Answer to send - type:', answerToSend?.type, 'sdp length:', answerToSend?.sdp?.length);
 
       console.log('[WebRTC] 📤 Sending answer to:', fromUserId);
       sendSignalingMessage({
@@ -319,12 +433,13 @@ export function useWebRTC({
         roomId,
         fromUserId: userId,
         toUserId: fromUserId,
-        answer: peer.connection.localDescription,
+        answer: answerToSend,
       });
 
       console.log('[WebRTC] ✅ Answer sent successfully to:', fromUserId);
     } catch (error) {
       console.error('[WebRTC] ❌ Error handling offer:', error);
+      console.error('[WebRTC] Error stack:', (error as Error).stack);
       console.error('[WebRTC] Signaling state:', peer?.connection.signalingState);
       console.error('[WebRTC] Connection state:', peer?.connection.connectionState);
     }
@@ -357,32 +472,40 @@ export function useWebRTC({
   }, [processPendingCandidates]);
 
   const handleIceCandidate = useCallback(async (fromUserId: string, candidate: RTCIceCandidateInit) => {
+    console.log('[WebRTC] 📥 Received ICE candidate from:', fromUserId);
+    console.log('[WebRTC]   Candidate string:', candidate.candidate);
+
     const peer = peersRef.current.get(fromUserId);
 
     if (peer) {
       try {
         // Check if remote description is set
         if (peer.connection.remoteDescription) {
+          console.log('[WebRTC] Adding ICE candidate (remote description is set)');
           await peer.connection.addIceCandidate(new RTCIceCandidate(candidate));
-          console.log('[WebRTC] ✅ Added ICE candidate from:', fromUserId);
+          console.log('[WebRTC] ✅ Successfully added ICE candidate from:', fromUserId);
         } else {
           // Queue the candidate to be added after remote description is set
           console.log('[WebRTC] 📦 Queuing ICE candidate from:', fromUserId, '(remote description not set yet)');
           const pending = pendingCandidatesRef.current.get(fromUserId) || [];
           pending.push(candidate);
           pendingCandidatesRef.current.set(fromUserId, pending);
-          console.log('[WebRTC] Pending candidates for', fromUserId + ':', pending.length);
+          console.log('[WebRTC] Total pending candidates for', fromUserId + ':', pending.length);
         }
       } catch (error) {
-        console.error('[WebRTC] ❌ Error adding ICE candidate:', error);
+        console.error('[WebRTC] ❌ Error adding ICE candidate from:', fromUserId);
+        console.error('[WebRTC] Error details:', error);
+        console.error('[WebRTC] Signaling state:', peer.connection.signalingState);
+        console.error('[WebRTC] ICE connection state:', peer.connection.iceConnectionState);
       }
     } else {
       console.warn('[WebRTC] ⚠️ Received ICE candidate from unknown peer:', fromUserId);
+      console.warn('[WebRTC] Known peers:', Array.from(peersRef.current.keys()));
       // Queue it anyway in case the peer connection is created later
       const pending = pendingCandidatesRef.current.get(fromUserId) || [];
       pending.push(candidate);
       pendingCandidatesRef.current.set(fromUserId, pending);
-      console.log('[WebRTC] Queued ICE candidate for future peer:', fromUserId);
+      console.log('[WebRTC] Queued ICE candidate for future peer:', fromUserId, '(total queued:', pending.length + ')');
     }
   }, []);
 
@@ -392,6 +515,7 @@ export function useWebRTC({
       peer.connection.close();
       peersRef.current.delete(remoteUserId);
       pendingCandidatesRef.current.delete(remoteUserId);
+      candidateStatsRef.current.delete(remoteUserId);
       onRemoteStreamEnded(remoteUserId);
       console.log('[WebRTC] Removed peer:', remoteUserId);
     }
@@ -404,6 +528,7 @@ export function useWebRTC({
     });
     peersRef.current.clear();
     pendingCandidatesRef.current.clear();
+    candidateStatsRef.current.clear();
     console.log('[WebRTC] Cleaned up all connections');
   }, [stopStreaming]);
 
