@@ -21,7 +21,7 @@ export function useWebRTC({
   onRemoteStreamEnded,
   sendSignalingMessage,
 }: UseWebRTCProps) {
-  console.log('🚀🚀🚀 useWebRTC HOOK INITIALIZED - CODE VERSION 3.0 🚀🚀🚀');
+  console.log('🚀🚀🚀 useWebRTC HOOK INITIALIZED - CODE VERSION 5.0 - OFFER FIX 🚀🚀🚀');
   const peersRef = useRef<Map<string, WebRTCPeer>>(new Map());
   const localStreamRef = useRef<MediaStream | null>(null);
   const pendingCandidatesRef = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
@@ -29,50 +29,10 @@ export function useWebRTC({
 
   const ICE_SERVERS = {
     iceServers: [
-      // STUN servers
+      // Google STUN for discovering public IP
       { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
 
-      // Twilio TURN servers (known to work well)
-      {
-        urls: 'turn:global.turn.twilio.com:3478?transport=udp',
-        username: 'f4b4035eaa76f4a55de5f4351567653ee4ff6fa97b50b6b334fcc1be4afc8e48',
-        credential: 'w1uxM55V9yVoqyVFjt+mxDBV0F87AUCemaYVQGxsPLw=',
-      },
-      {
-        urls: 'turn:global.turn.twilio.com:3478?transport=tcp',
-        username: 'f4b4035eaa76f4a55de5f4351567653ee4ff6fa97b50b6b334fcc1be4afc8e48',
-        credential: 'w1uxM55V9yVoqyVFjt+mxDBV0F87AUCemaYVQGxsPLw=',
-      },
-      {
-        urls: 'turn:global.turn.twilio.com:443?transport=tcp',
-        username: 'f4b4035eaa76f4a55de5f4351567653ee4ff6fa97b50b6b334fcc1be4afc8e48',
-        credential: 'w1uxM55V9yVoqyVFjt+mxDBV0F87AUCemaYVQGxsPLw=',
-      },
-
-      // Metered TURN servers (alternative)
-      {
-        urls: 'turn:a.relay.metered.ca:80',
-        username: 'openrelayproject',
-        credential: 'openrelayproject',
-      },
-      {
-        urls: 'turn:a.relay.metered.ca:80?transport=tcp',
-        username: 'openrelayproject',
-        credential: 'openrelayproject',
-      },
-      {
-        urls: 'turn:a.relay.metered.ca:443',
-        username: 'openrelayproject',
-        credential: 'openrelayproject',
-      },
-      {
-        urls: 'turn:a.relay.metered.ca:443?transport=tcp',
-        username: 'openrelayproject',
-        credential: 'openrelayproject',
-      },
-
-      // Your dedicated TURN server
+      // Your dedicated TURN server (PRIMARY - handles NAT traversal)
       {
         urls: 'turn:209.38.172.46:3478',
         username: 'stash',
@@ -347,6 +307,9 @@ export function useWebRTC({
 
   const handleOffer = useCallback(async (fromUserId: string, offer: RTCSessionDescriptionInit) => {
     console.log('[WebRTC] 📨 Received offer from:', fromUserId);
+    console.log('[WebRTC] 📨 Offer type:', offer.type);
+    console.log('[WebRTC] 📨 Offer SDP length:', offer.sdp?.length);
+    console.log('[WebRTC] 📨 Do I have local stream?', !!localStreamRef.current);
     let peer = peersRef.current.get(fromUserId);
 
     if (!peer) {
@@ -413,7 +376,8 @@ export function useWebRTC({
       await processPendingCandidates(fromUserId, peer.connection);
 
       console.log('[WebRTC] Creating answer for:', fromUserId);
-      const answer = await peer.connection.createAnswer();
+      const answerOptions: RTCAnswerOptions = {};
+      const answer = await peer.connection.createAnswer(answerOptions);
 
       console.log('[WebRTC] Answer created, setting as local description');
       console.log('[WebRTC] Answer SDP preview:', answer.sdp?.substring(0, 200) + '...');

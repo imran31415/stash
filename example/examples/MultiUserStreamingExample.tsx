@@ -205,16 +205,11 @@ const MultiUserStreamingExample: React.FC = () => {
               console.log('[WebSocket] 🔍 Found streamingUser:', streamingUser?.userId, streamingUser?.userName);
               if (streamingUser && streamingUser.userId !== SESSION_USER_ID) {
                 addSystemMessage(`📹 ${streamingUser.userName} started streaming`);
-                console.log('[WebSocket] 🔍 Checking if I should create offer - myStreamActive:', myStreamActiveRef.current, 'hasLocalStream:', !!localStreamRef.current);
-                // If I'm currently streaming, create offer to the newly streaming user
-                if (myStreamActiveRef.current && localStreamRef.current) {
-                  console.log('[WebRTC] ✅ I am streaming, creating offer to newly streaming user:', message.userId);
-                  webrtc.createOffer(message.userId);
-                } else {
-                  console.log('[WebRTC] ❌ I am not streaming, not creating offer');
-                }
+                console.log('[WebRTC] ℹ️ Other user started streaming - NOT creating offer (avoid collision)');
+                // DON'T create offer here - the other user will receive our stream via the
+                // existing peer connection that was created when they joined the room
               } else {
-                console.log('[WebSocket] ⏭️ Skipping offer creation - either no streamingUser found or it\'s me');
+                console.log('[WebSocket] ⏭️ Skipping - either no streamingUser found or it\'s me');
               }
               break;
 

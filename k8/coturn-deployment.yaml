@@ -11,8 +11,8 @@ data:
     listening-port=3478
     tls-listening-port=5349
 
-    # External IP (will be overridden by environment variable)
-    # external-ip=YOUR_EXTERNAL_IP
+    # External IP (DigitalOcean LoadBalancer IP)
+    external-ip=209.38.172.46
 
     # Relay IP (use pod IP)
     relay-ip=0.0.0.0
@@ -52,8 +52,8 @@ data:
     no-multicast-peers
     no-loopback-peers
 
-    # Allow only specific protocols
-    no-tcp-relay
+    # Allow TCP relay for better NAT traversal
+    # no-tcp-relay (REMOVED - we need TCP relay!)
 
     # Security
     no-cli
@@ -111,7 +111,7 @@ spec:
           name: relay-end
         env:
         - name: EXTERNAL_IP
-          value: "YOUR_EXTERNAL_IP_HERE"  # Replace with your actual external IP
+          value: "209.38.172.46"
         - name: TURN_USERNAME
           value: "stash"
         - name: TURN_PASSWORD

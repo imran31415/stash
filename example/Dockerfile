@@ -95,14 +95,19 @@ http {
         root /usr/share/nginx/html;
         index index.html;
 
-        # Frontend
+        # Frontend - HTML files should never be cached
         location / {
             try_files \$uri \$uri/ /index.html;
             add_header Cache-Control "no-cache, no-store, must-revalidate";
         }
 
-        # Static assets caching
-        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        # JavaScript and CSS - no caching to avoid stale code issues
+        location ~* \.(js|css)$ {
+            add_header Cache-Control "no-cache, no-store, must-revalidate";
+        }
+
+        # Images and fonts - can be cached
+        location ~* \.(png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
             expires 1y;
             add_header Cache-Control "public, immutable";
         }
@@ -118,6 +123,8 @@ http {
             proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto \$scheme;
             proxy_read_timeout 86400;
+            proxy_send_timeout 86400;
+            proxy_connect_timeout 86400;
         }
 
         location /api {

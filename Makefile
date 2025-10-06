@@ -31,7 +31,7 @@ version: ## Display current version
 .PHONY: build
 build: ## Build Docker image
 	@echo "Building Docker image: $(FULL_IMAGE)"
-	docker buildx build --platform linux/amd64 -f example/Dockerfile -t $(FULL_IMAGE) -t $(LATEST_IMAGE) --load .
+	docker buildx build --no-cache --platform linux/amd64 -f example/Dockerfile -t $(FULL_IMAGE) -t $(LATEST_IMAGE) --load .
 	@echo "✅ Image built successfully"
 
 .PHONY: push
