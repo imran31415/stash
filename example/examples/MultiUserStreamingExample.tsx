@@ -76,6 +76,14 @@ const MultiUserStreamingExample: React.FC = () => {
   const [myStreamActive, setMyStreamActive] = useState(false);
   const myStreamActiveRef = useRef(false); // Track streaming state for WebSocket handlers (avoid stale closures)
 
+  // URL routing state
+  const [urlRoomId, setUrlRoomId] = useState<string | null>(null);
+  const [showCopiedMessage, setShowCopiedMessage] = useState(false);
+
+  // Media controls state
+  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+
   // UI state
   const [userName, setUserName] = useState(`User${SESSION_USER_ID.slice(-4)}`);
   const [newRoomName, setNewRoomName] = useState('');
@@ -116,6 +124,30 @@ const MultiUserStreamingExample: React.FC = () => {
   useEffect(() => {
     myStreamActiveRef.current = myStreamActive;
   }, [myStreamActive]);
+
+  // Read room ID from URL on mount (web only)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      const pathParts = url.pathname.split('/');
+      // Check for /room/roomId pattern
+      const roomIndex = pathParts.indexOf('room');
+      if (roomIndex !== -1 && pathParts[roomIndex + 1]) {
+        const roomId = pathParts[roomIndex + 1];
+        console.log('[URL] Found room ID in URL:', roomId);
+        setUrlRoomId(roomId);
+      }
+    }
+  }, []);
+
+  // Auto-join room from URL when connected
+  useEffect(() => {
+    if (isConnected && urlRoomId && !currentRoom) {
+      console.log('[URL] Auto-joining room from URL:', urlRoomId);
+      handleJoinRoom(urlRoomId, `Room ${urlRoomId}`);
+      setUrlRoomId(null); // Clear to prevent re-joining
+    }
+  }, [isConnected, urlRoomId, currentRoom]);
 
   // WebSocket connection
   useEffect(() => {
@@ -164,8 +196,11 @@ const MultiUserStreamingExample: React.FC = () => {
 
             case 'room-joined':
               console.log('[WebSocket] Joined room:', message.roomId);
+              console.log('[WebSocket] 🔍 DEBUG: Received participants from server:', JSON.stringify(message.participants));
               setCurrentRoom(message.roomId);
-              setParticipants(message.participants.filter((p: Participant) => p.userId !== SESSION_USER_ID));
+              const filteredParticipants = message.participants.filter((p: Participant) => p.userId !== SESSION_USER_ID);
+              console.log('[WebSocket] 🔍 DEBUG: Filtered participants (excluding me):', JSON.stringify(filteredParticipants));
+              setParticipants(filteredParticipants);
               initializeChatMessages(message.roomId);
               // Don't create offers here - wait for already-streaming users to send offers to us
               break;
@@ -200,10 +235,40 @@ const MultiUserStreamingExample: React.FC = () => {
               console.log('[WebSocket] 🎬 User started streaming:', message.userId);
               console.log('[WebSocket] 🔍 My userId:', SESSION_USER_ID);
               console.log('[WebSocket] 🔍 Is it me?', message.userId === SESSION_USER_ID);
-              setParticipants(message.participants.filter((p: Participant) => p.userId !== SESSION_USER_ID));
+              console.log('[WebSocket] 🔍 DEBUG: Received participants from server:', JSON.stringify(message.participants));
+              const streamingFilteredParticipants = message.participants.filter((p: Participant) => p.userId !== SESSION_USER_ID);
+              console.log('[WebSocket] 🔍 DEBUG: Filtered participants (excluding me):', JSON.stringify(streamingFilteredParticipants));
+              setParticipants(streamingFilteredParticipants);
               const streamingUser = message.participants.find((p: Participant) => p.userId === message.userId);
               console.log('[WebSocket] 🔍 Found streamingUser:', streamingUser?.userId, streamingUser?.userName);
-              if (streamingUser && streamingUser.userId !== SESSION_USER_ID) {
+
+              // If it's me who started streaming, check for already-streaming users
+              if (message.userId === SESSION_USER_ID) {
+                console.log('[WebSocket] 🔍 It\'s me who started streaming, checking for already-streaming users');
+                console.log('[WebSocket] 🔍 All participants:', JSON.stringify(message.participants));
+                const alreadyStreamingUsers = message.participants.filter((p: Participant) =>
+                  p.userId !== SESSION_USER_ID && p.isStreaming
+                );
+                console.log('[WebRTC] Found', alreadyStreamingUsers.length, 'already-streaming users:', JSON.stringify(alreadyStreamingUsers));
+
+                if (alreadyStreamingUsers.length === 0) {
+                  console.log('[WebRTC] ℹ️ No already-streaming users, nothing to do');
+                }
+
+                alreadyStreamingUsers.forEach(user => {
+                  // Use polite/impolite pattern: lower userId creates the offer
+                  const shouldCreateOffer = SESSION_USER_ID < user.userId;
+                  console.log('[WebRTC] 🔍 Comparing userIds: my=' + SESSION_USER_ID + ' their=' + user.userId + ' shouldCreateOffer=' + shouldCreateOffer);
+                  if (shouldCreateOffer) {
+                    console.log('[WebRTC] ✅ I am polite peer, creating offer to already-streaming user:', user.userId);
+                    console.log('[WebRTC] 🔍 Calling webrtc.createOffer(' + user.userId + ')');
+                    webrtc.createOffer(user.userId);
+                    console.log('[WebRTC] ✅ createOffer call completed for:', user.userId);
+                  } else {
+                    console.log('[WebRTC] ℹ️ I am impolite peer, waiting for offer from already-streaming user:', user.userId);
+                  }
+                });
+              } else if (streamingUser && streamingUser.userId !== SESSION_USER_ID) {
                 addSystemMessage(`📹 ${streamingUser.userName} started streaming`);
 
                 // If I'm streaming, create offer to the new streamer (use polite/impolite pattern)
@@ -220,7 +285,7 @@ const MultiUserStreamingExample: React.FC = () => {
                   console.log('[WebRTC] ℹ️ I am not streaming, no need to create offer');
                 }
               } else {
-                console.log('[WebSocket] ⏭️ Skipping - either no streamingUser found or it\'s me');
+                console.log('[WebSocket] ⏭️ Skipping - either no streamingUser found or unexpected state');
               }
               break;
 
@@ -319,11 +384,27 @@ const MultiUserStreamingExample: React.FC = () => {
       setCurrentRoom(roomId);
       setCurrentRoomName(newRoomName);
       initializeChatMessages(roomId);
+      updateURLWithRoom(roomId);
     } else {
-      joinRoom(roomId, newRoomName);
+      handleJoinRoom(roomId, newRoomName);
     }
 
     setNewRoomName('');
+  };
+
+  // Helper function to update URL with room ID
+  const updateURLWithRoom = (roomId: string) => {
+    if (typeof window !== 'undefined') {
+      const newPath = `/room/${roomId}`;
+      window.history.pushState({ roomId }, '', newPath);
+      console.log('[URL] Updated URL to:', newPath);
+    }
+  };
+
+  // Wrapper function for joining rooms that updates URL
+  const handleJoinRoom = (roomId: string, roomName?: string) => {
+    joinRoom(roomId, roomName);
+    updateURLWithRoom(roomId);
   };
 
   const joinRoom = (roomId: string, roomName?: string) => {
@@ -389,20 +470,8 @@ const MultiUserStreamingExample: React.FC = () => {
         }));
         setMyStreamActive(true);
         addSystemMessage('📹 You started streaming');
-
-        // Create offers to users who are ALREADY streaming (only if we're the polite peer)
-        const alreadyStreamingUsers = participants.filter(p => p.isStreaming);
-        console.log('[WebRTC] Started streaming. Found', alreadyStreamingUsers.length, 'already-streaming users');
-        alreadyStreamingUsers.forEach(user => {
-          // Use polite/impolite pattern: lower userId creates the offer
-          const shouldCreateOffer = SESSION_USER_ID < user.userId;
-          if (shouldCreateOffer) {
-            console.log('[WebRTC] ✅ I am polite peer, creating offer to already-streaming user:', user.userId);
-            webrtc.createOffer(user.userId);
-          } else {
-            console.log('[WebRTC] ℹ️ I am impolite peer, waiting for offer from already-streaming user:', user.userId);
-          }
-        });
+        // Note: We'll create offers when we receive the user-streaming-started message from server
+        // This ensures we have the latest participant list with correct isStreaming flags
       }
     } catch (error) {
       console.error('[Stream] Error starting stream:', error);
@@ -419,6 +488,10 @@ const MultiUserStreamingExample: React.FC = () => {
 
     webrtc.stopStreaming();
 
+    // Reset media toggle states
+    setIsAudioEnabled(true);
+    setIsVideoEnabled(true);
+
     if (demoMode) {
       setMyStreamActive(false);
       addSystemMessage('⏹️ You stopped streaming');
@@ -430,6 +503,30 @@ const MultiUserStreamingExample: React.FC = () => {
       }));
       setMyStreamActive(false);
       addSystemMessage('⏹️ You stopped streaming');
+    }
+  };
+
+  const toggleAudio = () => {
+    if (localStreamRef.current) {
+      const audioTrack = localStreamRef.current.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !audioTrack.enabled;
+        setIsAudioEnabled(audioTrack.enabled);
+        console.log('[Media] Audio toggled:', audioTrack.enabled ? 'ON' : 'OFF');
+        addSystemMessage(audioTrack.enabled ? '🎤 Microphone unmuted' : '🔇 Microphone muted');
+      }
+    }
+  };
+
+  const toggleVideo = () => {
+    if (localStreamRef.current) {
+      const videoTrack = localStreamRef.current.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = !videoTrack.enabled;
+        setIsVideoEnabled(videoTrack.enabled);
+        console.log('[Media] Video toggled:', videoTrack.enabled ? 'ON' : 'OFF');
+        addSystemMessage(videoTrack.enabled ? '📹 Camera turned on' : '📷 Camera turned off');
+      }
     }
   };
 
@@ -659,7 +756,7 @@ const MultiUserStreamingExample: React.FC = () => {
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={styles.roomCard}
-                  onPress={() => joinRoom(item.roomId, item.roomName)}
+                  onPress={() => handleJoinRoom(item.roomId, item.roomName)}
                 >
                   <View style={styles.roomInfo}>
                     <Text style={styles.roomName}>🏠 {item.roomName || item.roomId}</Text>
@@ -677,6 +774,20 @@ const MultiUserStreamingExample: React.FC = () => {
     );
   }
 
+  // Function to copy room link to clipboard
+  const copyRoomLink = () => {
+    if (typeof window !== 'undefined' && currentRoom) {
+      const roomURL = `${window.location.origin}/room/${currentRoom}`;
+      navigator.clipboard.writeText(roomURL).then(() => {
+        setShowCopiedMessage(true);
+        setTimeout(() => setShowCopiedMessage(false), 2000);
+        console.log('[URL] Copied room link:', roomURL);
+      }).catch(err => {
+        console.error('[URL] Failed to copy room link:', err);
+      });
+    }
+  };
+
   // Chat room view
   return (
     <View style={styles.container}>
@@ -684,6 +795,34 @@ const MultiUserStreamingExample: React.FC = () => {
         <TouchableOpacity style={styles.leaveButton} onPress={leaveRoom}>
           <Text style={styles.leaveButtonText}>← Leave Room</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.copyLinkButton} onPress={copyRoomLink}>
+          <Text style={styles.copyLinkButtonText}>
+            {showCopiedMessage ? '✓ Copied!' : '🔗 Copy Room Link'}
+          </Text>
+        </TouchableOpacity>
+
+        {myStreamActive && (
+          <>
+            <TouchableOpacity
+              style={[styles.mediaToggleButton, !isAudioEnabled && styles.mediaToggleButtonOff]}
+              onPress={toggleAudio}
+            >
+              <Text style={styles.mediaToggleButtonText}>
+                {isAudioEnabled ? '🎤' : '🔇'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.mediaToggleButton, !isVideoEnabled && styles.mediaToggleButtonOff]}
+              onPress={toggleVideo}
+            >
+              <Text style={styles.mediaToggleButtonText}>
+                {isVideoEnabled ? '📹' : '📷'}
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
 
         <TouchableOpacity
           style={[
@@ -857,6 +996,31 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#666',
+  },
+  copyLinkButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: '#007AFF',
+  },
+  copyLinkButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFF',
+  },
+  mediaToggleButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#34C759',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mediaToggleButtonOff: {
+    backgroundColor: '#FF3B30',
+  },
+  mediaToggleButtonText: {
+    fontSize: 20,
   },
   streamButton: {
     flex: 1,

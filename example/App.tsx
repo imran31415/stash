@@ -92,6 +92,19 @@ function AppContent() {
   const [windowWidth, setWindowWidth] = useState(Dimensions.get('window').width);
   const slideAnim = useState(new Animated.Value(-300))[0];
 
+  // Check URL for room navigation on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      const pathParts = url.pathname.split('/');
+      // If URL contains /room/, automatically switch to streaming example
+      if (pathParts.includes('room')) {
+        setActiveExample('streaming');
+        console.log('[App] Auto-selected streaming example due to room URL');
+      }
+    }
+  }, []);
+
   // Detect window resize
   useEffect(() => {
     const subscription = Dimensions.addEventListener('change', ({ window }) => {

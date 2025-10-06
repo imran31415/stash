@@ -21,11 +21,18 @@ export function useWebRTC({
   onRemoteStreamEnded,
   sendSignalingMessage,
 }: UseWebRTCProps) {
-  console.log('🚀🚀🚀 useWebRTC HOOK INITIALIZED - CODE VERSION 6.0 - POLITE PEER FIX 🚀🚀🚀');
+  console.log('🚀🚀🚀 useWebRTC HOOK INITIALIZED - CODE VERSION 11.0 - MEDIA CONTROLS 🚀🚀🚀');
   const peersRef = useRef<Map<string, WebRTCPeer>>(new Map());
   const localStreamRef = useRef<MediaStream | null>(null);
   const pendingCandidatesRef = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
   const candidateStatsRef = useRef<Map<string, { host: number; srflx: number; relay: number }>>(new Map());
+  const roomIdRef = useRef<string | null>(roomId);
+
+  // Keep roomIdRef up to date
+  useEffect(() => {
+    roomIdRef.current = roomId;
+    console.log('[WebRTC] roomId updated:', roomId);
+  }, [roomId]);
 
   const ICE_SERVERS = {
     iceServers: [
@@ -129,7 +136,7 @@ export function useWebRTC({
 
         sendSignalingMessage({
           type: 'webrtc-ice-candidate',
-          roomId,
+          roomId: roomIdRef.current,
           fromUserId: userId,
           toUserId: remoteUserId,
           candidate: event.candidate,
@@ -268,14 +275,14 @@ export function useWebRTC({
       console.log('[WebRTC] Offer SDP type:', offer.type);
       console.log('[WebRTC] Local description type:', peer.connection.localDescription?.type);
       console.log('[WebRTC] Signaling state after setLocalDescription:', peer.connection.signalingState);
-      console.log('[WebRTC] Sending offer to:', remoteUserId, 'roomId:', roomId);
+      console.log('[WebRTC] Sending offer to:', remoteUserId, 'roomId:', roomIdRef.current);
 
       const offerToSend = peer.connection.localDescription;
       console.log('[WebRTC] Offer to send - type:', offerToSend?.type, 'sdp length:', offerToSend?.sdp?.length);
 
       sendSignalingMessage({
         type: 'webrtc-offer',
-        roomId,
+        roomId: roomIdRef.current,
         fromUserId: userId,
         toUserId: remoteUserId,
         offer: offerToSend,
@@ -401,7 +408,7 @@ export function useWebRTC({
       console.log('[WebRTC] 📤 Sending answer to:', fromUserId);
       sendSignalingMessage({
         type: 'webrtc-answer',
-        roomId,
+        roomId: roomIdRef.current,
         fromUserId: userId,
         toUserId: fromUserId,
         answer: answerToSend,
