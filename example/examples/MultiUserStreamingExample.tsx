@@ -205,9 +205,20 @@ const MultiUserStreamingExample: React.FC = () => {
               console.log('[WebSocket] 🔍 Found streamingUser:', streamingUser?.userId, streamingUser?.userName);
               if (streamingUser && streamingUser.userId !== SESSION_USER_ID) {
                 addSystemMessage(`📹 ${streamingUser.userName} started streaming`);
-                console.log('[WebRTC] ℹ️ Other user started streaming - NOT creating offer (avoid collision)');
-                // DON'T create offer here - the other user will receive our stream via the
-                // existing peer connection that was created when they joined the room
+
+                // If I'm streaming, create offer to the new streamer (use polite/impolite pattern)
+                // Lower userId creates the offer to avoid collision
+                if (myStreamActiveRef.current && localStreamRef.current) {
+                  const shouldCreateOffer = SESSION_USER_ID < message.userId;
+                  if (shouldCreateOffer) {
+                    console.log('[WebRTC] ✅ I am polite peer, creating offer to newly streaming user:', message.userId);
+                    webrtc.createOffer(message.userId);
+                  } else {
+                    console.log('[WebRTC] ℹ️ I am impolite peer, waiting for offer from:', message.userId);
+                  }
+                } else {
+                  console.log('[WebRTC] ℹ️ I am not streaming, no need to create offer');
+                }
               } else {
                 console.log('[WebSocket] ⏭️ Skipping - either no streamingUser found or it\'s me');
               }
@@ -379,12 +390,18 @@ const MultiUserStreamingExample: React.FC = () => {
         setMyStreamActive(true);
         addSystemMessage('📹 You started streaming');
 
-        // Create offers to users who are ALREADY streaming
+        // Create offers to users who are ALREADY streaming (only if we're the polite peer)
         const alreadyStreamingUsers = participants.filter(p => p.isStreaming);
         console.log('[WebRTC] Started streaming. Found', alreadyStreamingUsers.length, 'already-streaming users');
         alreadyStreamingUsers.forEach(user => {
-          console.log('[WebRTC] ✅ Creating offer to already-streaming user:', user.userId);
-          webrtc.createOffer(user.userId);
+          // Use polite/impolite pattern: lower userId creates the offer
+          const shouldCreateOffer = SESSION_USER_ID < user.userId;
+          if (shouldCreateOffer) {
+            console.log('[WebRTC] ✅ I am polite peer, creating offer to already-streaming user:', user.userId);
+            webrtc.createOffer(user.userId);
+          } else {
+            console.log('[WebRTC] ℹ️ I am impolite peer, waiting for offer from already-streaming user:', user.userId);
+          }
         });
       }
     } catch (error) {

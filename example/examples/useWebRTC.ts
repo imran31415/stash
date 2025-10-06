@@ -21,7 +21,7 @@ export function useWebRTC({
   onRemoteStreamEnded,
   sendSignalingMessage,
 }: UseWebRTCProps) {
-  console.log('🚀🚀🚀 useWebRTC HOOK INITIALIZED - CODE VERSION 5.0 - OFFER FIX 🚀🚀🚀');
+  console.log('🚀🚀🚀 useWebRTC HOOK INITIALIZED - CODE VERSION 6.0 - POLITE PEER FIX 🚀🚀🚀');
   const peersRef = useRef<Map<string, WebRTCPeer>>(new Map());
   const localStreamRef = useRef<MediaStream | null>(null);
   const pendingCandidatesRef = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
@@ -324,6 +324,7 @@ export function useWebRTC({
       // Handle offer collision using perfect negotiation pattern
       if (peer.connection.signalingState !== 'stable') {
         console.log('[WebRTC] ⚠️ Signaling state not stable, handling collision');
+        console.log('[WebRTC] Current signaling state:', peer.connection.signalingState);
 
         // Use polite/impolite pattern - lower userId is polite
         const isPolite = userId < fromUserId;
@@ -331,24 +332,30 @@ export function useWebRTC({
         console.log('[WebRTC] I am', isPolite ? 'polite' : 'impolite');
 
         if (!isPolite) {
-          // Impolite peer: ignore if we're in the middle of creating an offer
-          console.log('[WebRTC] Ignoring remote offer (impolite peer)');
+          // Impolite peer: ignore the incoming offer, let our offer proceed
+          console.log('[WebRTC] 🚫 Ignoring remote offer (impolite peer) - my offer takes precedence');
           return;
         }
 
         // Polite peer: rollback local offer and accept remote
-        console.log('[WebRTC] Rolling back to accept remote offer (polite peer)');
+        console.log('[WebRTC] 🔄 Rolling back to accept remote offer (polite peer)');
         try {
-          await peer.connection.setLocalDescription({ type: 'rollback' } as RTCSessionDescriptionInit);
-          console.log('[WebRTC] ✅ Rollback successful, now stable');
+          // Only rollback if we're in have-local-offer state
+          if (peer.connection.signalingState === 'have-local-offer') {
+            await peer.connection.setLocalDescription({ type: 'rollback' } as RTCSessionDescriptionInit);
+            console.log('[WebRTC] ✅ Rollback successful, signaling state:', peer.connection.signalingState);
+          } else {
+            console.log('[WebRTC] ℹ️ No need to rollback, signaling state:', peer.connection.signalingState);
+          }
         } catch (error) {
           console.error('[WebRTC] ❌ Rollback failed:', error);
           // Recreate peer connection on rollback failure
+          console.log('[WebRTC] 🔧 Recreating peer connection after rollback failure');
           peer.connection.close();
           const pc = createPeerConnection(fromUserId);
           peer = { userId: fromUserId, connection: pc, stream: null };
           peersRef.current.set(fromUserId, peer);
-          console.log('[WebRTC] Recreated peer connection');
+          console.log('[WebRTC] ✅ Recreated peer connection');
         }
       }
     }
