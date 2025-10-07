@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, TextInput, FlatList, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, TextInput, FlatList, ActivityIndicator, Modal, Pressable, Dimensions } from 'react-native';
 import { Chat } from '../../src/components/Chat';
 import type { Message } from '../../src/components/Chat/types';
 import { addMinutes } from 'date-fns';
@@ -83,6 +83,7 @@ const MultiUserStreamingExample: React.FC = () => {
   const [urlRoomPassword, setUrlRoomPassword] = useState<string | null>(null);
   const [showCopiedMessage, setShowCopiedMessage] = useState(false);
   const [currentRoomPassword, setCurrentRoomPassword] = useState<string | null>(null);
+  const [showCopyLinkModal, setShowCopyLinkModal] = useState(false);
 
   // Media controls state
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
@@ -1005,22 +1006,17 @@ const MultiUserStreamingExample: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.roomControls}>
         <TouchableOpacity style={styles.leaveButton} onPress={leaveRoom}>
-          <Text style={styles.leaveButtonText}>← Leave Room</Text>
+          <Text style={styles.leaveButtonText}>← Leave</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.copyLinkButton} onPress={copyRoomLink}>
+        <TouchableOpacity
+          style={styles.copyLinkButton}
+          onPress={() => currentRoomPassword ? setShowCopyLinkModal(true) : copyRoomLink()}
+        >
           <Text style={styles.copyLinkButtonText}>
-            {showCopiedMessage ? '✓ Copied!' : '🔗 Copy Link'}
+            {showCopiedMessage ? '✓' : '🔗'}
           </Text>
         </TouchableOpacity>
-
-        {currentRoomPassword && (
-          <TouchableOpacity style={styles.copyLinkWithPasswordButton} onPress={copyRoomLinkWithPassword}>
-            <Text style={styles.copyLinkButtonText}>
-              {showCopiedMessage ? '✓ Copied!' : '🔗 Copy Link + 🔑'}
-            </Text>
-          </TouchableOpacity>
-        )}
 
         {myStreamActive && (
           <>
@@ -1052,10 +1048,64 @@ const MultiUserStreamingExample: React.FC = () => {
           onPress={myStreamActive ? handleStreamStop : handleStreamStart}
         >
           <Text style={styles.streamButtonText}>
-            {myStreamActive ? '⏹️ Stop My Stream' : '▶️ Start My Stream'}
+            {myStreamActive ? '⏹️' : '▶️'}
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Copy Link Modal */}
+      <Modal
+        visible={showCopyLinkModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCopyLinkModal(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setShowCopyLinkModal(false)}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Copy Room Link</Text>
+
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={() => {
+                copyRoomLink();
+                setShowCopyLinkModal(false);
+              }}
+            >
+              <Text style={styles.modalOptionIcon}>🔗</Text>
+              <View style={styles.modalOptionTextContainer}>
+                <Text style={styles.modalOptionTitle}>Copy Link</Text>
+                <Text style={styles.modalOptionDescription}>Share without password</Text>
+              </View>
+            </TouchableOpacity>
+
+            {currentRoomPassword && (
+              <TouchableOpacity
+                style={styles.modalOption}
+                onPress={() => {
+                  copyRoomLinkWithPassword();
+                  setShowCopyLinkModal(false);
+                }}
+              >
+                <Text style={styles.modalOptionIcon}>🔑</Text>
+                <View style={styles.modalOptionTextContainer}>
+                  <Text style={styles.modalOptionTitle}>Copy Link + Password</Text>
+                  <Text style={styles.modalOptionDescription}>Share with auto-fill password</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={styles.modalCancelButton}
+              onPress={() => setShowCopyLinkModal(false)}
+            >
+              <Text style={styles.modalCancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
 
       <Chat
         messages={chatMessages}
@@ -1200,34 +1250,33 @@ const styles = StyleSheet.create({
   },
   roomControls: {
     flexDirection: 'row',
-    padding: 12,
+    flexWrap: 'wrap',
+    padding: 8,
     backgroundColor: '#FFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5EA',
-    gap: 12,
+    gap: 8,
+    alignItems: 'center',
   },
   leaveButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 8,
     backgroundColor: '#F2F2F7',
+    minWidth: 70,
   },
   leaveButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#666',
   },
   copyLinkButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 8,
     backgroundColor: '#007AFF',
-  },
-  copyLinkWithPasswordButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: '#34C759',
+    minWidth: 40,
+    alignItems: 'center',
   },
   copyLinkButtonText: {
     fontSize: 14,
@@ -1235,9 +1284,9 @@ const styles = StyleSheet.create({
     color: '#FFF',
   },
   mediaToggleButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: '#34C759',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1246,14 +1295,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF3B30',
   },
   mediaToggleButtonText: {
-    fontSize: 20,
+    fontSize: 18,
   },
   streamButton: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 8,
     alignItems: 'center',
+    minWidth: 40,
   },
   streamButtonActive: {
     backgroundColor: '#FF3B30',
@@ -1262,7 +1311,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#34C759',
   },
   streamButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: '#FFF',
   },
@@ -1309,6 +1358,55 @@ const styles = StyleSheet.create({
     color: '#FF3B30',
     fontSize: 14,
     marginBottom: 12,
+  },
+  modalContent: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#F9F9F9',
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  modalOptionIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  modalOptionTextContainer: {
+    flex: 1,
+  },
+  modalOptionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 2,
+  },
+  modalOptionDescription: {
+    fontSize: 13,
+    color: '#666',
+  },
+  modalCancelButton: {
+    padding: 14,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  modalCancelButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#666',
   },
 });
 
