@@ -305,6 +305,7 @@ export const GanttChartDetailView: React.FC<GanttChartDetailViewProps> = ({
                   onTaskPress={onTaskPress}
                   enablePagination
                   itemsPerPage={10}
+                  height={isNarrowScreen ? 350 : undefined}
                 />
               </View>
             </>
@@ -627,20 +628,22 @@ const styles = StyleSheet.create({
   },
 
   chartContainerNarrow: {
-    height: 300,
     marginHorizontal: 16,
     marginTop: 16,
-    marginBottom: 16,
+    marginBottom: 24,
+    overflow: 'hidden',
   },
 
   taskListSection: {
     paddingHorizontal: 16,
     paddingBottom: 16,
+    paddingTop: 8,
   },
 
   taskListSectionNarrow: {
     paddingHorizontal: 16,
     paddingBottom: 16,
+    paddingTop: 16,
   },
 
   sectionTitle: {

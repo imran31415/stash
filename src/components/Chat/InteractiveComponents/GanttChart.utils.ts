@@ -108,10 +108,23 @@ export const calculateDateRange = (
 export const generateTimelineCells = (
   startDate: Date,
   endDate: Date,
-  timeScale: 'day' | 'week' | 'month'
+  timeScale: 'day' | 'week' | 'month',
+  isMini?: boolean
 ): TimelineCell[] => {
   const cells: TimelineCell[] = [];
   let currentDate = startDate;
+
+  // In mini mode, auto-adjust time scale to reduce cells
+  let effectiveTimeScale = timeScale;
+  if (isMini) {
+    const daysDiff = differenceInCalendarDays(endDate, startDate);
+    // If too many days, switch to week or month scale
+    if (daysDiff > 30 && timeScale === 'day') {
+      effectiveTimeScale = 'week';
+    } else if (daysDiff > 90 && timeScale === 'week') {
+      effectiveTimeScale = 'month';
+    }
+  }
 
   while (currentDate <= endDate) {
     cells.push({
@@ -123,7 +136,7 @@ export const generateTimelineCells = (
     });
 
     // Increment based on time scale
-    switch (timeScale) {
+    switch (effectiveTimeScale) {
       case 'day':
         currentDate = addDays(currentDate, 1);
         break;
@@ -134,6 +147,12 @@ export const generateTimelineCells = (
         currentDate = addMonths(currentDate, 1);
         break;
     }
+  }
+
+  // In mini mode, if still too many cells, sample them
+  if (isMini && cells.length > 20) {
+    const step = Math.ceil(cells.length / 20);
+    return cells.filter((_, index) => index % step === 0);
   }
 
   return cells;
@@ -274,17 +293,29 @@ export const getChartDimensions = (
   mode: 'mini' | 'full',
   containerWidth: number,
   taskCount: number,
-  customHeight?: number
+  customHeight?: number,
+  timelineCellCount?: number
 ): ChartDimensions => {
   const isMini = mode === 'mini';
+
+  // For mini mode, calculate cellWidth to fit available space
+  let cellWidth = isMini ? 20 : 60;
+  const sidebarWidth = isMini ? 70 : 180;
+
+  if (isMini && timelineCellCount && timelineCellCount > 0) {
+    // Calculate available width for timeline (container - sidebar - padding)
+    const availableTimelineWidth = containerWidth - sidebarWidth - 16; // 16px for borders/padding
+    // Ensure cellWidth fits within available space, with a minimum of 8px
+    cellWidth = Math.max(8, Math.floor(availableTimelineWidth / timelineCellCount));
+  }
 
   return {
     rowHeight: isMini ? 32 : 48,
     taskBarHeight: isMini ? 20 : 32,
-    cellWidth: isMini ? 20 : 60,
+    cellWidth,
     headerHeight: isMini ? 36 : 56,
-    sidebarWidth: isMini ? 100 : 180,
-    chartWidth: isMini ? Math.min(350, containerWidth) : containerWidth,
+    sidebarWidth,
+    chartWidth: isMini ? containerWidth : containerWidth,
     chartHeight: customHeight || (isMini ? 200 : Math.min(600, taskCount * 48 + 56)),
     padding: isMini ? 6 : 12,
   };

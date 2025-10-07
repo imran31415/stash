@@ -55,6 +55,12 @@ export const GanttChart: React.FC<GanttChartProps> = ({
   const scrollViewRef = useRef<ScrollView>(null);
   const isMini = mode === 'mini';
 
+  // Track actual container width via onLayout
+  const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
+
+  // Calculate container width
+  const containerWidth = customWidth || measuredWidth || screenWidth;
+
   // Pagination state
   const [currentPage, setCurrentPage] = React.useState(1);
 
@@ -90,24 +96,37 @@ export const GanttChart: React.FC<GanttChartProps> = ({
 
   // Generate timeline cells
   const timelineCells = useMemo(
-    () => generateTimelineCells(startDate, endDate, timeScale),
-    [startDate, endDate, timeScale]
+    () => generateTimelineCells(startDate, endDate, timeScale, isMini),
+    [startDate, endDate, timeScale, isMini]
   );
 
-  // Get chart dimensions
+  // Get chart dimensions (pass timeline cell count for mini mode scaling)
   const dimensions = useMemo(
-    () => getChartDimensions(mode, customWidth || screenWidth, paginatedTasks.length, customHeight),
-    [mode, customWidth, screenWidth, paginatedTasks.length, customHeight]
+    () => getChartDimensions(mode, containerWidth, paginatedTasks.length, customHeight, timelineCells.length),
+    [mode, containerWidth, paginatedTasks.length, customHeight, timelineCells.length]
   );
 
   // Calculate total width of timeline
   const timelineWidth = timelineCells.length * dimensions.cellWidth;
+
+  // In mini mode, use exact width instead of minWidth to prevent overflow
+  const timelineWidthStyle = isMini
+    ? { width: timelineWidth }
+    : { minWidth: timelineWidth };
 
   // Calculate task bars
   const taskBars = useMemo(
     () => calculateTaskBars(paginatedTasks, startDate, endDate),
     [paginatedTasks, startDate, endDate]
   );
+
+  // Handle layout measurement
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const { width } = event.nativeEvent.layout;
+    if (width > 0 && !customWidth && width !== measuredWidth) {
+      setMeasuredWidth(width);
+    }
+  };
 
   // Auto-scroll to selected task when selectedTaskId changes
   useEffect(() => {
@@ -153,7 +172,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
     <View
       style={[
         styles.timelineHeader,
-        { height: dimensions.headerHeight, minWidth: timelineWidth },
+        { height: dimensions.headerHeight, ...timelineWidthStyle },
       ]}
     >
       {timelineCells.map((cell, index) => (
@@ -362,7 +381,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
     <View
       style={[
         styles.timelineGrid,
-        { minWidth: timelineWidth, height: dimensions.rowHeight * paginatedTasks.length },
+        { ...timelineWidthStyle, height: dimensions.rowHeight * paginatedTasks.length },
       ]}
     >
       {timelineCells.map((cell, index) => (
@@ -394,7 +413,7 @@ export const GanttChart: React.FC<GanttChartProps> = ({
               styles.taskRow,
               {
                 height: dimensions.rowHeight,
-                minWidth: timelineWidth,
+                ...timelineWidthStyle,
               },
               isSelected && styles.taskRowSelected,
             ]}
@@ -416,11 +435,12 @@ export const GanttChart: React.FC<GanttChartProps> = ({
           alignSelf: 'stretch'
         }
       ]}
+      onLayout={handleLayout}
     >
       {renderHeader()}
 
       <>
-          <View style={styles.chartContainer}>
+          <View style={[styles.chartContainer, isMini && { overflow: 'hidden' }]}>
             {/* Fixed task sidebar */}
             <View style={[styles.sidebar, { width: dimensions.sidebarWidth }]}>
               <View style={[styles.sidebarHeader, { height: dimensions.headerHeight }]}>
@@ -441,10 +461,12 @@ export const GanttChart: React.FC<GanttChartProps> = ({
             <ScrollView
               ref={scrollViewRef}
               horizontal
+              scrollEnabled={!isMini}
               showsHorizontalScrollIndicator={!isMini}
-              style={styles.timelineScroll}
+              style={[styles.timelineScroll, isMini && { flexShrink: 1 }]}
+              contentContainerStyle={isMini ? { flexGrow: 0 } : undefined}
             >
-              <View style={styles.timelineContainer}>
+              <View style={[styles.timelineContainer, isMini && { width: timelineWidth }]}>
                 {renderTimelineHeader()}
 
                 <View style={styles.chartArea}>
