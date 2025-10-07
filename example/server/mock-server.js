@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const cors = require('cors');
+const { AccessToken } = require('livekit-server-sdk');
 
 const app = express();
 const server = http.createServer(app);
@@ -13,7 +14,7 @@ app.use(express.json());
 // In-memory storage
 const messages = new Map(); // userId -> messages[]
 const connections = new Map(); // userId -> ws connection
-const rooms = new Map(); // roomId -> { roomName, participants: Set<{userId, userName, ws, isStreaming}> }
+const rooms = new Map(); // roomId -> { roomName, password, participants: Set<{userId, userName, ws, isStreaming}> }
 
 // AI responses for demo
 const AI_RESPONSES = [
@@ -228,7 +229,8 @@ function handleListRooms(ws) {
   const roomsList = Array.from(rooms.entries()).map(([roomId, room]) => ({
     roomId,
     roomName: room.roomName,
-    participantCount: room.participants.size
+    participantCount: room.participants.size,
+    hasPassword: !!room.password
   }));
 
   ws.send(JSON.stringify({
@@ -239,14 +241,31 @@ function handleListRooms(ws) {
 }
 
 function handleJoinRoom(message, ws) {
-  const { roomId, userId, userName, roomName } = message;
+  const { roomId, userId, userName, roomName, password } = message;
 
   if (!rooms.has(roomId)) {
+    // Create new room with optional password
     rooms.set(roomId, {
       roomName: roomName || roomId,
+      password: password || null,
       participants: new Set()
     });
-    console.log(`🏠 Created new room: ${roomName || roomId}`);
+    console.log(`🏠 Created new room: ${roomName || roomId}${password ? ' (password protected)' : ''}`);
+  } else {
+    // Room exists - validate password if required
+    const room = rooms.get(roomId);
+    if (room.password && room.password !== password) {
+      ws.send(JSON.stringify({
+        type: 'join-room-error',
+        roomId,
+        roomName: room.roomName,
+        error: 'incorrect-password',
+        message: 'Incorrect password',
+        hasPassword: true
+      }));
+      console.log(`🚫 ${userName} failed to join room ${roomId} - incorrect password`);
+      return;
+    }
   }
 
   const room = rooms.get(roomId);
@@ -550,6 +569,57 @@ app.post('/api/chat/send', async (req, res) => {
   res.json(newMessage);
 });
 
+// LiveKit token generation endpoint
+app.post('/api/livekit/token', (req, res) => {
+  const { roomName, userName, userId } = req.body;
+
+  if (!roomName || !userName) {
+    return res.status(400).json({ error: 'roomName and userName are required' });
+  }
+
+  try {
+    // LiveKit configuration (change in production!)
+    const apiKey = process.env.LIVEKIT_API_KEY || 'APIwPbc8yMJEoW7X';
+    const apiSecret = process.env.LIVEKIT_API_SECRET || 'pD8vJ3nR5qL9kF2xT6hC4mB7sV1gN8zW0yU';
+
+    const at = new AccessToken(apiKey, apiSecret, {
+      identity: userId || userName,
+      name: userName,
+    });
+
+    at.addGrant({
+      roomJoin: true,
+      room: roomName,
+      canPublish: true,
+      canSubscribe: true,
+      canPublishData: true,
+    });
+
+    const token = at.toJwt();
+    console.log(`🔑 Generated LiveKit token for ${userName} in room ${roomName}`);
+
+    // Auto-detect LiveKit URL based on environment
+    let livekitUrl = process.env.LIVEKIT_URL;
+    if (!livekitUrl) {
+      // Default: production uses wss://livekit.scalebase.io, local uses ws://localhost:7880
+      const host = req.get('host') || 'localhost:8082';
+      if (host.includes('scalebase.io')) {
+        livekitUrl = 'wss://livekit.scalebase.io';
+      } else {
+        livekitUrl = 'ws://localhost:7880';
+      }
+    }
+
+    res.json({
+      token,
+      url: livekitUrl
+    });
+  } catch (error) {
+    console.error('❌ Error generating LiveKit token:', error);
+    res.status(500).json({ error: 'Failed to generate token' });
+  }
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({
@@ -559,7 +629,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-const PORT = 8082;
+const PORT = process.env.PORT || 4082;
 server.listen(PORT, () => {
   console.log(`🚀 Mock server running on http://localhost:${PORT}`);
   console.log(`🔌 WebSocket available at ws://localhost:${PORT}/ws`);

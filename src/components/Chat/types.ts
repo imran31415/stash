@@ -1,3 +1,5 @@
+import type * as React from 'react';
+
 export type MessageType = 'text' | 'image' | 'file' | 'system';
 export type ChatType = 'user' | 'group' | 'ai';
 export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
@@ -12,6 +14,7 @@ export interface InteractiveComponent {
   type: 'task-list' | 'resource-list' | 'risk-list' | 'gantt-chart' | 'time-series-chart' | 'graph-visualization' | 'code-block' | 'code-editor' | 'media' | 'data-table' | 'dashboard' | 'dashboard-preview' | 'video-stream' | 'live-camera-stream' | 'workflow' | 'dag' | 'flamegraph' | 'flame-graph' | 'tree-view' | 'multi-swipeable' | 'button' | 'custom';
   data: any;
   onAction?: (action: string, data: any) => void;
+  customRenderer?: () => React.ReactNode;
 }
 
 export interface Message {

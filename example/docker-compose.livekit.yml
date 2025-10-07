@@ -1,0 +1,20 @@
+version: '3.9'
+
+services:
+  livekit:
+    image: livekit/livekit-server:latest
+    command: --config /etc/livekit.yaml
+    ports:
+      - "7880:7880"   # HTTP
+      - "7881:7881"   # WebSocket
+      - "7882:7882/udp" # RTC/UDP
+      - "50000-60000:50000-60000/udp" # RTC port range
+    volumes:
+      - ./livekit-config.yaml:/etc/livekit.yaml
+    restart: unless-stopped
+    networks:
+      - stash-network
+
+networks:
+  stash-network:
+    driver: bridge

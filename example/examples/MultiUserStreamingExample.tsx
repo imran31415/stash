@@ -4,6 +4,7 @@ import { Chat } from '../../src/components/Chat';
 import type { Message } from '../../src/components/Chat/types';
 import { addMinutes } from 'date-fns';
 import { useWebRTC } from './useWebRTC';
+import { useWebRTCLiveKit } from './useWebRTCLiveKit';
 import { RemoteVideoPlayer } from './RemoteVideoPlayer';
 import { LocalVideoPlayer } from './LocalVideoPlayer';
 
@@ -27,15 +28,15 @@ const getWebSocketURL = () => {
       return 'wss://stash.scalebase.io/ws';
     }
 
-    // Local development - connect to mock server on port 8082
+    // Local development - connect to mock server on port 4082
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'ws://localhost:8082/ws';
+      return 'ws://localhost:4082/ws';
     }
 
     // Default fallback
-    return `${protocol}//${hostname}:8082/ws`;
+    return `${protocol}//${hostname}:4082/ws`;
   }
-  return 'ws://localhost:8082/ws';
+  return 'ws://localhost:4082/ws';
 };
 
 const WS_URL = getWebSocketURL();
@@ -55,6 +56,7 @@ interface RoomInfo {
   roomId: string;
   roomName: string;
   participantCount: number;
+  hasPassword?: boolean;
 }
 
 const MultiUserStreamingExample: React.FC = () => {
@@ -78,7 +80,9 @@ const MultiUserStreamingExample: React.FC = () => {
 
   // URL routing state
   const [urlRoomId, setUrlRoomId] = useState<string | null>(null);
+  const [urlRoomPassword, setUrlRoomPassword] = useState<string | null>(null);
   const [showCopiedMessage, setShowCopiedMessage] = useState(false);
+  const [currentRoomPassword, setCurrentRoomPassword] = useState<string | null>(null);
 
   // Media controls state
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
@@ -87,35 +91,94 @@ const MultiUserStreamingExample: React.FC = () => {
   // UI state
   const [userName, setUserName] = useState(`User${SESSION_USER_ID.slice(-4)}`);
   const [newRoomName, setNewRoomName] = useState('');
+  const [newRoomPassword, setNewRoomPassword] = useState('');
+  const [joinRoomPassword, setJoinRoomPassword] = useState('');
+  const [selectedRoomToJoin, setSelectedRoomToJoin] = useState<RoomInfo | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
   const localStreamRef = useRef<MediaStream | null>(null);
 
-  // WebRTC hooks
-  const webrtc = useWebRTC({
-    roomId: currentRoom,
+  // SFU mode toggle (auto-switch based on participant count)
+  // DISABLED FOR NOW - Keep using P2P mesh until we verify it works
+  const [useSFU, setUseSFU] = useState(false);
+  const SFU_THRESHOLD = 999; // Effectively disabled - was 10
+
+  // Auto-detect LiveKit server URL
+  const getLiveKitUrl = () => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+
+      // Production: use livekit subdomain
+      if (hostname === 'stash.scalebase.io') {
+        return 'wss://livekit.scalebase.io';
+      }
+
+      // Local development
+      if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return 'ws://localhost:7880';
+      }
+
+      // Default fallback
+      return `${protocol}//livekit.${hostname}`;
+    }
+    return 'ws://localhost:7880';
+  };
+
+  // Mesh WebRTC hooks (P2P) - only active when NOT using SFU
+  const meshWebRTC = useWebRTC({
+    roomId: !useSFU && currentRoom ? currentRoom : null,
     userId: SESSION_USER_ID,
     onRemoteStream: (userId, stream) => {
-      console.log('[App] Received remote stream from:', userId);
-      console.log('[App] Stream ID:', stream.id);
-      console.log('[App] Stream tracks:', stream.getTracks().map(t => ({ kind: t.kind, id: t.id, enabled: t.enabled, readyState: t.readyState })));
-      setRemoteStreams(prev => {
-        const updated = new Map(prev).set(userId, stream);
-        console.log('[App] Updated remoteStreams map, size:', updated.size);
-        return updated;
-      });
+      if (!useSFU) {
+        console.log('[App] [Mesh] Received remote stream from:', userId);
+        console.log('[App] Stream ID:', stream.id);
+        console.log('[App] Stream tracks:', stream.getTracks().map(t => ({ kind: t.kind, id: t.id, enabled: t.enabled, readyState: t.readyState })));
+        setRemoteStreams(prev => {
+          const updated = new Map(prev).set(userId, stream);
+          console.log('[App] Updated remoteStreams map, size:', updated.size);
+          return updated;
+        });
+      }
     },
     onRemoteStreamEnded: (userId) => {
-      console.log('[App] Remote stream ended from:', userId);
-      setRemoteStreams(prev => {
-        const next = new Map(prev);
-        next.delete(userId);
-        return next;
-      });
+      if (!useSFU) {
+        console.log('[App] [Mesh] Remote stream ended from:', userId);
+        setRemoteStreams(prev => {
+          const next = new Map(prev);
+          next.delete(userId);
+          return next;
+        });
+      }
     },
     sendSignalingMessage: (message) => {
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      if (!useSFU && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
         wsRef.current.send(JSON.stringify(message));
+      }
+    },
+  });
+
+  // LiveKit SFU hooks - only active when using SFU
+  const livekitWebRTC = useWebRTCLiveKit({
+    roomId: useSFU && currentRoom ? currentRoom : null,
+    userId: SESSION_USER_ID,
+    userName,
+    serverUrl: getLiveKitUrl(),
+    onRemoteStream: (userId, stream) => {
+      if (useSFU) {
+        console.log('[App] [LiveKit] Received remote stream from:', userId);
+        setRemoteStreams(prev => new Map(prev).set(userId, stream));
+      }
+    },
+    onRemoteStreamEnded: (userId) => {
+      if (useSFU) {
+        console.log('[App] [LiveKit] Remote stream ended from:', userId);
+        setRemoteStreams(prev => {
+          const next = new Map(prev);
+          next.delete(userId);
+          return next;
+        });
       }
     },
   });
@@ -125,7 +188,24 @@ const MultiUserStreamingExample: React.FC = () => {
     myStreamActiveRef.current = myStreamActive;
   }, [myStreamActive]);
 
-  // Read room ID from URL on mount (web only)
+  // Auto-switch to SFU mode when participant count exceeds threshold
+  useEffect(() => {
+    const totalParticipants = participants.length + 1; // +1 for current user
+    const shouldUseSFU = totalParticipants >= SFU_THRESHOLD;
+
+    if (shouldUseSFU !== useSFU) {
+      console.log(`[Mode] Switching to ${shouldUseSFU ? 'SFU' : 'Mesh'} mode (${totalParticipants} participants)`);
+      setUseSFU(shouldUseSFU);
+
+      if (shouldUseSFU) {
+        addSystemMessage(`🚀 Switched to SFU mode for better performance with ${totalParticipants} participants`);
+      } else {
+        addSystemMessage(`🔄 Switched back to P2P mode`);
+      }
+    }
+  }, [participants.length]);
+
+  // Read room ID and password from URL on mount (web only)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
@@ -134,8 +214,10 @@ const MultiUserStreamingExample: React.FC = () => {
       const roomIndex = pathParts.indexOf('room');
       if (roomIndex !== -1 && pathParts[roomIndex + 1]) {
         const roomId = pathParts[roomIndex + 1];
-        console.log('[URL] Found room ID in URL:', roomId);
+        const password = url.searchParams.get('p');
+        console.log('[URL] Found room ID in URL:', roomId, password ? '(with password)' : '(no password)');
         setUrlRoomId(roomId);
+        setUrlRoomPassword(password);
       }
     }
   }, []);
@@ -143,11 +225,12 @@ const MultiUserStreamingExample: React.FC = () => {
   // Auto-join room from URL when connected
   useEffect(() => {
     if (isConnected && urlRoomId && !currentRoom) {
-      console.log('[URL] Auto-joining room from URL:', urlRoomId);
-      handleJoinRoom(urlRoomId, `Room ${urlRoomId}`);
+      console.log('[URL] Auto-joining room from URL:', urlRoomId, urlRoomPassword ? '(with password)' : '(no password)');
+      handleJoinRoom(urlRoomId, `Room ${urlRoomId}`, urlRoomPassword || undefined);
       setUrlRoomId(null); // Clear to prevent re-joining
+      setUrlRoomPassword(null);
     }
-  }, [isConnected, urlRoomId, currentRoom]);
+  }, [isConnected, urlRoomId, urlRoomPassword, currentRoom]);
 
   // WebSocket connection
   useEffect(() => {
@@ -202,6 +285,10 @@ const MultiUserStreamingExample: React.FC = () => {
               console.log('[WebSocket] 🔍 DEBUG: Filtered participants (excluding me):', JSON.stringify(filteredParticipants));
               setParticipants(filteredParticipants);
               initializeChatMessages(message.roomId);
+              // Store the password used to join (for copy link functionality)
+              if (message.roomId === currentRoom) {
+                setCurrentRoomPassword(joinRoomPassword || newRoomPassword || null);
+              }
               // Don't create offers here - wait for already-streaming users to send offers to us
               break;
 
@@ -212,9 +299,9 @@ const MultiUserStreamingExample: React.FC = () => {
               addSystemMessage(`${message.userName} joined the room`);
 
               // If I'm currently streaming, create an offer to the new user (use ref to avoid stale closure)
-              if (myStreamActiveRef.current && localStreamRef.current) {
+              if (myStreamActiveRef.current && localStreamRef.current && !useSFU) {
                 console.log('[WebRTC] ✅ I am streaming, creating offer to newly joined user:', message.userId);
-                webrtc.createOffer(message.userId);
+                meshWebRTC.createOffer(message.userId);
               } else {
                 console.log('[WebRTC] ❌ NOT creating offer - myStreamActiveRef:', myStreamActiveRef.current, 'localStream:', !!localStreamRef.current);
               }
@@ -227,7 +314,9 @@ const MultiUserStreamingExample: React.FC = () => {
               if (leftUser) {
                 addSystemMessage(`${leftUser.userName} left the room`);
                 // Clean up peer connection
-                webrtc.removePeer(message.userId);
+                if (!useSFU) {
+                  meshWebRTC.removePeer(message.userId);
+                }
               }
               break;
 
@@ -259,10 +348,10 @@ const MultiUserStreamingExample: React.FC = () => {
                   // Use polite/impolite pattern: lower userId creates the offer
                   const shouldCreateOffer = SESSION_USER_ID < user.userId;
                   console.log('[WebRTC] 🔍 Comparing userIds: my=' + SESSION_USER_ID + ' their=' + user.userId + ' shouldCreateOffer=' + shouldCreateOffer);
-                  if (shouldCreateOffer) {
+                  if (shouldCreateOffer && !useSFU) {
                     console.log('[WebRTC] ✅ I am polite peer, creating offer to already-streaming user:', user.userId);
-                    console.log('[WebRTC] 🔍 Calling webrtc.createOffer(' + user.userId + ')');
-                    webrtc.createOffer(user.userId);
+                    console.log('[WebRTC] 🔍 Calling meshWebRTC.createOffer(' + user.userId + ')');
+                    meshWebRTC.createOffer(user.userId);
                     console.log('[WebRTC] ✅ createOffer call completed for:', user.userId);
                   } else {
                     console.log('[WebRTC] ℹ️ I am impolite peer, waiting for offer from already-streaming user:', user.userId);
@@ -273,11 +362,11 @@ const MultiUserStreamingExample: React.FC = () => {
 
                 // If I'm streaming, create offer to the new streamer (use polite/impolite pattern)
                 // Lower userId creates the offer to avoid collision
-                if (myStreamActiveRef.current && localStreamRef.current) {
+                if (myStreamActiveRef.current && localStreamRef.current && !useSFU) {
                   const shouldCreateOffer = SESSION_USER_ID < message.userId;
                   if (shouldCreateOffer) {
                     console.log('[WebRTC] ✅ I am polite peer, creating offer to newly streaming user:', message.userId);
-                    webrtc.createOffer(message.userId);
+                    meshWebRTC.createOffer(message.userId);
                   } else {
                     console.log('[WebRTC] ℹ️ I am impolite peer, waiting for offer from:', message.userId);
                   }
@@ -296,7 +385,9 @@ const MultiUserStreamingExample: React.FC = () => {
               if (stoppedUser && stoppedUser.userId !== SESSION_USER_ID) {
                 addSystemMessage(`⏹️ ${stoppedUser.userName} stopped streaming`);
                 // Remove the peer connection since they're no longer streaming
-                webrtc.removePeer(message.userId);
+                if (!useSFU) {
+                  meshWebRTC.removePeer(message.userId);
+                }
               }
               break;
 
@@ -311,17 +402,38 @@ const MultiUserStreamingExample: React.FC = () => {
 
             case 'webrtc-offer':
               console.log('[WebSocket] Received WebRTC offer from:', message.fromUserId);
-              webrtc.handleOffer(message.fromUserId, message.offer);
+              if (!useSFU) {
+                meshWebRTC.handleOffer(message.fromUserId, message.offer);
+              }
               break;
 
             case 'webrtc-answer':
               console.log('[WebSocket] Received WebRTC answer from:', message.fromUserId);
-              webrtc.handleAnswer(message.fromUserId, message.answer);
+              if (!useSFU) {
+                meshWebRTC.handleAnswer(message.fromUserId, message.answer);
+              }
               break;
 
             case 'webrtc-ice-candidate':
               console.log('[WebSocket] Received ICE candidate from:', message.fromUserId);
-              webrtc.handleIceCandidate(message.fromUserId, message.candidate);
+              if (!useSFU) {
+                meshWebRTC.handleIceCandidate(message.fromUserId, message.candidate);
+              }
+              break;
+
+            case 'join-room-error':
+              console.log('[WebSocket] Join room error:', message.error);
+              if (message.error === 'incorrect-password') {
+                // Show password prompt for the room
+                setSelectedRoomToJoin({
+                  roomId: message.roomId,
+                  roomName: message.roomName || message.roomId,
+                  participantCount: 0,
+                  hasPassword: message.hasPassword
+                });
+                setPasswordError('Incorrect password. Please try again.');
+                setJoinRoomPassword('');
+              }
               break;
 
             default:
@@ -376,7 +488,7 @@ const MultiUserStreamingExample: React.FC = () => {
       return;
     }
 
-    console.log('[CreateRoom] Creating room:', newRoomName);
+    console.log('[CreateRoom] Creating room:', newRoomName, newRoomPassword ? '(with password)' : '(no password)');
     const roomId = generateRoomId();
 
     if (demoMode) {
@@ -386,10 +498,11 @@ const MultiUserStreamingExample: React.FC = () => {
       initializeChatMessages(roomId);
       updateURLWithRoom(roomId);
     } else {
-      handleJoinRoom(roomId, newRoomName);
+      handleJoinRoom(roomId, newRoomName, newRoomPassword);
     }
 
     setNewRoomName('');
+    setNewRoomPassword('');
   };
 
   // Helper function to update URL with room ID
@@ -402,13 +515,17 @@ const MultiUserStreamingExample: React.FC = () => {
   };
 
   // Wrapper function for joining rooms that updates URL
-  const handleJoinRoom = (roomId: string, roomName?: string) => {
-    joinRoom(roomId, roomName);
+  const handleJoinRoom = (roomId: string, roomName?: string, password?: string) => {
+    // Store password for later use
+    if (password) {
+      setCurrentRoomPassword(password);
+    }
+    joinRoom(roomId, roomName, password);
     updateURLWithRoom(roomId);
   };
 
-  const joinRoom = (roomId: string, roomName?: string) => {
-    console.log('[JoinRoom] Attempting to join room:', roomId, roomName);
+  const joinRoom = (roomId: string, roomName?: string, password?: string) => {
+    console.log('[JoinRoom] Attempting to join room:', roomId, roomName, password ? '(with password)' : '(no password)');
     console.log('[JoinRoom] WebSocket state:', wsRef.current?.readyState);
 
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -419,6 +536,7 @@ const MultiUserStreamingExample: React.FC = () => {
         userId: SESSION_USER_ID,
         userName,
         roomName: roomName || roomId,
+        password: password || undefined,
       };
       console.log('[JoinRoom] Sending message:', message);
       wsRef.current.send(JSON.stringify(message));
@@ -437,6 +555,7 @@ const MultiUserStreamingExample: React.FC = () => {
     }
     setCurrentRoom(null);
     setCurrentRoomName('');
+    setCurrentRoomPassword(null);
     setParticipants([]);
     setChatMessages([]);
     setMyStreamActive(false);
@@ -456,7 +575,12 @@ const MultiUserStreamingExample: React.FC = () => {
       });
 
       localStreamRef.current = stream;
-      webrtc.startStreaming(stream);
+
+      if (useSFU) {
+        livekitWebRTC.startStreaming(stream);
+      } else {
+        meshWebRTC.startStreaming(stream);
+      }
 
       if (demoMode) {
         setMyStreamActive(true);
@@ -486,7 +610,11 @@ const MultiUserStreamingExample: React.FC = () => {
       localStreamRef.current = null;
     }
 
-    webrtc.stopStreaming();
+    if (useSFU) {
+      livekitWebRTC.stopStreaming();
+    } else {
+      meshWebRTC.stopStreaming();
+    }
 
     // Reset media toggle states
     setIsAudioEnabled(true);
@@ -534,6 +662,7 @@ const MultiUserStreamingExample: React.FC = () => {
     const welcomeMessages: Message[] = [
       {
         id: 'welcome',
+        type: 'system',
         content: `🎉 Welcome to **${currentRoomName}**!`,
         sender: { id: 'system', name: 'System', avatar: '🤖' },
         timestamp: new Date(),
@@ -542,6 +671,7 @@ const MultiUserStreamingExample: React.FC = () => {
       },
       {
         id: 'instructions',
+        type: 'system',
         content: '**How to stream:**\n\n1️⃣ Click "Start My Stream" below to activate your camera\n2️⃣ Other participants will see your stream automatically\n3️⃣ You can chat with everyone in the room\n4️⃣ Click "Stop Stream" when you\'re done',
         sender: { id: 'system', name: 'System', avatar: '📋' },
         timestamp: new Date(),
@@ -555,6 +685,7 @@ const MultiUserStreamingExample: React.FC = () => {
   const addSystemMessage = (content: string) => {
     const msg: Message = {
       id: `system-${Date.now()}`,
+      type: 'system',
       content,
       sender: { id: 'system', name: 'System', avatar: '📢' },
       timestamp: new Date(),
@@ -567,6 +698,7 @@ const MultiUserStreamingExample: React.FC = () => {
   const addChatMessage = (userId: string, userName: string, content: string) => {
     const msg: Message = {
       id: `chat-${Date.now()}`,
+      type: 'text',
       content,
       sender: { id: userId, name: userName, avatar: '👤' },
       timestamp: new Date(),
@@ -609,6 +741,7 @@ const MultiUserStreamingExample: React.FC = () => {
     if (myStreamActive && localStreamRef.current) {
       streamMessages.push({
         id: 'my-stream',
+        type: 'text',
         content: `📹 **Your Camera** (${userName})`,
         sender: { id: SESSION_USER_ID, name: userName, avatar: '🎬' },
         timestamp: new Date(),
@@ -633,6 +766,7 @@ const MultiUserStreamingExample: React.FC = () => {
 
         streamMessages.push({
           id: `stream-${participant.userId}`,
+          type: 'text',
           content: remoteStream
             ? `🎥 **${participant.userName}** is live`
             : `🔴 **${participant.userName}** is streaming (connecting...)`,
@@ -664,10 +798,8 @@ const MultiUserStreamingExample: React.FC = () => {
       setChatMessages(prev => {
         // Remove old stream messages
         const withoutStreams = prev.filter(m => !m.id.startsWith('stream-') && m.id !== 'my-stream');
-        // Add new stream messages at the beginning (after welcome messages)
-        const welcomeMessages = withoutStreams.slice(0, 2);
-        const chatMessages = withoutStreams.slice(2);
-        return [...welcomeMessages, ...streamMessages, ...chatMessages];
+        // Add new stream messages at the end (as most recent items)
+        return [...withoutStreams, ...streamMessages];
       });
     }
   }, [participants, myStreamActive, currentRoom, remoteStreams, userName]);
@@ -732,6 +864,14 @@ const MultiUserStreamingExample: React.FC = () => {
               <Text style={styles.buttonText}>Create</Text>
             </TouchableOpacity>
           </View>
+          <TextInput
+            style={[styles.input, { marginTop: 8 }]}
+            value={newRoomPassword}
+            onChangeText={setNewRoomPassword}
+            placeholder="Password (optional)"
+            placeholderTextColor="#999"
+            secureTextEntry
+          />
         </View>
 
         {/* Available rooms */}
@@ -756,10 +896,18 @@ const MultiUserStreamingExample: React.FC = () => {
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={styles.roomCard}
-                  onPress={() => handleJoinRoom(item.roomId, item.roomName)}
+                  onPress={() => {
+                    if (item.hasPassword) {
+                      setSelectedRoomToJoin(item);
+                    } else {
+                      handleJoinRoom(item.roomId, item.roomName);
+                    }
+                  }}
                 >
                   <View style={styles.roomInfo}>
-                    <Text style={styles.roomName}>🏠 {item.roomName || item.roomId}</Text>
+                    <Text style={styles.roomName}>
+                      🏠 {item.roomName || item.roomId} {item.hasPassword ? '🔒' : ''}
+                    </Text>
                     <Text style={styles.roomParticipants}>
                       👥 {item.participantCount} {item.participantCount === 1 ? 'person' : 'people'}
                     </Text>
@@ -770,20 +918,84 @@ const MultiUserStreamingExample: React.FC = () => {
             />
           )}
         </View>
+
+        {/* Password prompt modal */}
+        {selectedRoomToJoin && (
+          <View style={styles.modalOverlay}>
+            <View style={styles.passwordModal}>
+              <Text style={styles.modalTitle}>🔒 Password Required</Text>
+              <Text style={styles.modalSubtitle}>
+                Enter password for {selectedRoomToJoin.roomName}
+              </Text>
+              {passwordError && (
+                <Text style={styles.errorText}>{passwordError}</Text>
+              )}
+              <TextInput
+                style={styles.input}
+                value={joinRoomPassword}
+                onChangeText={(text) => {
+                  setJoinRoomPassword(text);
+                  setPasswordError(null);
+                }}
+                placeholder="Enter password"
+                placeholderTextColor="#999"
+                secureTextEntry
+              />
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.button, styles.buttonSecondary, { flex: 1 }]}
+                  onPress={() => {
+                    setSelectedRoomToJoin(null);
+                    setJoinRoomPassword('');
+                    setPasswordError(null);
+                  }}
+                >
+                  <Text style={[styles.buttonText, { color: '#666' }]}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.button, styles.buttonPrimary, { flex: 1 }, !joinRoomPassword.trim() && styles.buttonDisabled]}
+                  onPress={() => {
+                    handleJoinRoom(selectedRoomToJoin.roomId, selectedRoomToJoin.roomName, joinRoomPassword);
+                    setSelectedRoomToJoin(null);
+                    setJoinRoomPassword('');
+                    setPasswordError(null);
+                  }}
+                  disabled={!joinRoomPassword.trim()}
+                >
+                  <Text style={styles.buttonText}>Join</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
       </View>
     );
   }
 
-  // Function to copy room link to clipboard
+  // Function to copy room link to clipboard (without password)
   const copyRoomLink = () => {
     if (typeof window !== 'undefined' && currentRoom) {
       const roomURL = `${window.location.origin}/room/${currentRoom}`;
       navigator.clipboard.writeText(roomURL).then(() => {
         setShowCopiedMessage(true);
         setTimeout(() => setShowCopiedMessage(false), 2000);
-        console.log('[URL] Copied room link:', roomURL);
+        console.log('[URL] Copied room link (without password):', roomURL);
       }).catch(err => {
         console.error('[URL] Failed to copy room link:', err);
+      });
+    }
+  };
+
+  // Function to copy room link with password
+  const copyRoomLinkWithPassword = () => {
+    if (typeof window !== 'undefined' && currentRoom && currentRoomPassword) {
+      const roomURL = `${window.location.origin}/room/${currentRoom}?p=${encodeURIComponent(currentRoomPassword)}`;
+      navigator.clipboard.writeText(roomURL).then(() => {
+        setShowCopiedMessage(true);
+        setTimeout(() => setShowCopiedMessage(false), 2000);
+        console.log('[URL] Copied room link (with password):', roomURL);
+      }).catch(err => {
+        console.error('[URL] Failed to copy room link with password:', err);
       });
     }
   };
@@ -798,9 +1010,17 @@ const MultiUserStreamingExample: React.FC = () => {
 
         <TouchableOpacity style={styles.copyLinkButton} onPress={copyRoomLink}>
           <Text style={styles.copyLinkButtonText}>
-            {showCopiedMessage ? '✓ Copied!' : '🔗 Copy Room Link'}
+            {showCopiedMessage ? '✓ Copied!' : '🔗 Copy Link'}
           </Text>
         </TouchableOpacity>
+
+        {currentRoomPassword && (
+          <TouchableOpacity style={styles.copyLinkWithPasswordButton} onPress={copyRoomLinkWithPassword}>
+            <Text style={styles.copyLinkButtonText}>
+              {showCopiedMessage ? '✓ Copied!' : '🔗 Copy Link + 🔑'}
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {myStreamActive && (
           <>
@@ -843,7 +1063,7 @@ const MultiUserStreamingExample: React.FC = () => {
         placeholder="Send a message..."
         currentUserId={SESSION_USER_ID}
         title={currentRoomName}
-        subtitle={`${participants.length + 1} participant${participants.length !== 0 ? 's' : ''} • ${participants.filter(p => p.isStreaming).length + (myStreamActive ? 1 : 0)} streaming`}
+        subtitle={`${participants.length + 1} participant${participants.length !== 0 ? 's' : ''} • ${participants.filter(p => p.isStreaming).length + (myStreamActive ? 1 : 0)} streaming${useSFU ? ' • 🚀 SFU Mode' : ''}`}
         showTypingIndicator={false}
       />
     </View>
@@ -1003,6 +1223,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#007AFF',
   },
+  copyLinkWithPasswordButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: '#34C759',
+  },
   copyLinkButtonText: {
     fontSize: 14,
     fontWeight: '600',
@@ -1039,6 +1265,50 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#FFF',
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  passwordModal: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    padding: 24,
+    width: '90%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 16,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 14,
+    marginBottom: 12,
   },
 });
 
