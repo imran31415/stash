@@ -356,7 +356,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
       style={[
         styles.container,
         {
-          height,
+          ...(height ? { height } : { flex: 1 }),
           width: width || '100%',
           backgroundColor: colors.surface,
           borderColor: colors.border,

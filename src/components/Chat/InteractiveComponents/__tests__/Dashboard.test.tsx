@@ -46,21 +46,20 @@ jest.mock('../LiveCameraStream', () => ({
 
 describe('Dashboard', () => {
   const mockConfig: DashboardProps['config'] = {
+    id: 'test-dashboard',
     title: 'Test Dashboard',
     gridSize: '2x2',
     items: [
       {
         id: 'item-1',
-        type: 'text',
-        title: 'Item 1',
-        content: 'Test content',
+        type: 'code-block',
+        data: { code: 'Test content', language: 'javascript' },
         gridPosition: { row: 0, col: 0 },
       },
       {
         id: 'item-2',
-        type: 'text',
-        title: 'Item 2',
-        content: 'Test content 2',
+        type: 'code-block',
+        data: { code: 'Test content 2', language: 'javascript' },
         gridPosition: { row: 0, col: 1 },
       },
     ],
@@ -168,10 +167,9 @@ describe('Dashboard', () => {
   });
 
   describe('Styling', () => {
-    it('applies custom style', () => {
-      const customStyle = { backgroundColor: '#FF0000' };
+    it('renders with different modes', () => {
       const { getByText } = render(
-        <Dashboard config={mockConfig} style={customStyle} />
+        <Dashboard config={mockConfig} mode="mini" />
       );
       expect(getByText('Test Dashboard')).toBeTruthy();
     });
@@ -179,14 +177,13 @@ describe('Dashboard', () => {
 
   describe('Grid Positioning', () => {
     it('handles items with row and col span', () => {
-      const config = {
+      const config: DashboardProps['config'] = {
         ...mockConfig,
         items: [
           {
             id: 'item-1',
-            type: 'text',
-            title: 'Spanning Item',
-            content: 'Test',
+            type: 'code-block' as const,
+            data: { code: 'Test', language: 'javascript' },
             gridPosition: { row: 0, col: 0, rowSpan: 2, colSpan: 2 },
           },
         ],

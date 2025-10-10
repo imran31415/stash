@@ -141,7 +141,7 @@ export const ResourceDetailModal: React.FC<ResourceDetailModalProps> = ({
               {resource.status && (
                 <View style={styles.detailRow}>
                   <Text style={styles.detailLabel}>Status:</Text>
-                  <View style={[styles.statusBadge, resource.color && { backgroundColor: resource.color }]}>
+                  <View style={[styles.statusBadge, resource.color && resource.color.length > 0 ? { backgroundColor: resource.color } : undefined]}>
                     <Text style={styles.statusBadgeText}>{resource.status}</Text>
                   </View>
                 </View>

@@ -1,4 +1,4 @@
-import type { SupportedLanguage } from './CodeBlock.types';
+import type { SupportedLanguage } from '../CodeBlock.types';
 
 export interface CodeFile {
   id: string;

@@ -91,7 +91,6 @@ export const NetworkTopology: React.FC<NetworkTopologyProps> = ({
             fontSize={9}
             fill={colors.text}
             textAnchor="middle"
-            backgroundColor="#FFFFFF"
           >
             {connection.label}
           </SvgText>

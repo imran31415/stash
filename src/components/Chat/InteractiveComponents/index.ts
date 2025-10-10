@@ -222,6 +222,28 @@ export type {
   NetworkTopologyStats,
 } from './NetworkTopology.types';
 
+export type {
+  FunnelStage,
+  FunnelChartData,
+  FunnelChartMode,
+  FunnelOrientation,
+  FunnelChartProps,
+  FunnelChartDetailViewProps,
+  FunnelChartStats,
+} from './FunnelChart.types';
+
+export type {
+  EventType,
+  EventStatus,
+  TimelineEvent,
+  CalendarTimelineData,
+  CalendarTimelineMode,
+  CalendarView,
+  CalendarTimelineProps,
+  CalendarTimelineDetailViewProps,
+  CalendarTimelineStats,
+} from './CalendarTimeline.types';
+
 export { TaskList } from './TaskList';
 export { TaskDetailModal } from './TaskDetailModal';
 export { TaskDetailBottomSheet } from './TaskDetailBottomSheet';
@@ -268,5 +290,8 @@ export { SankeyDiagram } from './SankeyDiagram';
 export { SankeyDiagramDetailView } from './SankeyDiagramDetailView';
 export { NetworkTopology } from './NetworkTopology';
 export { NetworkTopologyDetailView } from './NetworkTopologyDetailView';
+export { FunnelChart } from './FunnelChart';
+export { FunnelChartDetailView } from './FunnelChartDetailView';
+export { CalendarTimeline } from './CalendarTimeline';
 
 // All interactive chat components for rich, embedded visualizations

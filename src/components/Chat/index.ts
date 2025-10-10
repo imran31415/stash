@@ -31,6 +31,9 @@ export type { ChatServiceConfig, ChatApiResponse } from './HTTPChatService';
 // Re-export interactive components for convenience
 export * from './InteractiveComponents';
 
+// Re-export multi-streaming chat components
+export * from './MultiStreaming';
+
 export { useMessageWindow } from './hooks/useMessageWindow';
 export type {
   PaginationState,

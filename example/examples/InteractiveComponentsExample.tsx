@@ -24,6 +24,17 @@ import {
   MultiSwipeable,
   KanbanBoard,
   KanbanBoardDetailView,
+  FormBuilder,
+  FormBuilderDetailView,
+  ComparisonTable,
+  ComparisonTableDetailView,
+  SankeyDiagram,
+  SankeyDiagramDetailView,
+  NetworkTopology,
+  NetworkTopologyDetailView,
+  FunnelChart,
+  FunnelChartDetailView,
+  CalendarTimeline,
   type Task,
   type Resource,
   type GanttTask,
@@ -47,6 +58,19 @@ import {
   type KanbanBoardData,
   type KanbanColumn,
   type KanbanCard,
+  type FormBuilderData,
+  type FormField,
+  type ComparisonTableData,
+  type SankeyDiagramData,
+  type SankeyNode,
+  type SankeyLink,
+  type NetworkTopologyData,
+  type NetworkNode,
+  type NetworkConnection,
+  type FunnelChartData,
+  type FunnelStage,
+  type CalendarTimelineData,
+  type TimelineEvent,
 } from '../../src/components/Chat/InteractiveComponents';
 import { addDays, addWeeks, addHours, subDays } from 'date-fns';
 import {
@@ -68,6 +92,11 @@ const InteractiveComponentsExample: React.FC = () => {
   const [flameGraphDetailVisible, setFlameGraphDetailVisible] = useState(false);
   const [treeViewDetailVisible, setTreeViewDetailVisible] = useState(false);
   const [kanbanDetailVisible, setKanbanDetailVisible] = useState(false);
+  const [formBuilderDetailVisible, setFormBuilderDetailVisible] = useState(false);
+  const [comparisonTableDetailVisible, setComparisonTableDetailVisible] = useState(false);
+  const [sankeyDiagramDetailVisible, setSankeyDiagramDetailVisible] = useState(false);
+  const [networkTopologyDetailVisible, setNetworkTopologyDetailVisible] = useState(false);
+  const [funnelChartDetailVisible, setFunnelChartDetailVisible] = useState(false);
   const [currentCodeBlock, setCurrentCodeBlock] = useState<{
     code: string;
     language: SupportedLanguage;
@@ -1427,6 +1456,214 @@ const InteractiveComponentsExample: React.FC = () => {
     },
   ], [largeGanttTasks, largeGraphData, sampleTimeSeriesData, sampleFlameGraphData, sampleWorkflowData]);
 
+  // FormBuilder mock data
+  const formBuilderData: FormBuilderData = useMemo(() => ({
+    id: 'user-registration-form',
+    title: 'User Registration Form',
+    description: 'Collect user information for account creation',
+    sections: [
+      {
+        id: 'personal-info',
+        title: 'Personal Information',
+        description: 'Basic details about the user',
+        fields: [
+          { id: 'firstName', type: 'text', label: 'First Name', placeholder: 'John', required: true, description: 'Enter your first name' },
+          { id: 'lastName', type: 'text', label: 'Last Name', placeholder: 'Doe', required: true },
+          { id: 'email', type: 'email', label: 'Email', placeholder: 'john@example.com', required: true },
+          { id: 'phone', type: 'tel', label: 'Phone Number', placeholder: '+1 (555) 123-4567' },
+          { id: 'birthdate', type: 'date', label: 'Date of Birth', required: true },
+        ],
+      },
+      {
+        id: 'account-settings',
+        title: 'Account Settings',
+        fields: [
+          { id: 'username', type: 'text', label: 'Username', placeholder: 'johndoe123', required: true },
+          {
+            id: 'accountType',
+            type: 'select',
+            label: 'Account Type',
+            required: true,
+            options: [
+              { label: 'Personal', value: 'personal' },
+              { label: 'Business', value: 'business' },
+              { label: 'Enterprise', value: 'enterprise' },
+            ],
+          },
+          { id: 'newsletter', type: 'checkbox', label: 'Subscribe to newsletter' },
+          { id: 'terms', type: 'checkbox', label: 'I agree to terms and conditions', required: true },
+        ],
+      },
+    ],
+  }), []);
+
+  // ComparisonTable mock data
+  const comparisonTableData: ComparisonTableData = useMemo(() => ({
+    id: 'product-comparison',
+    title: 'Cloud Service Comparison',
+    description: 'Compare features across different cloud providers',
+    columns: [
+      { id: 'feature', label: 'Feature', width: 200 },
+      { id: 'aws', label: 'AWS', width: 150 },
+      { id: 'azure', label: 'Azure', width: 150 },
+      { id: 'gcp', label: 'Google Cloud', width: 150 },
+    ],
+    rows: [
+      { id: 'row1', cells: [
+        { id: 'c1', type: 'text', value: 'Compute' },
+        { id: 'c2', type: 'text', value: 'EC2' },
+        { id: 'c3', type: 'text', value: 'Virtual Machines' },
+        { id: 'c4', type: 'text', value: 'Compute Engine' },
+      ]},
+      { id: 'row2', cells: [
+        { id: 'c1', type: 'text', value: 'Storage' },
+        { id: 'c2', type: 'text', value: 'S3' },
+        { id: 'c3', type: 'text', value: 'Blob Storage' },
+        { id: 'c4', type: 'text', value: 'Cloud Storage' },
+      ]},
+      { id: 'row3', cells: [
+        { id: 'c1', type: 'text', value: 'Database' },
+        { id: 'c2', type: 'text', value: 'RDS, DynamoDB' },
+        { id: 'c3', type: 'text', value: 'SQL Database' },
+        { id: 'c4', type: 'text', value: 'Cloud SQL' },
+      ]},
+      { id: 'row4', cells: [
+        { id: 'c1', type: 'text', value: 'Starting Price' },
+        { id: 'c2', type: 'number', value: 10, result: 'lower' },
+        { id: 'c3', type: 'number', value: 12, result: 'higher' },
+        { id: 'c4', type: 'number', value: 11, result: 'neutral' },
+      ]},
+      { id: 'row5', cells: [
+        { id: 'c1', type: 'text', value: 'Free Tier' },
+        { id: 'c2', type: 'boolean', value: true },
+        { id: 'c3', type: 'boolean', value: true },
+        { id: 'c4', type: 'boolean', value: true },
+      ]},
+    ],
+  }), []);
+
+  // SankeyDiagram mock data
+  const sankeyData: SankeyDiagramData = useMemo(() => ({
+    id: 'energy-flow',
+    title: 'Energy Flow Sankey',
+    description: 'Visualizing energy distribution in a power grid',
+    nodes: [
+      { id: 'coal', label: 'Coal', color: '#8B4513' },
+      { id: 'gas', label: 'Natural Gas', color: '#FF8C00' },
+      { id: 'solar', label: 'Solar', color: '#FFD700' },
+      { id: 'wind', label: 'Wind', color: '#87CEEB' },
+      { id: 'generation', label: 'Power Generation', color: '#4169E1' },
+      { id: 'transmission', label: 'Transmission', color: '#9370DB' },
+      { id: 'residential', label: 'Residential', color: '#32CD32' },
+      { id: 'commercial', label: 'Commercial', color: '#FF6347' },
+      { id: 'industrial', label: 'Industrial', color: '#708090' },
+    ],
+    links: [
+      { source: 'coal', target: 'generation', value: 35 },
+      { source: 'gas', target: 'generation', value: 30 },
+      { source: 'solar', target: 'generation', value: 15 },
+      { source: 'wind', target: 'generation', value: 20 },
+      { source: 'generation', target: 'transmission', value: 95 },
+      { source: 'transmission', target: 'residential', value: 35 },
+      { source: 'transmission', target: 'commercial', value: 30 },
+      { source: 'transmission', target: 'industrial', value: 30 },
+    ],
+  }), []);
+
+  // NetworkTopology mock data
+  const networkTopologyData: NetworkTopologyData = useMemo(() => ({
+    id: 'datacenter-topology',
+    title: 'Data Center Network Topology',
+    description: 'Infrastructure layout',
+    nodes: [
+      { id: 'router1', label: 'Core Router', type: 'router', status: 'active', x: 400, y: 100 },
+      { id: 'switch1', label: 'Switch 1', type: 'switch', status: 'active', x: 200, y: 250 },
+      { id: 'switch2', label: 'Switch 2', type: 'switch', status: 'active', x: 600, y: 250 },
+      { id: 'server1', label: 'Web Server', type: 'server', status: 'active', x: 100, y: 400 },
+      { id: 'server2', label: 'DB Server', type: 'server', status: 'warning', x: 300, y: 400 },
+      { id: 'server3', label: 'App Server', type: 'server', status: 'active', x: 500, y: 400 },
+      { id: 'server4', label: 'Cache Server', type: 'server', status: 'active', x: 700, y: 400 },
+      { id: 'firewall', label: 'Firewall', type: 'firewall', status: 'active', x: 400, y: 550 },
+    ],
+    connections: [
+      { id: 'c1', source: 'router1', target: 'switch1', type: 'ethernet', status: 'active', bandwidth: '10Gbps' },
+      { id: 'c2', source: 'router1', target: 'switch2', type: 'ethernet', status: 'active', bandwidth: '10Gbps' },
+      { id: 'c3', source: 'switch1', target: 'server1', type: 'ethernet', status: 'active', bandwidth: '1Gbps' },
+      { id: 'c4', source: 'switch1', target: 'server2', type: 'ethernet', status: 'warning', bandwidth: '1Gbps' },
+      { id: 'c5', source: 'switch2', target: 'server3', type: 'ethernet', status: 'active', bandwidth: '1Gbps' },
+      { id: 'c6', source: 'switch2', target: 'server4', type: 'ethernet', status: 'active', bandwidth: '1Gbps' },
+      { id: 'c7', source: 'firewall', target: 'router1', type: 'ethernet', status: 'active', bandwidth: '10Gbps' },
+    ],
+  }), []);
+
+  // FunnelChart mock data
+  const funnelChartData: FunnelChartData = useMemo(() => ({
+    id: 'sales-funnel',
+    title: 'Sales Conversion Funnel',
+    description: 'Track user journey from awareness to purchase',
+    stages: [
+      { id: 'awareness', label: 'Website Visitors', value: 10000, color: '#3B82F6' },
+      { id: 'interest', label: 'Product Page Views', value: 5000, color: '#8B5CF6' },
+      { id: 'consideration', label: 'Add to Cart', value: 2000, color: '#EC4899' },
+      { id: 'intent', label: 'Checkout Started', value: 800, color: '#F59E0B' },
+      { id: 'purchase', label: 'Completed Purchase', value: 500, color: '#10B981' },
+    ],
+  }), []);
+
+  // CalendarTimeline mock data
+  const calendarTimelineData: CalendarTimelineData = useMemo(() => ({
+    id: 'team-calendar',
+    title: 'Team Sprint Calendar',
+    description: 'Sprint planning and milestones',
+    events: [
+      {
+        id: 'e1',
+        title: 'Sprint Planning',
+        description: 'Plan sprint 15 deliverables',
+        start: new Date(),
+        end: addHours(new Date(), 2),
+        type: 'meeting',
+        status: 'completed',
+        color: '#3B82F6',
+      },
+      {
+        id: 'e2',
+        title: 'Feature Development',
+        start: addDays(new Date(), 1),
+        end: addDays(new Date(), 5),
+        type: 'task',
+        status: 'in-progress',
+        color: '#8B5CF6',
+      },
+      {
+        id: 'e3',
+        title: 'Code Review',
+        start: addDays(new Date(), 5),
+        end: addDays(new Date(), 6),
+        type: 'task',
+        status: 'pending',
+        color: '#F59E0B',
+      },
+      {
+        id: 'e4',
+        title: 'Sprint Demo',
+        start: addDays(new Date(), 7),
+        end: addHours(addDays(new Date(), 7), 1),
+        type: 'meeting',
+        status: 'pending',
+        color: '#10B981',
+      },
+      {
+        id: 'e5',
+        title: 'Release Deadline',
+        start: addDays(new Date(), 10),
+        type: 'deadline',
+        status: 'pending',
+        color: '#EF4444',
+      },
+    ],
+  }), []);
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.section}>
@@ -2065,6 +2302,198 @@ yarn add stash
       </View>
 
       <View style={styles.section}>
+        <Text style={styles.sectionTitle}>FormBuilder Component (Mini)</Text>
+        <Text style={styles.sectionDescription}>
+          Dynamic form builder with multiple field types. Supports validation, sections, and conditional logic.
+        </Text>
+        <FormBuilder
+          data={formBuilderData}
+          mode="mini"
+          onExpandPress={() => setFormBuilderDetailVisible(true)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>FormBuilder Component (Full)</Text>
+        <FormBuilder
+          data={formBuilderData}
+          mode="full"
+          onSubmit={(values) => console.log('Form submitted:', values)}
+          onFieldChange={(fieldId, value) => console.log('Field changed:', fieldId, value)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <TouchableOpacity
+          style={styles.detailViewButton}
+          onPress={() => setFormBuilderDetailVisible(true)}
+        >
+          <Text style={styles.detailViewButtonText}>
+            📝 Open FormBuilder Detail View
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>ComparisonTable Component (Mini)</Text>
+        <Text style={styles.sectionDescription}>
+          Side-by-side feature comparison with highlighting for better/worse values.
+        </Text>
+        <ComparisonTable
+          data={comparisonTableData}
+          mode="mini"
+          onExpandPress={() => setComparisonTableDetailVisible(true)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>ComparisonTable Component (Full)</Text>
+        <ComparisonTable
+          data={comparisonTableData}
+          mode="full"
+          onCellPress={(cell, row, column) => console.log('Cell pressed:', cell.value)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <TouchableOpacity
+          style={styles.detailViewButton}
+          onPress={() => setComparisonTableDetailVisible(true)}
+        >
+          <Text style={styles.detailViewButtonText}>
+            📊 Open ComparisonTable Detail View
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>SankeyDiagram Component (Mini)</Text>
+        <Text style={styles.sectionDescription}>
+          Flow visualization showing energy distribution through a system.
+        </Text>
+        <SankeyDiagram
+          data={sankeyData}
+          mode="mini"
+          onExpandPress={() => setSankeyDiagramDetailVisible(true)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>SankeyDiagram Component (Full)</Text>
+        <SankeyDiagram
+          data={sankeyData}
+          mode="full"
+          onNodePress={(node) => console.log('Node pressed:', node.label)}
+          onLinkPress={(link) => console.log('Link pressed:', link.source, '→', link.target)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <TouchableOpacity
+          style={styles.detailViewButton}
+          onPress={() => setSankeyDiagramDetailVisible(true)}
+        >
+          <Text style={styles.detailViewButtonText}>
+            🌊 Open SankeyDiagram Detail View
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>NetworkTopology Component (Mini)</Text>
+        <Text style={styles.sectionDescription}>
+          Network infrastructure visualization with routers, switches, and servers.
+        </Text>
+        <NetworkTopology
+          data={networkTopologyData}
+          mode="mini"
+          onExpandPress={() => setNetworkTopologyDetailVisible(true)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>NetworkTopology Component (Full)</Text>
+        <NetworkTopology
+          data={networkTopologyData}
+          mode="full"
+          onNodePress={(node) => console.log('Node pressed:', node.label)}
+          onConnectionPress={(connection) => console.log('Connection pressed:', connection.id)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <TouchableOpacity
+          style={styles.detailViewButton}
+          onPress={() => setNetworkTopologyDetailVisible(true)}
+        >
+          <Text style={styles.detailViewButtonText}>
+            🌐 Open NetworkTopology Detail View
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>FunnelChart Component (Mini)</Text>
+        <Text style={styles.sectionDescription}>
+          Conversion funnel showing drop-off at each stage of the sales process.
+        </Text>
+        <FunnelChart
+          data={funnelChartData}
+          mode="mini"
+          showDropoff={true}
+          onExpandPress={() => setFunnelChartDetailVisible(true)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>FunnelChart Component (Full)</Text>
+        <FunnelChart
+          data={funnelChartData}
+          mode="full"
+          showValues={true}
+          showPercentages={true}
+          showDropoff={true}
+          onStagePress={(stage, index) => console.log('Stage pressed:', stage.label)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <TouchableOpacity
+          style={styles.detailViewButton}
+          onPress={() => setFunnelChartDetailVisible(true)}
+        >
+          <Text style={styles.detailViewButtonText}>
+            📉 Open FunnelChart Detail View
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>CalendarTimeline Component (Mini)</Text>
+        <Text style={styles.sectionDescription}>
+          Sprint calendar with events, milestones, and deadlines.
+        </Text>
+        <CalendarTimeline
+          data={calendarTimelineData}
+          mode="mini"
+          view="timeline"
+          onEventPress={(event) => console.log('Event pressed:', event.title)}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>CalendarTimeline Component (Full)</Text>
+        <CalendarTimeline
+          data={calendarTimelineData}
+          mode="full"
+          view="week"
+          showWeekends={true}
+          onEventPress={(event) => console.log('Event pressed:', event.title)}
+          onDatePress={(date) => console.log('Date pressed:', date)}
+        />
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>LoadingState Component</Text>
         <Text style={styles.sectionDescription}>
           Beautiful loading indicators with smooth animations. Supports inline and overlay modes.
@@ -2244,6 +2673,52 @@ yarn add stash
         onClose={() => setKanbanDetailVisible(false)}
         onCardPress={(card, column) => console.log('Detail view - Card pressed:', card.title, 'in column:', column.title)}
         onColumnPress={(column) => console.log('Detail view - Column pressed:', column.title)}
+      />
+
+      {/* FormBuilder Detail View Modal */}
+      <FormBuilderDetailView
+        visible={formBuilderDetailVisible}
+        data={formBuilderData}
+        onClose={() => setFormBuilderDetailVisible(false)}
+        onSubmit={(values) => {
+          console.log('Form submitted:', values);
+          setFormBuilderDetailVisible(false);
+        }}
+        onFieldChange={(fieldId, value) => console.log('Field changed:', fieldId, value)}
+      />
+
+      {/* ComparisonTable Detail View Modal */}
+      <ComparisonTableDetailView
+        visible={comparisonTableDetailVisible}
+        data={comparisonTableData}
+        onClose={() => setComparisonTableDetailVisible(false)}
+        onCellPress={(cell, row, column) => console.log('Cell pressed:', cell.value)}
+      />
+
+      {/* SankeyDiagram Detail View Modal */}
+      <SankeyDiagramDetailView
+        visible={sankeyDiagramDetailVisible}
+        data={sankeyData}
+        onClose={() => setSankeyDiagramDetailVisible(false)}
+        onNodePress={(node) => console.log('Node pressed:', node.label)}
+        onLinkPress={(link) => console.log('Link pressed:', link.source, '→', link.target)}
+      />
+
+      {/* NetworkTopology Detail View Modal */}
+      <NetworkTopologyDetailView
+        visible={networkTopologyDetailVisible}
+        data={networkTopologyData}
+        onClose={() => setNetworkTopologyDetailVisible(false)}
+        onNodePress={(node) => console.log('Node pressed:', node.label)}
+        onConnectionPress={(connection) => console.log('Connection pressed:', connection.id)}
+      />
+
+      {/* FunnelChart Detail View Modal */}
+      <FunnelChartDetailView
+        visible={funnelChartDetailVisible}
+        data={funnelChartData}
+        onClose={() => setFunnelChartDetailVisible(false)}
+        onStagePress={(stage, index) => console.log('Stage pressed:', stage.label)}
       />
     </ScrollView>
   );

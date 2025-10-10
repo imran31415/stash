@@ -12,20 +12,21 @@ import {
 } from 'react-native';
 import { CodeEditor } from './CodeEditor';
 import type { CodeFile } from './CodeEditor.types';
+import type { SupportedLanguage } from '../CodeBlock.types';
 
 export interface CodeEditorDetailViewProps {
   visible: boolean;
   onClose: () => void;
   files?: CodeFile[];
   code?: string;
-  language?: string;
+  language?: SupportedLanguage;
   fileName?: string;
   title?: string;
   description?: string;
   editable?: boolean;
   showPreview?: boolean;
   showLineNumbers?: boolean;
-  renderPreview?: (code: string, language?: string, onExpandPress?: () => void) => React.ReactNode;
+  renderPreview?: (code: string, language?: SupportedLanguage, onExpandPress?: () => void) => React.ReactNode;
   onPreviewExpandPress?: () => void;
   onChange?: (code: string) => void;
 }
@@ -90,6 +91,7 @@ export const CodeEditorDetailView: React.FC<CodeEditorDetailViewProps> = ({
             language={language}
             fileName={fileName}
             mode="full"
+            height={undefined}
             editable={editable}
             showPreview={showPreview}
             showLineNumbers={showLineNumbers}

@@ -36,7 +36,7 @@ jest.mock('../HTTPChatService');
 describe('ChatWithPagination', () => {
   const defaultProps = {
     userId: 'user-1',
-    chatType: 'direct' as const,
+    chatType: 'user' as const,
     chatId: 'chat-1',
     onSendMessage: jest.fn(),
   };
@@ -64,7 +64,7 @@ describe('ChatWithPagination', () => {
       const component = render(
         <ChatWithPagination
           userId="user-1"
-          chatType="direct"
+          chatType="user"
           onSendMessage={jest.fn()}
         />
       );
@@ -559,7 +559,7 @@ describe('ChatWithPagination', () => {
       const component = render(
         <ChatWithPagination
           userId=""
-          chatType="direct"
+          chatType="user"
           onSendMessage={jest.fn()}
         />
       );
@@ -568,7 +568,7 @@ describe('ChatWithPagination', () => {
     });
 
     it('handles different chat types', () => {
-      const types: Array<'direct' | 'group' | 'channel'> = ['direct', 'group', 'channel'];
+      const types: Array<'user' | 'group' | 'ai'> = ['user', 'group', 'ai'];
 
       types.forEach(chatType => {
         const component = render(

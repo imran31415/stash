@@ -46,6 +46,7 @@ export interface FormField {
   required?: boolean;
   disabled?: boolean;
   helpText?: string;
+  description?: string;
   metadata?: {
     min?: number;
     max?: number;

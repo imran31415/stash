@@ -23,11 +23,11 @@ describe('Performance Tests', () => {
     };
 
     const columns: DataTableProps['columns'] = [
-      { key: 'id', label: 'ID' },
-      { key: 'name', label: 'Name' },
-      { key: 'email', label: 'Email' },
-      { key: 'status', label: 'Status' },
-      { key: 'score', label: 'Score' },
+      { id: "col", accessor: 'id', header: 'ID' },
+      { id: "col", accessor: 'name', header: 'Name' },
+      { id: "col", accessor: 'email', header: 'Email' },
+      { id: "col", accessor: 'status', header: 'Status' },
+      { id: "col", accessor: 'score', header: 'Score' },
     ];
 
     it('renders 100 rows efficiently with pagination', () => {
@@ -73,14 +73,15 @@ describe('Performance Tests', () => {
 
     it('maintains performance with wide tables (many columns)', () => {
       const wideColumns = Array.from({ length: 20 }, (_, i) => ({
-        key: `col${i}`,
-        label: `Column ${i}`,
+        id: `col${i}`,
+        accessor: `col${i}`,
+        header: `Column ${i}`,
       }));
 
       const data = Array.from({ length: 50 }, (_, i) =>
         wideColumns.reduce((acc, col) => ({
           ...acc,
-          [col.key]: `Value ${i}-${col.key}`,
+          [col.accessor]: `Value ${i}-${col.accessor}`,
         }), { id: i })
       );
 
@@ -104,27 +105,30 @@ describe('Performance Tests', () => {
 
   describe('KanbanBoard Performance', () => {
     const createLargeKanbanData = (cardsPerColumn: number): KanbanBoardProps => {
-      const columns = [
-        { id: 'todo', title: 'To Do', color: '#3B82F6' },
-        { id: 'inprogress', title: 'In Progress', color: '#F59E0B' },
-        { id: 'done', title: 'Done', color: '#10B981' },
+      const columnsWithCards = [
+        { id: 'todo', title: 'To Do', color: '#3B82F6', cards: [] as KanbanBoardProps['data']['columns'][0]['cards'] },
+        { id: 'inprogress', title: 'In Progress', color: '#F59E0B', cards: [] as KanbanBoardProps['data']['columns'][0]['cards'] },
+        { id: 'done', title: 'Done', color: '#10B981', cards: [] as KanbanBoardProps['data']['columns'][0]['cards'] },
       ];
 
-      const cards = columns.flatMap((column) =>
-        Array.from({ length: cardsPerColumn }, (_, i) => ({
-          id: `${column.id}-${i}`,
-          title: `Card ${i}`,
-          description: `Description for card ${i}`,
-          columnId: column.id,
-          priority: i % 3 === 0 ? ('high' as const) : ('medium' as const),
-          assignee: { id: `user-${i % 5}`, name: `User ${i % 5}`, avatar: '' },
-        }))
-      );
+      columnsWithCards.forEach((column) => {
+        for (let i = 0; i < cardsPerColumn; i++) {
+          column.cards.push({
+            id: `${column.id}-${i}`,
+            title: `Card ${i}`,
+            description: `Description for card ${i}`,
+            priority: i % 3 === 0 ? ('high' as const) : ('medium' as const),
+            assignees: [{ id: `user-${i % 5}`, name: `User ${i % 5}`, avatar: '' }],
+          });
+        }
+      });
 
       return {
-        title: 'Performance Test Board',
-        columns,
-        cards,
+        data: {
+          id: 'perf-test',
+          title: 'Performance Test Board',
+          columns: columnsWithCards,
+        },
       };
     };
 
@@ -166,8 +170,8 @@ describe('Performance Tests', () => {
       }));
 
       const columns = [
-        { key: 'id', label: 'ID' },
-        { key: 'name', label: 'Name' },
+        { id: "col", accessor: 'id', header: 'ID' },
+        { id: "col", accessor: 'name', header: 'Name' },
       ];
 
       // Render and unmount multiple times
@@ -188,7 +192,7 @@ describe('Performance Tests', () => {
         value: `Value ${i}`,
       }));
 
-      const columns = [{ key: 'id', label: 'ID' }, { key: 'value', label: 'Value' }];
+      const columns = [{ id: "col", accessor: 'id', header: 'ID' }, { id: "col", accessor: 'value', header: 'Value' }];
 
       const { unmount } = render(
         <DataTable columns={columns} data={data} paginated={true} />
@@ -207,8 +211,8 @@ describe('Performance Tests', () => {
       }));
 
       const columns = [
-        { key: 'id', label: 'ID' },
-        { key: 'name', label: 'Name' },
+        { id: "col", accessor: 'id', header: 'ID' },
+        { id: "col", accessor: 'name', header: 'Name' },
       ];
 
       const pageSize = 25;
@@ -231,7 +235,7 @@ describe('Performance Tests', () => {
 
   describe('Concurrent Updates', () => {
     it('handles rapid state updates efficiently', () => {
-      const columns = [{ key: 'id', label: 'ID' }, { key: 'value', label: 'Value' }];
+      const columns = [{ id: "col", accessor: 'id', header: 'ID' }, { id: "col", accessor: 'value', header: 'Value' }];
 
       let data = Array.from({ length: 10 }, (_, i) => ({
         id: i,
@@ -262,7 +266,7 @@ describe('Performance Tests', () => {
 
   describe('Edge Cases', () => {
     it('handles empty dataset', () => {
-      const columns = [{ key: 'id', label: 'ID' }];
+      const columns = [{ id: "col", accessor: 'id', header: 'ID' }];
 
       const { getByText } = render(
         <DataTable columns={columns} data={[]} />
@@ -272,7 +276,7 @@ describe('Performance Tests', () => {
     });
 
     it('handles single item', () => {
-      const columns = [{ key: 'id', label: 'ID' }];
+      const columns = [{ id: "col", accessor: 'id', header: 'ID' }];
       const data = [{ id: 1 }];
 
       const component = render(
@@ -284,8 +288,8 @@ describe('Performance Tests', () => {
 
     it('handles very large single row', () => {
       const columns = [
-        { key: 'id', label: 'ID' },
-        { key: 'data', label: 'Data' },
+        { id: "col", accessor: 'id', header: 'ID' },
+        { id: "col", accessor: 'data', header: 'Data' },
       ];
 
       // Create row with very long string

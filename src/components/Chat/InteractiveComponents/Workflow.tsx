@@ -1,3 +1,4 @@
+/// <reference path="../MultiStreaming/webrtc.d.ts" />
 import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
@@ -427,13 +428,7 @@ export const Workflow: React.FC<WorkflowProps> = ({
     const gradientId = `node-gradient-${node.id}`;
 
     return (
-      <G
-        key={node.id}
-        {...(Platform.OS === 'web'
-          ? { onClick: () => handleNodePress(node) }
-          : { onPress: () => handleNodePress(node) }
-        )}
-      >
+      <G key={node.id}>
         {/* Outer glow effect for selected/critical path */}
         {(isSelected || isOnCriticalPath) && (
           <Rect
@@ -1088,7 +1083,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(229, 231, 235, 0.5)',
     overflow: 'hidden',
-    backdropFilter: 'blur(10px)',
     ...Platform.select({
       ios: {
         shadowColor: '#3B82F6',
@@ -1128,7 +1122,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(229, 231, 235, 0.5)',
     padding: 4,
-    backdropFilter: 'blur(10px)',
     ...Platform.select({
       ios: {
         shadowColor: '#3B82F6',

@@ -49,7 +49,7 @@ export const ComponentHeader: React.FC<ComponentHeaderProps> = ({
           accessibilityLabel="Expand to fullscreen"
           accessibilityHint="Double tap to expand to fullscreen"
         >
-          <Text style={[styles.expandText, { color: colors.textOnPrimary }]}>
+          <Text style={[styles.expandText, { color: colors.text }]}>
             👁️ {isMini ? 'Expand' : 'Fullscreen'}
           </Text>
         </TouchableOpacity>

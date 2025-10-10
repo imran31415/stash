@@ -16,6 +16,7 @@ import { getWebSocketTutorialMessages } from './WebSocketTutorialExample';
 import { getLiveStreamingGraphTutorialMessages } from './LiveStreamingGraphTutorial';
 import { getTreeViewChatMessages, treeViewChat } from './chatExamples';
 import { getKanbanBoardTutorialMessages } from './KanbanBoardTutorial';
+import { getNewComponentsMessages } from './NewComponentsChatExample';
 
 // Combined "What is Stash?" - Philosophy + Demo
 const getStashOverviewMessages = (): Message[] => {
@@ -5036,6 +5037,7 @@ export default function ChatHistoryExample() {
   const componentShowcaseMessages = useMemo(() => getComponentShowcaseMessages(), []);
   const multiSwipeableMessages = useMemo(() => getMultiSwipeableMessages(), []);
   const sprintPlanningMessages = useMemo(() => getSprintPlanningMessages(), []);
+  const newComponentsMessages = useMemo(() => getNewComponentsMessages(), []);
 
   const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>({
     'chat-overview': overviewMessages,
@@ -5049,6 +5051,7 @@ export default function ChatHistoryExample() {
     'chat-sprint-planning': sprintPlanningMessages,
     'chat-component-showcase': componentShowcaseMessages,
     'chat-multi-swipeable': multiSwipeableMessages,
+    'chat-new-components': newComponentsMessages,
     'chat-incident': incidentMessages,
     'chat-0': initialMessages,
   });

@@ -5,9 +5,9 @@ import type { DataTableProps } from '../DataTable.types';
 
 describe('DataTable', () => {
   const mockColumns: DataTableProps['columns'] = [
-    { key: 'id', label: 'ID', sortable: true },
-    { key: 'name', label: 'Name', sortable: true },
-    { key: 'email', label: 'Email' },
+    { id: "col", accessor: 'id', header: 'ID', sortable: true },
+    { id: "col", accessor: 'name', header: 'Name', sortable: true },
+    { id: "col", accessor: 'email', header: 'Email' },
   ];
 
   const mockData: DataTableProps['data'] = [
@@ -183,8 +183,8 @@ describe('DataTable', () => {
   describe('Column Features', () => {
     it('supports custom column widths', () => {
       const columnsWithWidth = [
-        { key: 'id', label: 'ID', width: 50 },
-        { key: 'name', label: 'Name', width: 200 },
+        { id: "col", accessor: 'id', header: 'ID', width: 50 },
+        { id: "col", accessor: 'name', header: 'Name', width: 200 },
       ];
       const component = render(
         <DataTable columns={columnsWithWidth} data={mockData} />
@@ -194,9 +194,9 @@ describe('DataTable', () => {
 
     it('supports column priority', () => {
       const columnsWithPriority = [
-        { key: 'id', label: 'ID', priority: 1 },
-        { key: 'name', label: 'Name', priority: 2 },
-        { key: 'email', label: 'Email', priority: 3 },
+        { id: "col", accessor: 'id', header: 'ID', priority: 1 },
+        { id: "col", accessor: 'name', header: 'Name', priority: 2 },
+        { id: "col", accessor: 'email', header: 'Email', priority: 3 },
       ];
       const component = render(
         <DataTable columns={columnsWithPriority} data={mockData} mode="mini" />

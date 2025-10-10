@@ -3,10 +3,8 @@ import { View, StyleSheet, TouchableOpacity, Text, TextInput, FlatList, Activity
 import { Chat } from '../../src/components/Chat';
 import type { Message } from '../../src/components/Chat/types';
 import { addMinutes } from 'date-fns';
-import { useWebRTC } from './useWebRTC';
-import { useWebRTCLiveKit } from './useWebRTCLiveKit';
-import { RemoteVideoPlayer } from './RemoteVideoPlayer';
-import { LocalVideoPlayer } from './LocalVideoPlayer';
+// Import from library instead of local files
+import { useWebRTC, useWebRTCLiveKit, RemoteVideoPlayer, LocalVideoPlayer } from '../../src/components/Chat/MultiStreaming';
 
 /**
  * MultiUserStreamingExample - Real multi-user video chat room with lobby
@@ -1013,8 +1011,11 @@ const MultiUserStreamingExample: React.FC = () => {
           style={styles.copyLinkButton}
           onPress={() => currentRoomPassword ? setShowCopyLinkModal(true) : copyRoomLink()}
         >
-          <Text style={styles.copyLinkButtonText}>
+          <Text style={styles.copyLinkButtonIcon}>
             {showCopiedMessage ? '✓' : '🔗'}
+          </Text>
+          <Text style={styles.copyLinkButtonText}>
+            {showCopiedMessage ? 'Copied!' : 'Share'}
           </Text>
         </TouchableOpacity>
 
@@ -1024,8 +1025,11 @@ const MultiUserStreamingExample: React.FC = () => {
               style={[styles.mediaToggleButton, !isAudioEnabled && styles.mediaToggleButtonOff]}
               onPress={toggleAudio}
             >
-              <Text style={styles.mediaToggleButtonText}>
+              <Text style={styles.mediaToggleIcon}>
                 {isAudioEnabled ? '🎤' : '🔇'}
+              </Text>
+              <Text style={[styles.mediaToggleLabel, !isAudioEnabled && styles.mediaToggleLabelOff]}>
+                {isAudioEnabled ? 'Mic' : 'Muted'}
               </Text>
             </TouchableOpacity>
 
@@ -1033,8 +1037,11 @@ const MultiUserStreamingExample: React.FC = () => {
               style={[styles.mediaToggleButton, !isVideoEnabled && styles.mediaToggleButtonOff]}
               onPress={toggleVideo}
             >
-              <Text style={styles.mediaToggleButtonText}>
+              <Text style={styles.mediaToggleIcon}>
                 {isVideoEnabled ? '📹' : '📷'}
+              </Text>
+              <Text style={[styles.mediaToggleLabel, !isVideoEnabled && styles.mediaToggleLabelOff]}>
+                {isVideoEnabled ? 'Video' : 'Off'}
               </Text>
             </TouchableOpacity>
           </>
@@ -1047,8 +1054,11 @@ const MultiUserStreamingExample: React.FC = () => {
           ]}
           onPress={myStreamActive ? handleStreamStop : handleStreamStart}
         >
+          <Text style={styles.streamButtonIcon}>
+            {myStreamActive ? '⏹️' : '🎥'}
+          </Text>
           <Text style={styles.streamButtonText}>
-            {myStreamActive ? '⏹️' : '▶️'}
+            {myStreamActive ? 'Stop' : 'Start'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -1271,38 +1281,52 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   copyLinkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 8,
     backgroundColor: '#007AFF',
-    minWidth: 40,
-    alignItems: 'center',
+    gap: 4,
+  },
+  copyLinkButtonIcon: {
+    fontSize: 16,
   },
   copyLinkButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#FFF',
   },
   mediaToggleButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#34C759',
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: '#34C759',
+    gap: 4,
   },
   mediaToggleButtonOff: {
     backgroundColor: '#FF3B30',
   },
-  mediaToggleButtonText: {
-    fontSize: 18,
+  mediaToggleIcon: {
+    fontSize: 16,
+  },
+  mediaToggleLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFF',
+  },
+  mediaToggleLabelOff: {
+    color: '#FFF',
   },
   streamButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 8,
-    alignItems: 'center',
-    minWidth: 40,
+    gap: 4,
   },
   streamButtonActive: {
     backgroundColor: '#FF3B30',
@@ -1310,8 +1334,11 @@ const styles = StyleSheet.create({
   streamButtonInactive: {
     backgroundColor: '#34C759',
   },
-  streamButtonText: {
+  streamButtonIcon: {
     fontSize: 16,
+  },
+  streamButtonText: {
+    fontSize: 13,
     fontWeight: '600',
     color: '#FFF',
   },

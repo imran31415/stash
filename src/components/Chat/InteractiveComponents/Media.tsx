@@ -339,28 +339,19 @@ export const Media: React.FC<MediaProps> = ({
     // For audio and video, we don't want the outer container to be clickable
     // since they have their own play controls
     const isInteractiveMedia = item.type === 'audio' || item.type === 'video';
-    const ContainerComponent = isInteractiveMedia ? View : TouchableOpacity;
-    const containerProps = isInteractiveMedia ? {} : {
-      onPress: handleMediaPress,
-      activeOpacity: 0.9,
-      accessibilityRole: 'button' as const,
-    };
 
-    return (
-      <ContainerComponent
-        key={item.id}
-        style={[
-          styles.mediaContainer,
-          {
-            width: containerWidth,
-            height: containerHeight,
-            backgroundColor: backgroundColor || colors.surface.secondary,
-            borderRadius: customBorderRadius || borderRadius.lg,
-          },
-        ]}
-        accessibilityLabel={`${item.type}: ${getMediaTitle(item)}`}
-        {...containerProps}
-      >
+    const containerStyle = [
+      styles.mediaContainer,
+      {
+        width: containerWidth,
+        height: containerHeight,
+        backgroundColor: backgroundColor || colors.surface.secondary,
+        borderRadius: customBorderRadius || borderRadius.lg,
+      },
+    ];
+
+    const mediaContent = (
+      <>
         {/* Media Type Badge */}
         <View
           style={[
@@ -533,7 +524,28 @@ export const Media: React.FC<MediaProps> = ({
             <Text style={styles.expandButtonText}>👁️ Expand</Text>
           </TouchableOpacity>
         )}
-      </ContainerComponent>
+      </>
+    );
+
+    return isInteractiveMedia ? (
+      <View
+        key={item.id}
+        style={containerStyle}
+        accessibilityLabel={`${item.type}: ${getMediaTitle(item)}`}
+      >
+        {mediaContent}
+      </View>
+    ) : (
+      <TouchableOpacity
+        key={item.id}
+        style={containerStyle}
+        onPress={handleMediaPress}
+        activeOpacity={0.9}
+        accessibilityRole="button"
+        accessibilityLabel={`${item.type}: ${getMediaTitle(item)}`}
+      >
+        {mediaContent}
+      </TouchableOpacity>
     );
   };
 

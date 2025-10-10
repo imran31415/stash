@@ -71,7 +71,7 @@ export interface KanbanBoardData {
   };
 }
 
-export type KanbanBoardMode = 'mini' | 'full';
+export type KanbanBoardMode = 'mini' | 'full' | 'preview';
 export type KanbanBoardLayout = 'horizontal' | 'vertical';
 
 export interface KanbanBoardProps {
