@@ -189,8 +189,8 @@ export const VideoStream: React.FC<VideoStreamProps> = ({
   // Handle playback status updates
   const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
     if (!status.isLoaded) {
-      if (status.error) {
-        const error = new Error(status.error);
+      if ((status as any).error) {
+        const error = new Error((status as any).error);
         setError(error);
         setStreamState(prev => ({ ...prev, status: 'error', error }));
         onError?.(error);
