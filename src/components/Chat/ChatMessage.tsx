@@ -425,6 +425,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           <Dashboard
             config={data.config}
             mode="mini"
+            height={600}
             onItemPress={(item) => onAction?.('item-press', item)}
             onExpandPress={() => handleDashboardExpand(data.config)}
           />
@@ -953,7 +954,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
     borderRadius: 12,
     overflow: 'hidden',
-    alignItems: 'center',
+    alignItems: 'flex-start',  // Left-align so overflow clips from right, not left
+    alignSelf: 'stretch',      // Take full width of parent
   },
   messageText: {
     fontSize: 16,
@@ -1013,14 +1015,15 @@ const styles = StyleSheet.create({
   },
   systemMessageContainer: {
     alignItems: 'center',
-    marginVertical: 8,
-    paddingHorizontal: 12,
+    marginVertical: 12,
+    paddingHorizontal: 16,
   },
   systemMessageText: {
-    fontSize: 13,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    fontSize: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderRadius: 12,
+    lineHeight: 20,
   },
   enterPresentationButton: {
     marginTop: 8,

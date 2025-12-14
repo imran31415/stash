@@ -61,6 +61,8 @@ export interface ChatProps {
   showControlBar?: boolean; // Show the control bar with actions (default: true in non-presentation mode)
   showHistoryButton?: boolean; // Show the history/chats button in control bar (default: false)
   initialScrollPosition?: 'top' | 'bottom'; // Initial scroll position when messages load (default: 'bottom')
+  defaultInputValue?: string; // Default value to pre-fill in the input field
+  inputResetKey?: string | number; // Change this to trigger input reset to defaultInputValue
 }
 
 export const Chat: React.FC<ChatProps> = ({
@@ -95,9 +97,11 @@ export const Chat: React.FC<ChatProps> = ({
   showControlBar = true,
   showHistoryButton = false,
   initialScrollPosition = 'bottom',
+  defaultInputValue,
+  inputResetKey,
 }) => {
   const [messages, setMessages] = useState<Message[]>(externalMessages);
-  const [inputText, setInputText] = useState('');
+  const [inputText, setInputText] = useState(defaultInputValue || '');
   const [isLoading, setIsLoading] = useState(false);
   const [connectionState, setConnectionState] = useState<ConnectionState>(ConnectionState.Disconnected);
   const [typingUsers, setTypingUsers] = useState<TypingIndicatorType[]>([]);
@@ -118,6 +122,13 @@ export const Chat: React.FC<ChatProps> = ({
   useEffect(() => {
     setMessages(externalMessages);
   }, [externalMessages]);
+
+  // Update input when defaultInputValue or inputResetKey changes
+  useEffect(() => {
+    if (defaultInputValue !== undefined) {
+      setInputText(defaultInputValue);
+    }
+  }, [defaultInputValue, inputResetKey]);
 
   // Reset scroll tracker when chatId changes
   useEffect(() => {

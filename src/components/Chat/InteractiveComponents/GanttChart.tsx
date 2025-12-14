@@ -559,7 +559,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface.primary,
     borderRadius: borderRadius.lg,
     overflow: 'hidden',
-    paddingLeft: 1,  // Prevent left side clipping in chat context
+    paddingLeft: 2,  // Prevent left side clipping in chat context
+    marginLeft: 1,   // Additional margin for chat container
     ...shadows.sm,
   },
   containerMini: {

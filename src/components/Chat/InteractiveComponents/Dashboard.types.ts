@@ -23,13 +23,28 @@ export type DashboardItemType =
   | 'kanban-board'
   | 'heatmap'
   | 'workflow'
+  | 'data-table'
+  | 'flame-graph'
+  | 'comparison-table'
+  | 'sankey-diagram'
+  | 'network-topology'
+  | 'funnel-chart'
+  | 'calendar-timeline'
+  | 'form-builder'
+  | 'stats'
+  | 'list'
+  | 'chart'
+  | 'timeline'
+  | 'actions'
   | 'custom';
 
 export interface DashboardItemConfig {
   id: string;
   type: DashboardItemType;
-  // Grid position and size
-  gridPosition: {
+  // Optional title for simple widget types (stats, list, chart, timeline, actions)
+  title?: string;
+  // Grid position and size (optional - will be auto-positioned if not provided)
+  gridPosition?: {
     row: number; // 0-indexed
     col: number; // 0-indexed
     rowSpan?: number; // Default: 1

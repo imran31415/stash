@@ -64,11 +64,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
+    paddingLeft: spacing.lg + 2,  // Extra left padding to prevent clipping in chat
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
   },
   headerContent: {
     flex: 1,
+    marginLeft: 1,  // Prevent left side text clipping
   },
   title: {
     fontSize: typography.fontSize.xxl,

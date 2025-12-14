@@ -114,9 +114,11 @@ export const TaskList: React.FC<TaskListProps> = ({
               </View>
 
               <View style={styles.taskFooter}>
-                <Text style={[styles.dateText, { color: colors.textSecondary }]}>
-                  {formatDate(task.startDate)} - {formatDate(task.endDate)}
-                </Text>
+                {task.startDate && task.endDate && (
+                  <Text style={[styles.dateText, { color: colors.textSecondary }]}>
+                    {formatDate(task.startDate)} - {formatDate(task.endDate)}
+                  </Text>
+                )}
                 {task.assignee && (
                   <Text style={[styles.assigneeText, { color: colors.textSecondary }]}>👤 {task.assignee}</Text>
                 )}

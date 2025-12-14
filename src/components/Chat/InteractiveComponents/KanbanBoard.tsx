@@ -13,11 +13,31 @@ import {
 } from './KanbanBoard.utils';
 import {
   borderRadius,
+  spacing,
+  typography,
   useThemeColors,
   useResponsiveMode,
-  ComponentHeader,
   StatsBar,
 } from './shared';
+
+// Local colors for consistent styling
+const colors = {
+  surface: {
+    primary: '#FFFFFF',
+    secondary: '#F8FAFC',
+  },
+  text: {
+    primary: '#1E293B',
+    secondary: '#64748B',
+    inverse: '#FFFFFF',
+  },
+  border: {
+    default: '#E2E8F0',
+  },
+  accent: {
+    500: '#3B82F6',
+  },
+};
 
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   data,
@@ -32,21 +52,41 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onColumnPress,
   onExpandPress,
 }) => {
-  const colors = useThemeColors();
+  const themeColors = useThemeColors();
   const { isMini } = useResponsiveMode(mode);
+
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <View style={styles.headerContent}>
+        <Text style={[styles.headerTitle, isMini && styles.headerTitleMini]} numberOfLines={1}>
+          {data?.title || 'Kanban Board'}
+        </Text>
+        {data?.description && !isMini && (
+          <Text style={styles.headerSubtitle} numberOfLines={1}>
+            {data.description}
+          </Text>
+        )}
+      </View>
+      {mode !== 'full' && onExpandPress && (
+        <TouchableOpacity
+          style={styles.expandButton}
+          onPress={onExpandPress}
+          accessibilityLabel="Expand Kanban board"
+          accessibilityRole="button"
+        >
+          <Text style={styles.expandButtonText}>👁️ Expand</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
 
   // Early return if data is not provided
   if (!data || !data.columns) {
     return (
       <View style={[styles.container, { height }]}>
-        <ComponentHeader
-          title={data?.title || 'Kanban Board'}
-          description={data?.description}
-          isMini={isMini}
-          onExpandPress={onExpandPress}
-        />
+        {renderHeader()}
         <View style={styles.emptyContainer}>
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+          <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
             No kanban board data available
           </Text>
         </View>
@@ -66,7 +106,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         key={card.id}
         style={[
           styles.card,
-          { backgroundColor: colors.surface, borderColor: colors.border },
+          { backgroundColor: themeColors.surface, borderColor: themeColors.border },
           isOverdue && { borderColor: '#FF3B30', borderWidth: 2 },
         ]}
         onPress={() => onCardPress?.(card, column)}
@@ -84,7 +124,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         <View style={styles.cardContent}>
           {/* Title */}
           <Text
-            style={[styles.cardTitle, { color: colors.text }]}
+            style={[styles.cardTitle, { color: themeColors.text }]}
             numberOfLines={isMini ? 1 : 2}
           >
             {card.title}
@@ -93,7 +133,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           {/* Description */}
           {!isMini && card.description && (
             <Text
-              style={[styles.cardDescription, { color: colors.textSecondary }]}
+              style={[styles.cardDescription, { color: themeColors.textSecondary }]}
               numberOfLines={2}
             >
               {card.description}
@@ -112,7 +152,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 </View>
               ))}
               {card.tags.length > 3 && (
-                <Text style={[styles.tagMore, { color: colors.textSecondary }]}>
+                <Text style={[styles.tagMore, { color: themeColors.textSecondary }]}>
                   +{card.tags.length - 3}
                 </Text>
               )}
@@ -128,7 +168,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 <Text
                   style={[
                     styles.metaText,
-                    { color: isOverdue ? '#FF3B30' : colors.textSecondary },
+                    { color: isOverdue ? '#FF3B30' : themeColors.textSecondary },
                   ]}
                 >
                   {formatDueDate(card.dueDate)}
@@ -140,7 +180,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             {card.checklistItems && card.checklistItems > 0 && (
               <View style={styles.metaItem}>
                 <Text style={styles.metaIcon}>✓</Text>
-                <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                <Text style={[styles.metaText, { color: themeColors.textSecondary }]}>
                   {card.checklistCompleted}/{card.checklistItems}
                 </Text>
               </View>
@@ -150,7 +190,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             {card.comments && card.comments > 0 && (
               <View style={styles.metaItem}>
                 <Text style={styles.metaIcon}>💬</Text>
-                <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                <Text style={[styles.metaText, { color: themeColors.textSecondary }]}>
                   {card.comments}
                 </Text>
               </View>
@@ -160,7 +200,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             {card.attachments && card.attachments > 0 && (
               <View style={styles.metaItem}>
                 <Text style={styles.metaIcon}>📎</Text>
-                <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                <Text style={[styles.metaText, { color: themeColors.textSecondary }]}>
                   {card.attachments}
                 </Text>
               </View>
@@ -175,7 +215,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   key={assignee.id}
                   style={[
                     styles.assigneeAvatar,
-                    { backgroundColor: assignee.color || colors.primary },
+                    { backgroundColor: assignee.color || themeColors.primary },
                     index > 0 && { marginLeft: -8 },
                   ]}
                 >
@@ -186,10 +226,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 <View
                   style={[
                     styles.assigneeAvatar,
-                    { backgroundColor: colors.border, marginLeft: -8 },
+                    { backgroundColor: themeColors.border, marginLeft: -8 },
                   ]}
                 >
-                  <Text style={[styles.assigneeText, { color: colors.textSecondary }]}>
+                  <Text style={[styles.assigneeText, { color: themeColors.textSecondary }]}>
                     +{card.assignees.length - 3}
                   </Text>
                 </View>
@@ -199,7 +239,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         </View>
       </TouchableOpacity>
     );
-  }, [colors, isMini, onCardPress]);
+  }, [themeColors, isMini, onCardPress]);
 
   const renderColumn = useCallback((column: KanbanColumn) => {
     const isOverLimit = isColumnOverWIPLimit(column);
@@ -210,13 +250,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         key={column.id}
         style={[
           styles.column,
-          { backgroundColor: colors.surface },
+          { backgroundColor: themeColors.surface },
           isMini && styles.columnMini,
         ]}
       >
         {/* Column header */}
         <TouchableOpacity
-          style={[styles.columnHeader, { borderBottomColor: colors.border }]}
+          style={[styles.columnHeader, { borderBottomColor: themeColors.border }]}
           onPress={() => onColumnPress?.(column)}
           activeOpacity={0.7}
           accessibilityRole="button"
@@ -225,10 +265,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         >
           <View style={styles.columnHeaderContent}>
             {column.icon && <Text style={styles.columnIcon}>{column.icon}</Text>}
-            <Text style={[styles.columnTitle, { color: colors.text }]} numberOfLines={1}>
+            <Text style={[styles.columnTitle, { color: themeColors.text }]} numberOfLines={1}>
               {column.title}
             </Text>
-            <View style={[styles.columnCount, { backgroundColor: colors.primary }]}>
+            <View style={[styles.columnCount, { backgroundColor: themeColors.primary }]}>
               <Text style={styles.columnCountText}>{column.cards.length}</Text>
             </View>
           </View>
@@ -236,18 +276,18 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           {/* WIP Limit indicator */}
           {column.wipLimit && (
             <View style={styles.wipLimitContainer}>
-              <View style={[styles.wipLimitBar, { backgroundColor: colors.border }]}>
+              <View style={[styles.wipLimitBar, { backgroundColor: themeColors.border }]}>
                 <View
                   style={[
                     styles.wipLimitProgress,
                     {
-                      backgroundColor: isOverLimit ? '#FF3B30' : colors.primary,
+                      backgroundColor: isOverLimit ? '#FF3B30' : themeColors.primary,
                       width: `${Math.min(wipUtilization, 100)}%`,
                     },
                   ]}
                 />
               </View>
-              <Text style={[styles.wipLimitText, { color: colors.textSecondary }]}>
+              <Text style={[styles.wipLimitText, { color: themeColors.textSecondary }]}>
                 {column.cards.length}/{column.wipLimit}
               </Text>
             </View>
@@ -263,7 +303,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           {column.cards.map((card) => renderCard(card, column))}
           {column.cards.length === 0 && (
             <View style={styles.emptyColumn}>
-              <Text style={[styles.emptyColumnText, { color: colors.textTertiary }]}>
+              <Text style={[styles.emptyColumnText, { color: themeColors.textTertiary }]}>
                 No cards
               </Text>
             </View>
@@ -271,16 +311,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         </ScrollView>
       </View>
     );
-  }, [colors, isMini, renderCard, onColumnPress]);
+  }, [themeColors, isMini, renderCard, onColumnPress]);
 
   return (
-    <View style={[styles.container, { height }]}>
-      <ComponentHeader
-        title={data.title}
-        description={data.description}
-        isMini={isMini}
-        onExpandPress={onExpandPress}
-      />
+    <View style={[styles.container, isMini && styles.containerMini, { height }]}>
+      {renderHeader()}
 
       {showStats && (
         <StatsBar
@@ -310,12 +345,63 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.surface.primary,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+    paddingLeft: 2,
+    marginLeft: 1,
+  },
+  containerMini: {
+    borderRadius: borderRadius.md,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.default,
+    backgroundColor: colors.surface.secondary,
+  },
+  headerContent: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.text.primary,
+    marginBottom: spacing.xs,
+  },
+  headerTitleMini: {
+    fontSize: typography.fontSize.base,
+    marginBottom: 0,
+  },
+  headerSubtitle: {
+    fontSize: typography.fontSize.sm,
+    color: colors.text.secondary,
+  },
+  expandButton: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.base,
+    backgroundColor: colors.accent[500],
+    marginLeft: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  expandButtonText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.text.inverse,
   },
   board: {
     flex: 1,
   },
   boardContent: {
-    padding: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    paddingLeft: 14,
     gap: 10,
   },
   column: {
