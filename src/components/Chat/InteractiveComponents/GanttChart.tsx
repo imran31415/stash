@@ -559,6 +559,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface.primary,
     borderRadius: borderRadius.lg,
     overflow: 'hidden',
+    paddingLeft: 1,  // Prevent left side clipping in chat context
     ...shadows.sm,
   },
   containerMini: {
@@ -611,6 +612,7 @@ const styles = StyleSheet.create({
   chartContainer: {
     flexDirection: 'row',
     flex: 1,
+    marginLeft: 1,  // Prevent left side clipping
   },
   sidebar: {
     borderRightWidth: 1,

@@ -32,6 +32,8 @@ import {
   DashboardPreview,
   DataTable,
   DataTableDetailView,
+  ComparisonTable,
+  ComparisonTableDetailView,
   Workflow,
   WorkflowDetailView,
   FlameGraph,
@@ -44,7 +46,7 @@ import {
   KanbanBoard,
   KanbanBoardDetailView,
 } from './InteractiveComponents';
-import type { Task, TimeSeriesSeries, GraphData, SupportedLanguage, MediaItem, DashboardConfig, ColumnDefinition, RowData, VideoStreamData, TreeViewData, SwipeableItem, KanbanBoardData } from './InteractiveComponents';
+import type { Task, TimeSeriesSeries, GraphData, SupportedLanguage, MediaItem, DashboardConfig, ColumnDefinition, RowData, VideoStreamData, TreeViewData, SwipeableItem, KanbanBoardData, ComparisonTableData } from './InteractiveComponents';
 import { MarkdownText } from './MarkdownText';
 
 export interface ChatMessageProps {
@@ -143,6 +145,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   const [treeViewData, setTreeViewData] = useState<TreeViewData | null>(null);
   const [showKanbanDetail, setShowKanbanDetail] = useState(false);
   const [kanbanData, setKanbanData] = useState<KanbanBoardData | null>(null);
+  const [showComparisonTableDetail, setShowComparisonTableDetail] = useState(false);
+  const [comparisonTableData, setComparisonTableData] = useState<ComparisonTableData | null>(null);
 
   // Loading state for AI messages
   if (isLoading) {
@@ -278,6 +282,11 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   const handleKanbanExpand = (kanbanData: KanbanBoardData) => {
     setKanbanData(kanbanData);
     setShowKanbanDetail(true);
+  };
+
+  const handleComparisonTableExpand = (data: ComparisonTableData) => {
+    setComparisonTableData(data);
+    setShowComparisonTableDetail(true);
   };
 
   const renderInteractiveComponent = () => {
@@ -446,11 +455,22 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             />
           </Pressable>
         );
+      case 'comparison-table':
+        return (
+          <Pressable onPress={() => handleComparisonTableExpand(data)}>
+            <ComparisonTable
+              data={data}
+              mode={data.mode || 'mini'}
+              onExpandPress={() => handleComparisonTableExpand(data)}
+              onCellPress={(row, column, cell) => onAction?.('cell-press', { row, column, cell })}
+            />
+          </Pressable>
+        );
       case 'workflow':
       case 'dag':
         return (
           <Workflow
-            {...data}
+            data={data}
             mode={data.mode || 'mini'}
             onNodePress={(node) => onAction?.('node-press', node)}
             onExpandPress={() => handleWorkflowExpand(data)}
@@ -858,6 +878,15 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           data={kanbanData}
           visible={showKanbanDetail}
           onClose={() => setShowKanbanDetail(false)}
+        />
+      )}
+
+      {/* ComparisonTable Detail View */}
+      {showComparisonTableDetail && comparisonTableData && (
+        <ComparisonTableDetailView
+          data={comparisonTableData}
+          visible={showComparisonTableDetail}
+          onClose={() => setShowComparisonTableDetail(false)}
         />
       )}
     </View>
